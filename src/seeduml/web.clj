@@ -12,6 +12,12 @@
 
 (def plantumls (atom {}))
 
+(def cwd (System/getProperty "user.dir"))
+
+(def css-dir (str cwd "/compass/stylesheets"))
+
+(def js-dir (str cwd "/js"))
+
 (defn retrieve-plantuml [id]
   (if-let [plantuml (@plantumls id)]
     (-> (response (java.io.ByteArrayInputStream. (render/render plantuml)))
@@ -23,6 +29,8 @@
 
 (defroutes seeduml-routes
   (GET "/" [] (redirect (str "/" (random-string 5))))
+  (GET "/style/*" [*] (file-response (str css-dir "/" *)))
+  (GET "/script/*" [*] (file-response (str js-dir "/" *)))
   (GET "/img/default.png" [] (resource-response "default.png"))
   (GET "/img/:id.png*" [id] (retrieve-plantuml id))
   (GET "/:id" [id] (resource-response "sketch.html"))

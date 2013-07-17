@@ -1,0 +1,48 @@
+$custom-green: #9CBF72;
+
+@mixin noborder {
+  margin : 0px;
+  padding: 0px;
+  border : 0px;
+}
+
+body {
+  @include noborder;
+}
+
+span.header {
+  display: block;
+  background-color: $custom-green;
+  margin: 0px;
+}
+
+span.header h1 {
+  display: inline;
+  margin: 0px 0px 0px 20px;
+}
+
+span.footer {
+  display: block;
+  width: 100%;
+  position: absolute;
+  bottom: 0px;
+  background-color: $custom-green;
+}
+
+span.wrapper {
+  display: inline-block;
+  height: 100%;
+  width: 49%;
+  overflow: scroll;
+}
+
+textarea {
+  width: 100%;
+  height: 100%;
+  background-color: #ffc;
+}
+
+img {
+  display: block;
+  margin: 10px auto 0px auto;
+}

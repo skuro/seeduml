@@ -1,0 +1,49 @@
+/* line 9, ../sass/skuro.scss */
+body {
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+}
+
+/* line 13, ../sass/skuro.scss */
+span.header {
+  display: block;
+  background-color: #9cbf72;
+  margin: 0px;
+}
+
+/* line 19, ../sass/skuro.scss */
+span.header h1 {
+  display: inline;
+  margin: 0px 0px 0px 20px;
+}
+
+/* line 24, ../sass/skuro.scss */
+span.footer {
+  display: block;
+  width: 100%;
+  position: absolute;
+  bottom: 0px;
+  background-color: #9cbf72;
+}
+
+/* line 32, ../sass/skuro.scss */
+span.wrapper {
+  display: inline-block;
+  height: 100%;
+  width: 49%;
+  overflow: scroll;
+}
+
+/* line 39, ../sass/skuro.scss */
+textarea {
+  width: 100%;
+  height: 100%;
+  background-color: #ffc;
+}
+
+/* line 45, ../sass/skuro.scss */
+img {
+  display: block;
+  margin: 10px auto 0px auto;
+}
