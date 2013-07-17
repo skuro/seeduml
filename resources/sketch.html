@@ -1,6 +1,8 @@
 <html>
   <head>
     <title>Sketching UML</title>
+
+    <link href='http://fonts.googleapis.com/css?family=Annie+Use+Your+Telescope' rel='stylesheet' type='text/css'/>
     <link href="/style/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
     <link href="/style/print.css" media="print" rel="stylesheet" type="text/css" />
     <!--[if lt IE 8]>
@@ -9,78 +11,47 @@
   </head>
 
   <body>
-    <span class="header">
-      <h1>SeedUML</h1>
-      <span style="float: right; display: block; margin: 8px 20px 0px 0px">
-        <script id='flattrbtn'>(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//api.flattr.com/button/view/?uid=skuro&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('flattrbtn');</script>
-        <iframe style="border: 0; margin-top: 0; padding: 0;"
-        src="https://www.gittip.com/skuro/widget.html"
-        width="48pt" height="22pt"></iframe>
-      </span>
-    </span>
-    <span class="header">
 
-    </span>
-    <span class="wrapper">
-      <textarea id="plantuml" name="plantuml">
+    <div class="container">
+      <div class="header span-24">
+<!--
+ <div class="span-3">
+          <h1>SeedUML</h1>
+        </div>
+        <div class="spacer span-15" />
+        <div class="flattr span-6">
+          <script id='flattrbtn'>(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//api.flattr.com/button/view/?uid=skuro&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('flattrbtn');</script>
+        </div>
+-->
+        <div class="span-5 title">
+          <h1>&nbsp;SeedUML<span class="superscript">&trade;</span></h1>
+        </div>
+        <div class="span-15 spacer">&nbsp;</div>
+        <div class="span-4 flattr last">
+          <div class="span-2">
+            <script id='flattrbtn'>(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//api.flattr.com/button/view/?uid=skuro&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('flattrbtn');</script>
+          </div>
+          <div class="span-1 spacer"></div>
+          <div class="span-1 last"><span class="help">&nbsp;?&nbsp;</span></div>
+        </div>
+      </div>
+
+      <div class="span-12">
+        <textarea id="plantuml" name="plantuml">
 @startuml
 Bob -> Alice : hello
 @enduml</textarea>
-    </span>
-    <span class="wrapper">
-      <span id="error" class="error" style="visibility:none"></span>
-      <img id="graph" src="/img/default.png" alt="The generated plantuml graph" />
-    </span>
-    <span class="footer">
-      <p>Credits</p>
-    </span>
-    <script type="text/javascript">
-      (function autosubmit(){
-        var composer = document.getElementById("composer");
-        var textarea = document.getElementById("plantuml");
-        var graph    = document.getElementById("graph");
-        var errmsg   = document.getElementById("error");
+      </div>
+      <div class="span-12 last">
+        <span id="error" style="visibility:none"></span>
+        <img id="graph" src="/img/default.png" alt="The generated plantuml graph" />
+      </div>
+      <div class="footer span-24">
+        <p>Credits</p>
+      </div>
 
-        var updateImg = function() {
-          var date = new Date();
-          var rnd = "" + date.getFullYear() +
-                      date.getMonth() +
-                      date.getDay() +
-                      date.getHours() +
-                      date.getMinutes() +
-                      date.getSeconds() +
-                      date.getMilliseconds();
-          graph.src = "/img/" + document.location.pathname.split("/")[1] + ".png#" + rnd;
-        };
-
-        var submit = function(){
-          var xhr = new XMLHttpRequest();
-          xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-              if(xhr.status === 200) {
-                error.style.visibility = "hidden";
-                graph.style.visibility = "visible";
-                updateImg();
-              } else {
-                graph.style.visibility = "hidden";
-                error.innerText = xhr.responseText;
-                error.style.visibility = "visible";
-              }
-            }
-          };
-
-          xhr.open("POST", document.location);
-          xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-          var params = "plantuml=" + encodeURIComponent(textarea.value);
-          xhr.send(params);
-        };
-
-        var timer = null;
-        textarea.onkeyup = function(){
-          clearTimeout(timer);
-          setTimeout(submit, 300);
-        };
-      })();
-    </script>
+      </div>
+      <script type="text/javascript" src="/script/seeduml.js">
+      </script>
   </body>
 </html>

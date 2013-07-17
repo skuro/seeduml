@@ -10,35 +10,48 @@ body {
   @include noborder;
 }
 
-span.header {
-  display: block;
-  background-color: $custom-green;
-  margin: 0px;
-}
-
-span.header h1 {
-  display: inline;
-  margin: 0px 0px 0px 20px;
-}
-
-span.footer {
-  display: block;
-  width: 100%;
-  position: absolute;
-  bottom: 0px;
+div.header {
+  @include noborder;
   background-color: $custom-green;
 }
 
-span.wrapper {
-  display: inline-block;
-  height: 100%;
-  width: 49%;
-  overflow: scroll;
+div.title {
+//  padding-left: 9px;
+}
+
+div.flattr{
+  padding: 14px 0px 0px 0px;
+}
+
+div.spacer {
+  height: 3em;
+}
+
+h1 {
+  display: block;
+  top: 2px;
+  margin: 5px 0px 0px 5px;
+  font-family: 'Annie Use Your Telescope', cursive;
+  color: white;
+  
+  span.superscript {
+    font-family: 'Arial';
+    font-size: xx-small;
+    vertical-align:top;
+  }  
+}
+
+div.footer {
+  background-color: $custom-green;
+}
+
+span.help {
+  color: white;
+  border: 1px solid white;
 }
 
 textarea {
-  width: 100%;
-  height: 100%;
+  height: 90%;
   background-color: #ffc;
 }
 

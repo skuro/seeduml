@@ -6,43 +6,56 @@ body {
 }
 
 /* line 13, ../sass/skuro.scss */
-span.header {
-  display: block;
-  background-color: #9cbf72;
+div.header {
   margin: 0px;
-}
-
-/* line 19, ../sass/skuro.scss */
-span.header h1 {
-  display: inline;
-  margin: 0px 0px 0px 20px;
-}
-
-/* line 24, ../sass/skuro.scss */
-span.footer {
-  display: block;
-  width: 100%;
-  position: absolute;
-  bottom: 0px;
+  padding: 0px;
+  border: 0px;
   background-color: #9cbf72;
 }
 
-/* line 32, ../sass/skuro.scss */
-span.wrapper {
-  display: inline-block;
-  height: 100%;
-  width: 49%;
-  overflow: scroll;
+/* line 22, ../sass/skuro.scss */
+div.flattr {
+  padding: 14px 0px 0px 0px;
 }
 
-/* line 39, ../sass/skuro.scss */
+/* line 26, ../sass/skuro.scss */
+div.spacer {
+  height: 3em;
+}
+
+/* line 30, ../sass/skuro.scss */
+h1 {
+  display: block;
+  top: 2px;
+  margin: 5px 0px 0px 5px;
+  font-family: 'Annie Use Your Telescope', cursive;
+  color: white;
+}
+/* line 37, ../sass/skuro.scss */
+h1 span.superscript {
+  font-family: 'Arial';
+  font-size: xx-small;
+  vertical-align: top;
+}
+
+/* line 44, ../sass/skuro.scss */
+div.footer {
+  background-color: #9cbf72;
+}
+
+/* line 48, ../sass/skuro.scss */
+span.help {
+  color: white;
+  border: 1px solid white;
+}
+
+/* line 53, ../sass/skuro.scss */
 textarea {
-  width: 100%;
-  height: 100%;
+  height: 90%;
   background-color: #ffc;
 }
 
-/* line 45, ../sass/skuro.scss */
+/* line 58, ../sass/skuro.scss */
 img {
   display: block;
   margin: 10px auto 0px auto;
