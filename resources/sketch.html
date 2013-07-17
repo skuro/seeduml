@@ -1,0 +1,124 @@
+<html>
+  <head>
+    <title>Sketching UML</title>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+
+      span.header {
+        display: block;
+        background-color: #9CBF72;
+        margin: 0px;
+      }
+
+      span.header h1 {
+        display: inline;
+        margin: 0px 0px 0px 20px;
+      }
+
+      span.footer {
+        display: block;
+        width: 100%;
+        position: absolute;
+        bottom: 0px;
+        background-color: #9CBF72;
+      }
+
+      span.wrapper {
+        display: inline-block;
+        height: 100%;
+        width: 49%;
+        overflow: scroll;
+      }
+
+      textarea {
+        width: 100%;
+        height: 100%;
+        background-color: #ffc;
+      }
+
+      img {
+        display: block;
+        margin: 10px auto 0px auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <span class="header">
+      <h1>SeedUML</h1>
+      <span style="float: right; display: block; margin: 8px 20px 0px 0px">
+        <script id='flattrbtn'>(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//api.flattr.com/button/view/?uid=skuro&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('flattrbtn');</script>
+        <iframe style="border: 0; margin-top: 0; padding: 0;"
+        src="https://www.gittip.com/skuro/widget.html"
+        width="48pt" height="22pt"></iframe>
+      </span>
+    </span>
+    <span class="header">
+
+    </span>
+    <span class="wrapper">
+      <textarea id="plantuml" name="plantuml">
+@startuml
+Bob -> Alice : hello
+@enduml</textarea>
+    </span>
+    <span class="wrapper">
+      <span id="error" class="error" style="visibility:none"></span>
+      <img id="graph" src="/img/default.png" alt="The generated plantuml graph" />
+    </span>
+    <span class="footer">
+      <p>Credits</p>
+    </span>
+    <script type="text/javascript">
+      (function autosubmit(){
+        var composer = document.getElementById("composer");
+        var textarea = document.getElementById("plantuml");
+        var graph    = document.getElementById("graph");
+        var errmsg   = document.getElementById("error");
+
+        var updateImg = function() {
+          var date = new Date();
+          var rnd = "" + date.getFullYear() +
+                      date.getMonth() +
+                      date.getDay() +
+                      date.getHours() +
+                      date.getMinutes() +
+                      date.getSeconds() +
+                      date.getMilliseconds();
+          graph.src = "/img/" + document.location.pathname.split("/")[1] + ".png#" + rnd;
+        };
+
+        var submit = function(){
+          var xhr = new XMLHttpRequest();
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+              if(xhr.status === 200) {
+                error.style.visibility = "hidden";
+                graph.style.visibility = "visible";
+                updateImg();
+              } else {
+                graph.style.visibility = "hidden";
+                error.innerText = xhr.responseText;
+                error.style.visibility = "visible";
+              }
+            }
+          };
+
+          xhr.open("POST", document.location);
+          xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+          var params = "plantuml=" + encodeURIComponent(textarea.value);
+          xhr.send(params);
+        };
+
+        var timer = null;
+        textarea.onkeyup = function(){
+          clearTimeout(timer);
+          setTimeout(submit, 300);
+        };
+      })();
+    </script>
+  </body>
+</html>
