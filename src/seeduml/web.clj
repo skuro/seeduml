@@ -76,4 +76,4 @@
   (run-jetty #'app {:port 8080 :join? false}))
 
 (defn -main [port]
-  (run-jetty #'app {:port port :join? false}))
+  (run-jetty #'app {:port (Integer. port) :join? false}))
