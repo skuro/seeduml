@@ -6,5 +6,6 @@
   :profiles {:dev {:dependencies [[midje "1.5.1"]]}}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [compojure "1.1.5"]
+                 [me.raynes/laser "1.1.1"]
                  [ring/ring-jetty-adapter "1.2.0"]
                  [net.sourceforge.plantuml/plantuml "7972-SNAPSHOT"]])

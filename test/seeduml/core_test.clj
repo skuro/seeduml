@@ -1,6 +1,7 @@
 (ns seeduml.core-test
   (:use midje.sweet
-        seeduml.core)
+        seeduml.core
+        seeduml.web)
   (:import [net.sourceforge.plantuml SourceStringReader]))
 
 (set! *warn-on-reflection* true)
@@ -23,3 +24,12 @@
 
 (fact "As Seeduml I can transubstantiate plantuml descriptors into awesome graphs (thanks to plantuml, of course)"
       (to-graph "@startuml\na -> b\n@enduml") => bytes?)
+
+(fact "As Seeduml
+       I can host only max-size elements
+       So that I can survive the Internet"
+      (binding [*max-size* 1]
+        (do
+          (EMPTY)
+          (store-plantuml :a 1)
+          (store-plantuml :b 1))) => (contains {:src {:b 1}}))

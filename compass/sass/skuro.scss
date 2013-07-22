@@ -8,6 +8,7 @@ $custom-green: #9CBF72;
 
 body {
   @include noborder;
+  overflow: hidden;
 }
 
 div.header {
