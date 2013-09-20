@@ -1,7 +1,12 @@
 (ns seeduml.render
-  (:import [net.sourceforge.plantuml SourceStringReader])
+  (:import [net.sourceforge.plantuml SourceStringReader OptionFlags])
   (:require [clojure.java.io :as io]
             [me.raynes.laser :as laser]))
+
+;; init code
+(do
+  (-> (OptionFlags/getInstance)
+      (.setDotExecutable ".graphviz/bin/dot")))
 
 (def raw-template (-> "sketch.html" io/resource laser/parse))
 
