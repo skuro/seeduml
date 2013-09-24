@@ -61,3 +61,8 @@ img {
   display: block;
   margin: 10px auto 0px auto;
 }
+
+/* line 64, ../sass/skuro.scss */
+img#graph {
+  width: 100%;
+}
