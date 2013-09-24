@@ -1730,5 +1730,5 @@ img {
 
 /* line 64, ../sass/skuro.scss */
 img#graph {
-  width: 100%;
+  max-width: 100%;
 }
