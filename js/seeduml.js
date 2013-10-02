@@ -44,3 +44,29 @@
         setTimeout(submit, 300);
     };
 })();
+
+var getStyle = function(element, style) {
+    if(window.getComputedStyle){
+        // Chrome, FF, Opera, Safari
+        return window.getComputedStyle(element)[style];
+    } else if(element.currentStyle) {
+        // IE
+        return element.currentStyle[style];
+    }
+
+    // revert to the declared style
+    return element.style[style];
+}
+
+var toggle = function(element) {
+    console.log(getStyle(element, "visibility"));
+    element.style.visibility = (getStyle(element, "visibility") == "visible") ? "hidden" : "visible";
+};
+
+(function help(){
+    var helpIcon = document.getElementById("help");
+    helpIcon.onclick = function() {
+        var helpOverlay = document.getElementById("help-overlay");
+        toggle(helpOverlay);
+    };
+})();

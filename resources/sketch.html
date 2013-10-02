@@ -32,7 +32,7 @@
             <script id='flattrbtn'>(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//api.flattr.com/button/view/?uid=skuro&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('flattrbtn');</script>
           </div>
           <div class="span-1 spacer"></div>
-          <div class="span-1 last"><span class="help">&nbsp;?&nbsp;</span></div>
+          <div class="span-1 last"><span class="help" id="help">&nbsp;?&nbsp;</span></div>
         </div>
       </div>
 
@@ -59,8 +59,19 @@ Bob -> Alice : hello
          google_ad_height = 90;
          //-->
       </script>
-      <script type="text/javascript"
-         src="//pagead2.googlesyndication.com/pagead/show_ads.js">
-      </script>
+
+      <div id="google-ads">
+        <script type="text/javascript"
+                src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+        </script>
+      </div>
+
+      <div id="help-overlay">
+        <div>
+          <p>If you like this early beta, be prepared for more!</p>
+          <img src="http://lisperati.com/lisplogo_256.png" />
+          <a href="#" onclick="toggle(this.parentElement.parentElement)">Close</a>
+        </div>
+      </div>
   </body>
 </html>
