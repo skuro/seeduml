@@ -1765,3 +1765,8 @@ img#graph {
   padding: 15px;
   text-align: center;
 }
+
+/* line 98, ../sass/skuro.scss */
+a {
+  text-decoration: none;
+}
