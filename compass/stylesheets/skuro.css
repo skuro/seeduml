@@ -66,9 +66,10 @@ img {
 /* line 65, ../sass/skuro.scss */
 img#graph {
   max-width: 100%;
+  max-height: 80%;
 }
 
-/* line 69, ../sass/skuro.scss */
+/* line 70, ../sass/skuro.scss */
 #google-ads {
   position: absolute;
   left: 50%;
@@ -77,7 +78,7 @@ img#graph {
   margin-left: -485px;
 }
 
-/* line 77, ../sass/skuro.scss */
+/* line 78, ../sass/skuro.scss */
 #help-overlay {
   visibility: hidden;
   position: absolute;
@@ -90,7 +91,7 @@ img#graph {
   background-color: rgba(100, 100, 100, 0.5);
 }
 
-/* line 89, ../sass/skuro.scss */
+/* line 90, ../sass/skuro.scss */
 #help-overlay div {
   width: 300px;
   margin: 100px auto;
@@ -100,7 +101,7 @@ img#graph {
   text-align: center;
 }
 
-/* line 98, ../sass/skuro.scss */
+/* line 99, ../sass/skuro.scss */
 a {
   text-decoration: none;
 }
