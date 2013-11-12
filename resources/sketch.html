@@ -5,6 +5,8 @@
     <link href='http://fonts.googleapis.com/css?family=Annie+Use+Your+Telescope' rel='stylesheet' type='text/css'/>
     <link href="/style/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
     <link href="/style/print.css" media="print" rel="stylesheet" type="text/css" />
+    <link href="/style/codemirror.css" rel="stylesheet" type="text/css" />
+
     <!--[if lt IE 8]>
         <link href="/style/ie.css" media="screen, projection" rel="stylesheet" type="text/css" />
     <![endif]-->
@@ -43,10 +45,7 @@
       </div>
 
       <div class="span-12">
-        <textarea id="plantuml" name="plantuml">
-@startuml
-Bob -> Alice : hello
-@enduml</textarea>
+        <span id="plantuml"></span>
       </div>
       <div class="span-12 last">
         <span id="error" style="visibility:none"></span>
@@ -54,6 +53,10 @@ Bob -> Alice : hello
       </div>
 
       </div>
+
+      <script type="text/javascript" src="/script/codemirror/codemirror.js">
+      </script>
+
       <script type="text/javascript" src="/script/seeduml.js">
       </script>
 
@@ -63,6 +66,7 @@ Bob -> Alice : hello
          google_ad_slot = "4812155026";
          google_ad_width = 970;
          google_ad_height = 90;
+
          //-->
       </script>
 
