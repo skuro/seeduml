@@ -4,6 +4,14 @@
     var graph    = document.getElementById("graph");
     var errmsg   = document.getElementById("error");
 
+    var editor = CodeMirror(textarea, {
+        value: "@startuml\nBob -> Alice : hello\n@enduml",
+        mode: "text/html",
+        lineNumbers: true
+    });
+
+    editor.setSize("auto", "80%");
+
     var updateImg = function() {
         var date = new Date();
         var rnd = "" + date.getFullYear() +
@@ -17,6 +25,9 @@
     };
 
     var submit = function(){
+        var code = editor.getValue();
+        var params = "plantuml=" + encodeURIComponent(code);
+
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
@@ -34,15 +45,14 @@
 
         xhr.open("POST", document.location);
         xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        var params = "plantuml=" + encodeURIComponent(textarea.value);
         xhr.send(params);
     };
 
     var timer = null;
-    textarea.onkeyup = function(){
+    editor.on ("change", function(){
         clearTimeout(timer);
         setTimeout(submit, 300);
-    };
+    });
 })();
 
 var getStyle = function(element, style) {
