@@ -42,6 +42,8 @@
 
 (def js-dir (str cwd "/js"))
 
+(def static-dir (str cwd "/static"))
+
 (defn retrieve-plantuml [id]
   (if-let [plantuml (retrieve id)]
     (-> (response (java.io.ByteArrayInputStream. (render/render plantuml)))
@@ -58,9 +60,14 @@
 
 (defroutes seeduml-routes
   (GET "/" [] (redirect (str "/" (random-string id-length))))
+
+  ; static resources
+  (GET "/static/*" [*] (resource-response (str "static/" *)))
   (GET "/style/*" [*] (file-response (str css-dir "/" *)))
   (GET "/script/*" [*] (file-response (str js-dir "/" *)))
   (GET "/img/default.png" [] (resource-response "default.png"))
+
+  ; dynamic requests
   (GET "/img/:id.png*" [id] (retrieve-plantuml id))
   (GET ["/:id" :id #"[a-zA-Z0-9]{5}"] [id] (page-response id))
   (POST ["/:id" :id #"[a-zA-Z0-9]{5}"] [id :as {params :params}]
