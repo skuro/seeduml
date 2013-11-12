@@ -73,6 +73,8 @@
   (POST ["/:id" :id #"[a-zA-Z0-9]{5}"] [id :as {params :params}]
         (let [plantuml (params "plantuml")]
           (store-plantuml id plantuml)))
+
+  ; 404
   (route/not-found (render/not-found)))
 
 (def app
