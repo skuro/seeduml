@@ -10,4 +10,5 @@
                  [compojure "1.1.5"]
                  [me.raynes/laser "1.1.1"]
                  [ring/ring-jetty-adapter "1.2.0"]
+                 [clojurewerkz/neocons "2.0.0"]
                  [net.sourceforge.plantuml/plantuml "7972"]])
