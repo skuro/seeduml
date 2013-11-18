@@ -3,7 +3,8 @@
   :url "http://seeduml.net"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :profiles {:dev {:dependencies [[midje "1.5.1"]]}}
+  :profiles {:dev {:dependencies [[midje "1.5.1"]]
+                   :jvm-opts ["-DNEO4J_URL=http://localhost:7474/db/data"]}}
   :uberjar-name "seeduml.jar"
   :min-lein-version "2.0.0"
   :dependencies [[org.clojure/clojure "1.5.1"]
