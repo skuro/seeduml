@@ -4,8 +4,7 @@
         ring.util.response
         ring.middleware.params)
   (:require [compojure.route :as route]
-            [seeduml.render :as render]
-            [me.raynes.laser :as laser]))
+            [seeduml.render :as render]))
 
 (def id-length 5)
 
