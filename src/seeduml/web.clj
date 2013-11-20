@@ -33,7 +33,9 @@
        :src new-src})))
 
 (defn retrieve [id]
-  (get-in @plantumls [:src id]))
+  (get-in @plantumls [:src id] "@startuml
+Bob -> Alice
+@enduml"))
 
 (def cwd (System/getProperty "user.dir"))
 
@@ -53,9 +55,7 @@
   (swap! plantumls update id plantuml))
 
 (defn page-response [id]
-  (if-let [puml (retrieve id)]
-    (render/render-page id puml)
-    (resource-response "sketch.html")))
+  (render/render-page id (retrieve id)))
 
 (defroutes seeduml-routes
   (GET "/" [] (redirect (str "/" (random-string id-length))))
