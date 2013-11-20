@@ -8,6 +8,11 @@
   (-> (OptionFlags/getInstance)
       (.setDotExecutable ".graphviz/bin/dot")))
 
+(defonce default-puml
+  "@startuml
+Bob -> Alice
+@enduml")
+
 (def raw-template (-> "sketch.html" io/resource laser/parse))
 
 (defn home []
@@ -26,7 +31,8 @@
       (.toByteArray buffer))))
 
 (defn render-page [id puml]
-  (let [img (str "/img/" id ".png")]
+  (let [img (str "/img/" id ".png")
+        puml (or puml default-puml)]
     (laser/document raw-template
                     (laser/and
                      (laser/element= :textarea)
