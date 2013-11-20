@@ -28,7 +28,9 @@
 (defn render-page [id puml]
   (let [img (str "/img/" id ".png")]
     (laser/document raw-template
-                    (laser/element= :textarea) (laser/content puml)
                     (laser/and
-                     (laser/element= :img)
-                     (laser/id= "graph"))      (laser/attr :src img))))
+                     (laser/element= :textarea)
+                     (laser/id= "plantuml")) (laser/content puml)
+                     (laser/and
+                      (laser/element= :img)
+                      (laser/id= "graph"))    (laser/attr :src img))))

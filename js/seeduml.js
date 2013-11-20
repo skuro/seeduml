@@ -4,7 +4,7 @@
     var graph    = document.getElementById("graph");
     var errmsg   = document.getElementById("error");
 
-    var editor = CodeMirror(textarea, {
+    var editor = CodeMirror.fromTextArea(textarea, {
         value: "@startuml\nBob -> Alice : hello\n@enduml",
         mode: "text/html",
         lineNumbers: true

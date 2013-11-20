@@ -51,8 +51,8 @@ span.help {
   border: 1px solid white;
 }
 
-span#plantuml {
-  height: 80%;
+textarea#plantuml {
+  max-height: 80%;
 }
 
 img {

@@ -1717,8 +1717,8 @@ span.help {
 }
 
 /* line 54, ../sass/skuro.scss */
-span#plantuml {
-  height: 80%;
+textarea#plantuml {
+  max-height: 80%;
 }
 
 /* line 58, ../sass/skuro.scss */
@@ -1731,9 +1731,10 @@ img {
 /* line 64, ../sass/skuro.scss */
 img#graph {
   max-width: 100%;
+  max-height: 80%;
 }
 
-/* line 68, ../sass/skuro.scss */
+/* line 69, ../sass/skuro.scss */
 #google-ads {
   position: absolute;
   left: 50%;
@@ -1742,7 +1743,7 @@ img#graph {
   margin-left: -485px;
 }
 
-/* line 76, ../sass/skuro.scss */
+/* line 78, ../sass/skuro.scss */
 #help-overlay {
   visibility: hidden;
   position: absolute;
@@ -1755,7 +1756,7 @@ img#graph {
   background-color: rgba(100, 100, 100, 0.5);
 }
 
-/* line 88, ../sass/skuro.scss */
+/* line 90, ../sass/skuro.scss */
 #help-overlay div {
   width: 300px;
   margin: 100px auto;
@@ -1765,7 +1766,7 @@ img#graph {
   text-align: center;
 }
 
-/* line 97, ../sass/skuro.scss */
+/* line 99, ../sass/skuro.scss */
 a {
   text-decoration: none;
 }
