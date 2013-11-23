@@ -8,7 +8,7 @@
 (defn- getenv
   "Returns the value of a system property"
   [prop]
-  (System/getProperty prop))
+  (System/getenv prop))
 
 (def ^:dynamic *login* (getenv "NEO4J_USER"))
 
