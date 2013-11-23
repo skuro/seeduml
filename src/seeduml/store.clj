@@ -72,17 +72,17 @@
   [category]
   (let [cat (get-category category)]
     (cyph/query "START cat=node({cid})
-                 MATCH cat<--match
-                 RETURN match" {:cid (:id cat)})))
+                 MATCH cat<--found
+                 RETURN found" {:cid (:id cat)})))
 
 (defn one-from-category
   "Retrieves the first node in a category that matches the
    key value pair provided"
   [cat key value]
   (let [query (str "START cat=node({cid})
-                    MATCH cat<--match
-                    WHERE match." key " = {value}
-                    RETURN match")
+                    MATCH cat<--found
+                    WHERE found." key " = {value}
+                    RETURN found")
         res (cyph/query query {:cid (:id cat)
                                :value value})]
     (if (seq (:data res))
