@@ -1,4 +1,5 @@
 (ns seeduml.store
+  (:use environ.core)
   (:require [clojurewerkz.neocons.rest :as rest]
             [clojurewerkz.neocons.rest.nodes :as node]
             [clojurewerkz.neocons.rest.relationships :as rel]
@@ -8,13 +9,13 @@
 (defn- getenv
   "Returns the value of a system property"
   [prop]
-  (System/getenv prop))
+  (env prop))
 
-(def ^:dynamic *login* (getenv "NEO4J_USER"))
+(def ^:dynamic *login* (getenv :neo4j-login))
 
-(def ^:dynamic *password* (getenv "NEO4J_PASSWORD"))
+(def ^:dynamic *password* (getenv :neo4j-password))
 
-(def ^:dynamic *url* (getenv "NEO4J_URL"))
+(def ^:dynamic *url* (getenv :neo4j-url))
 
 (def ^:dynamic *connection*
   (rest/connect! *url* *login* *password*))
