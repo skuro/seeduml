@@ -4,7 +4,7 @@
 (def *pumls* (store/get-category "Plantuml"))
 
 (defn- get-puml-node [pad]
-  (store/one-from-category *plantumls* "pad" pad))
+  (store/one-from-category *pumls* "pad" pad))
 
 (defn get-puml
   "Retrieves a PlantUML source file from the store"
