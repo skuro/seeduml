@@ -3,39 +3,15 @@
         ring.adapter.jetty
         ring.util.response
         ring.middleware.params)
-  (:require [compojure.route :as route]
-            [seeduml.render :as render]))
+  (:require [compojure.route   :as route]
+            [seeduml.render    :as render]
+            [seeduml.plant-uml :as puml]))
 
 (def id-length 5)
-
-(def ^:dynamic *max-size* 100000)
 
 (defn random-string [length]
   (let [ascii-codes (concat (range 48 58) (range 66 91) (range 97 123))]
     (apply str (repeatedly length #(char (rand-nth ascii-codes))))))
-
-(def plantumls (atom {:ids (clojure.lang.PersistentQueue/EMPTY)
-                      :src {}}))
-
-(defn EMPTY []
-  (reset! plantumls {:ids (clojure.lang.PersistentQueue/EMPTY)
-                      :src {}}))
-
-(defn update [{:keys [ids src]} id plantuml]
-  (let [new-ids (conj ids id)
-        new-src (assoc src id plantuml)]
-    (if (< *max-size* (count new-ids))
-      (let [elem (peek new-ids)]
-        ; one too many
-        {:ids (pop new-ids)
-         :src (dissoc new-src elem)})
-      {:ids new-ids
-       :src new-src})))
-
-(defn retrieve [id]
-  (get-in @plantumls [:src id] "@startuml
-Bob -> Alice
-@enduml"))
 
 (def cwd (System/getProperty "user.dir"))
 
@@ -46,7 +22,7 @@ Bob -> Alice
 (def static-dir (str cwd "/static"))
 
 (defn retrieve-plantuml [id]
-  (if-let [plantuml (retrieve id)]
+  (if-let [plantuml (puml/get-puml id)]
     (-> (response (java.io.ByteArrayInputStream. (render/render plantuml)))
         (content-type "image/png"))
     (not-found "Cannot retrieve the requested image, please try again later.")))
@@ -71,7 +47,7 @@ Bob -> Alice
   (GET  ["/:id" :id #"[a-zA-Z0-9]{5}"]  [id] (page-response id))
   (POST ["/:id" :id #"[a-zA-Z0-9]{5}"]  [id :as {params :params}]
         (let [plantuml (params "plantuml")]
-          (store-plantuml id plantuml)))
+          (puml/store-puml id plantuml)))
 
   ; 404
   (route/not-found (render/not-found)))

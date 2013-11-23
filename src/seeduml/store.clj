@@ -89,3 +89,8 @@
                                      :data
                                      first
                                      first)))))
+
+(defn update
+  "Updates a node with new properties values"
+  [node data]
+  (node/update node data))
