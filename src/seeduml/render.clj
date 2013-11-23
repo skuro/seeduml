@@ -22,13 +22,13 @@
 (defn render
   "Renders a plantuml source into a graphic diagram"
   [^String puml]
-  (println "debug" puml)
   (let [reader (SourceStringReader. puml)]
     (with-open [buffer (java.io.ByteArrayOutputStream.)]
       (.generateImage reader buffer)
       (.toByteArray buffer))))
 
 (defn render-page [id puml]
+  (println "debug" puml)
   (let [img (str "/img/" id ".png")]
     (laser/document raw-template
                     (laser/and

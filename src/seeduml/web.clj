@@ -31,11 +31,8 @@
         (content-type "image/png"))
     (not-found "Cannot retrieve the requested image, please try again later.")))
 
-(defn store-plantuml [id plantuml]
-  (swap! plantumls update id plantuml))
-
-(defn page-response [id]
-  (render/render-page id (retrieve id)))
+(defn page-response [pad]
+  (render/render-page pad (puml/get-puml pad)))
 
 (defroutes seeduml-routes
   (GET "/" [] (redirect (str "/" (random-string id-length))))
