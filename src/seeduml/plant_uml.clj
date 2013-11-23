@@ -3,16 +3,20 @@
 
 (def *pumls* (store/get-category "Plantuml"))
 
+(def default-puml "@startuml
+Bob->Alice: hello
+@enduml")
+
 (defn- get-puml-node [pad]
   (store/one-from-category *pumls* "pad" pad))
 
 (defn get-puml
-  "Retrieves a PlantUML source file from the store"
+  "Retrieves a PlantUML source file from the store, or the default one if not found."
   [pad]
-  (-> pad
-      get-puml-node
-      :data
-      :source))
+  (if-let [stored-puml (-> pad
+                           get-puml-node)]
+    (-> stored-puml :data :source)
+    default-puml))
 
 (defn store-puml
   "Stores a new version of the plant uml source, or creates a new one"
