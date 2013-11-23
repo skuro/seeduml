@@ -19,7 +19,10 @@
 (defn not-found []
   "Not found")
 
-(defn render [^String puml]
+(defn render
+  "Renders a plantuml source into a graphic diagram"
+  [^String puml]
+  (println "debug" puml)
   (let [reader (SourceStringReader. puml)]
     (with-open [buffer (java.io.ByteArrayOutputStream.)]
       (.generateImage reader buffer)

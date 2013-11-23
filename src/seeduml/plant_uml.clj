@@ -18,6 +18,7 @@
   "Stores a new version of the plant uml source, or creates a new one"
   [pad puml]
   (if-let [stored-puml (get-puml-node pad)]
-    (store/update stored-puml {:source puml})
+    (store/update stored-puml (merge (:data stored-puml)
+                                     {:source puml}))
     (store/create-in-category *pumls* {:source puml
                                        :pad    pad} "is_a")))

@@ -1,4 +1,5 @@
 (ns seeduml.web
+  (:import [java.io ByteArrayInputStream])
   (:use compojure.core
         ring.adapter.jetty
         ring.util.response
@@ -21,9 +22,12 @@
 
 (def static-dir (str cwd "/static"))
 
-(defn retrieve-plantuml [id]
+(defn diagram-response [id]
   (if-let [plantuml (puml/get-puml id)]
-    (-> (response (java.io.ByteArrayInputStream. (render/render plantuml)))
+    (-> plantuml
+        render/render
+        (ByteArrayInputStream.)
+        response
         (content-type "image/png"))
     (not-found "Cannot retrieve the requested image, please try again later.")))
 
@@ -43,7 +47,7 @@
   (GET "/img/default.png" []  (resource-response "default.png"))
 
   ; dynamic requests
-  (GET "/img/:id.png*"                  [id] (retrieve-plantuml id))
+  (GET "/img/:id.png*"                  [id] (diagram-response id))
   (GET  ["/:id" :id #"[a-zA-Z0-9]{5}"]  [id] (page-response id))
   (POST ["/:id" :id #"[a-zA-Z0-9]{5}"]  [id :as {params :params}]
         (let [plantuml (params "plantuml")]
