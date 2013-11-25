@@ -6,7 +6,7 @@
 
     var editor = CodeMirror.fromTextArea(textarea, {
         value: "@startuml\nBob -> Alice : hello\n@enduml",
-        mode: "text/html",
+        mode: "plantuml",
         lineNumbers: true
     });
 
