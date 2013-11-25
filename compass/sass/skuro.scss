@@ -57,11 +57,11 @@ textarea#plantuml {
 
 img {
   display: block;
-  max-width: 80%;
   margin: 10px auto 0px auto;
 }
 
 img#graph {
+  display: block;
   max-width: 100%;
   max-height: 80%;
 }
@@ -98,4 +98,9 @@ img#graph {
 
 a {
   text-decoration: none;
+}
+
+img.poweredby {
+  display: inline;
+  margin-left: 0px;
 }

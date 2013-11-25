@@ -58,12 +58,12 @@ textarea#plantuml {
 /* line 58, ../sass/skuro.scss */
 img {
   display: block;
-  max-width: 80%;
   margin: 10px auto 0px auto;
 }
 
-/* line 64, ../sass/skuro.scss */
+/* line 63, ../sass/skuro.scss */
 img#graph {
+  display: block;
   max-width: 100%;
   max-height: 80%;
 }
@@ -103,4 +103,10 @@ img#graph {
 /* line 99, ../sass/skuro.scss */
 a {
   text-decoration: none;
+}
+
+/* line 103, ../sass/skuro.scss */
+img.poweredby {
+  display: inline;
+  margin-left: 0px;
 }
