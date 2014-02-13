@@ -1,21 +1,23 @@
 (ns seeduml.store
   (:use environ.core)
-  (:require [clojurewerkz.neocons.rest :as rest]
+  (:require [seeduml.config :as config]
+            [clojurewerkz.neocons.rest :as rest]
             [clojurewerkz.neocons.rest.nodes :as node]
             [clojurewerkz.neocons.rest.relationships :as rel]
             [clojurewerkz.neocons.rest.cypher :as cyph]
             [clojurewerkz.neocons.rest.records :as rec]))
 
-(defn- getenv
-  "Returns the value of a system property"
-  [prop]
-  (env prop))
+(defprotocol PadStore
+  (get-category       [this cat]           "Retrieves a category from the store")
+  (one-from-category  [this key value]     "Retrieves a single element from the store that matches the key-value search")
+  (update             [this node props]    "Updates the given node to hold the new properties")
+  (create-in-category [this cat props rel] "Creates a new node in the given category, establishing the given relationship between the category and the new node"))
 
-(def ^:dynamic *login* (getenv :neo4j-login))
+(def ^:dynamic *login* (config/getenv :neo4j-login))
 
-(def ^:dynamic *password* (getenv :neo4j-password))
+(def ^:dynamic *password* (config/getenv :neo4j-password))
 
-(def ^:dynamic *url* (getenv :neo4j-url))
+(def ^:dynamic *url* (config/getenv :neo4j-url))
 
 (def ^:dynamic *connection*
   (rest/connect! *url* *login* *password*))
