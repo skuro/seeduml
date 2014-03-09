@@ -21,13 +21,12 @@
   (one-from-category [this cat key value]
     (if-let [cat (s/get-category this cat)]
       (do
-        (println "cat is: " cat)
         (first
          (filter #(= value (% key)) cat)))))
   (update [this node props])
   (create-in-category [this cat props rel]
     (swap! cats (fn [old new]
-                  (merge-with into old new)) {cat props})))
+                  (merge-with into old new)) {cat [props]})))
 
 (defn set-store
   "Registers a dummy stores with the given nodes"
