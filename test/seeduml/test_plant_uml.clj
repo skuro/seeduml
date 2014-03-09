@@ -20,7 +20,7 @@
 (defn set-store
   "Registers a dummy stores with the given nodes"
   [& nodes]
-  (s/register-store :dummy (DummyStore. {"Plantuml" nodes})))
+  (s/register-store :dummy (DummyStore. {p/category nodes})))
 
 (deftest get-puml
   (let [_ (set-store {"pad" :__test-node-id
