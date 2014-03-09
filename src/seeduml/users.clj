@@ -1,18 +1,13 @@
 (ns seeduml.users
   (:require [seeduml.store :as s]))
 
-(defonce -users (s/get-category "Users"))
+(def category "Users")
 
 (defn get-user
   "Retrieves a single user given his login"
   [login]
-  (s/one-from-category -users "login" login))
-
-(defn delete-user
-  "Removes a user"
-  [login]
-  (if-let [user (get-user login)]
-    (s/delete-node user)))
+  (s/with-store
+    (s/one-from-category category :login login)))
 
 (defn create-user
   "Creates a new user"
@@ -20,4 +15,5 @@
   (let [user (get-user login)]
     (if user
       nil ;users already exists, do nothing
-      (s/create-in-category -users (assoc options :login login) :has-role))))
+      (s/with-store
+        (s/create-in-category category (assoc options :login login) :has-role)))))
