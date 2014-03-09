@@ -19,6 +19,7 @@
 
 (defmacro with-store
   [form]
-  (cons (first form)
-        (cons (select-store)
-              (rest form))))
+  (let [[fun & body] form]
+    `(if-let [store# (select-store)]
+       (~fun store# ~@body)
+       (throw (Exception. "No store configured")))))
