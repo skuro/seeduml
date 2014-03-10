@@ -50,7 +50,12 @@ span.help {
   color: white;
   display: block;
   font-size: medium;
-  margin-top: -2;
+  margin: -1px 7px 0px 0px;
+  background-color: #88b058;
+}
+
+span.help.active, span.help:hover {
+  background-color: #C1DD9F;
 }
 
 textarea#plantuml {

@@ -1715,28 +1715,34 @@ span.help {
   color: white;
   display: block;
   font-size: medium;
-  margin-top: -2;
+  margin: -1px 7px 0px 0px;
+  background-color: #88b058;
 }
 
-/* line 56, ../sass/skuro.scss */
+/* line 57, ../sass/skuro.scss */
+span.help.active, span.help:hover {
+  background-color: #C1DD9F;
+}
+
+/* line 61, ../sass/skuro.scss */
 textarea#plantuml {
   max-height: 80%;
 }
 
-/* line 60, ../sass/skuro.scss */
+/* line 65, ../sass/skuro.scss */
 img {
   display: block;
   margin: 10px auto 0px auto;
 }
 
-/* line 65, ../sass/skuro.scss */
+/* line 70, ../sass/skuro.scss */
 img#graph {
   display: block;
   max-width: 100%;
   max-height: 80%;
 }
 
-/* line 71, ../sass/skuro.scss */
+/* line 76, ../sass/skuro.scss */
 #google-ads {
   position: absolute;
   left: 50%;
@@ -1745,7 +1751,7 @@ img#graph {
   margin-left: -485px;
 }
 
-/* line 80, ../sass/skuro.scss */
+/* line 85, ../sass/skuro.scss */
 #help-overlay {
   visibility: hidden;
   position: absolute;
@@ -1758,7 +1764,7 @@ img#graph {
   background-color: rgba(100, 100, 100, 0.5);
 }
 
-/* line 92, ../sass/skuro.scss */
+/* line 97, ../sass/skuro.scss */
 #help-overlay div {
   width: 300px;
   margin: 100px auto;
@@ -1768,12 +1774,12 @@ img#graph {
   text-align: center;
 }
 
-/* line 101, ../sass/skuro.scss */
+/* line 106, ../sass/skuro.scss */
 a {
   text-decoration: none;
 }
 
-/* line 105, ../sass/skuro.scss */
+/* line 110, ../sass/skuro.scss */
 img.poweredby {
   display: inline;
   margin-left: 0px;
