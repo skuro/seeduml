@@ -28,7 +28,6 @@
       (.toByteArray buffer))))
 
 (defn render-page [id puml]
-  (println "debug" puml)
   (let [img (str "/img/" id ".png")]
     (laser/document raw-template
                     (laser/and

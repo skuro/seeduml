@@ -43,7 +43,7 @@
     cat))
 
 (defn get-neo-category
-  [cat]
+  [name]
   (let [cat-idx (get-category-index)
         cat (find-in-index cat-idx "category" name)]
     (if (seq cat)
@@ -53,8 +53,9 @@
 (defn update-neo-node [node props]
   (node/update node props))
 
-(defn get-neo-node [cat key value]
-  (let [query (str "START cat=node({cid})
+(defn get-neo-node [cat-id key value]
+  (let [cat (get-neo-category cat-id)
+        query (str "START cat=node({cid})
                     MATCH cat<--found
                     WHERE found." key " = {value}
                     RETURN found")
@@ -80,9 +81,9 @@
 (deftype Neo4jStore []
     PadStore
     (get-category [this cat] (with-connection get-neo-category cat))
-    (one-from-category [this cat key value] (with-connection get-neo-node key value))
+    (one-from-category [this cat key value] (with-connection get-neo-node cat key value))
     (update [this node props] (with-connection update-neo-node node props))
-    (create-in-category [this cat props role] (with-connection (new-node cat props role))))
+    (create-in-category [this cat props role] (with-connection new-node cat props role)))
 
 (register-store :neo4j-remote (Neo4jStore.))
 

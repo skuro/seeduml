@@ -6,7 +6,8 @@
         ring.middleware.params)
   (:require [compojure.route   :as route]
             [seeduml.render    :as render]
-            [seeduml.plant-uml :as puml]))
+            [seeduml.plant-uml :as puml]
+            [seeduml.store     :as store]))
 
 (def id-length 5)
 
@@ -48,7 +49,8 @@
   (GET  ["/:id" :id #"[a-zA-Z0-9]{5}"]  [id] (page-response id))
   (POST ["/:id" :id #"[a-zA-Z0-9]{5}"]  [id :as {params :params}]
         (let [plantuml (params "plantuml")]
-          (puml/store-puml id plantuml)))
+          (puml/store-puml id plantuml)
+          (response "OK")))
 
   ; 404
   (route/not-found (render/not-found)))
@@ -60,5 +62,11 @@
 (defn server []
   (run-jetty #'app {:port 8080 :join? false}))
 
+(defn init-store []
+  (if (nil? (store/select-store))
+    ; default store is Neo4j
+    (require 'seeduml.store.neo4j)))
+
 (defn -main [port]
+  (init-store)
   (run-jetty #'app {:port (Integer. port) :join? false}))
