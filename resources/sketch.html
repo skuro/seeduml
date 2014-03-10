@@ -39,11 +39,18 @@
           </div>
           <div class="span-1 spacer"></div>
           <div class="span-1 last">
-            <a href="#">
-              <span class="help" id="help">
-                &nbsp;&#9776;&nbsp;
-              </span>
-            </a>
+            <span class="help" id="help">
+              <a href="#">&#9776;</a>
+              <div id="settings-menu">
+                <div>
+                  <ul>
+                    <li><a id="login-menu-link" href="#">Login</a></li>
+                    <li class="menu-line"></li>
+                    <li><a id="about-menu-link" href="#">About</a></li>
+                  </ul>
+                </div>
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -94,7 +101,7 @@
         </script>
       </div>
 
-      <div id="help-overlay">
+      <div id="about-overlay">
         <div>
           <h2>Syntax help</h2>
           <p>The full syntax reference can be found at the official <a href="http://plantuml.sourceforge.net/logoc.png">PlantUML</a> website.</p>

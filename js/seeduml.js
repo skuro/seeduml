@@ -69,14 +69,25 @@ var getStyle = function(element, style) {
 }
 
 var toggle = function(element) {
-    console.log(getStyle(element, "visibility"));
     element.style.visibility = (getStyle(element, "visibility") == "visible") ? "hidden" : "visible";
 };
 
 (function help(){
-    var helpIcon = document.getElementById("help");
+    var helpIcon = document.getElementById("about-menu-link");
     helpIcon.onclick = function() {
-        var helpOverlay = document.getElementById("help-overlay");
+        var helpOverlay = document.getElementById("about-overlay");
         toggle(helpOverlay);
+    };
+
+    var hamburger = document.getElementById("help");
+    hamburger.onclick = function() {
+        var menu = document.getElementById("settings-menu");
+        toggle(menu);
+        if(hamburger.classList.contains("active")){
+            hamburger.classList.remove("active");
+        }
+        else {
+            hamburger.classList.add("active");
+        }
     };
 })();
