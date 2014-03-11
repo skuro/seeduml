@@ -7,7 +7,7 @@
   "Retrieves a single user given his login"
   [login]
   (s/with-store
-    (s/one-from-category category :login login)))
+    (s/one-from-category category "login" login)))
 
 (defn create-user
   "Creates a new user"
@@ -16,4 +16,4 @@
     (if user
       nil ;users already exists, do nothing
       (s/with-store
-        (s/create-in-category category (assoc options :login login) :has-role)))))
+        (s/create-in-category category (assoc options "login" login) :has-role)))))
