@@ -42,6 +42,10 @@ h1 {
   }  
 }
 
+h2, h3 {
+  font-family: 'Annie Use Your Telescope', cursive;
+}
+
 div.footer {
   background-color: $custom-green;
 }
@@ -67,7 +71,8 @@ div#settings-menu {
   background-color: #C1DD9F;
   font-size: x-small;
   right: 0px;
-  padding: 0px 10px;
+  padding: 0px 25px;
+  line-height: 1.8em;
   box-shadow: 2px 2px 2px rgba(0, 0, 0, .25);
   -webkit-box-shadow: 2px 2px 2px rgba(0, 0, 0, .25);
 }
@@ -84,6 +89,8 @@ div#settings-menu ul li a:hover {
 
 span.help.active, span.help:hover {
   background-color: #C1DD9F;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, .25);
+  -webkit-box-shadow: 2px 2px 2px rgba(0, 0, 0, .25)
 }
 
 textarea#plantuml {
@@ -110,7 +117,7 @@ img#graph {
   
 }
 
-#about-overlay {
+#overlay {
   visibility: hidden;
   position: absolute;
   left: 0px;
@@ -122,13 +129,29 @@ img#graph {
   background-color: rgba(100, 100, 100, 0.5);
 }
 
-#about-overlay div {
+#overlay-div {
   width:300px;
   margin: 100px auto;
   background-color: #fff;
   border: 1px solid #000;
   padding: 15px;
   text-align: center;
+}
+
+#about-overlay {
+  @extend #overlay;
+}
+
+#login-overlay {
+  @extend #overlay;
+}
+
+#about-overlay div {
+  @extend #overlay-div;
+}
+
+#login-overlay div {
+  @extend #overlay-div;
 }
 
 a {

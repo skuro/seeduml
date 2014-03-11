@@ -79,6 +79,12 @@ var toggle = function(element) {
         toggle(helpOverlay);
     };
 
+    var loginIcon = document.getElementById("login-menu-link");
+    loginIcon.onclick = function() {
+        var loginOverlay = document.getElementById("login-overlay");
+        toggle(loginOverlay);
+    };
+
     var hamburger = document.getElementById("help");
     hamburger.onclick = function() {
         var menu = document.getElementById("settings-menu");

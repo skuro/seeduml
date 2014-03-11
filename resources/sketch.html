@@ -101,7 +101,7 @@
         </script>
       </div>
 
-      <div id="about-overlay">
+      <div id="about-overlay" onclick="toggle(this)">
         <div>
           <h2>Syntax help</h2>
           <p>The full syntax reference can be found at the official <a href="http://plantuml.sourceforge.net/logoc.png">PlantUML</a> website.</p>
@@ -119,15 +119,20 @@
 
           <hr />
 
-          <p><a href="#" onclick="toggle(this.parentElement.parentElement.parentElement)">Close</a></p>
           <p>&copy; Carlo Sciolla - <a href="http://skuro.tk">skuro.tk</a>
 
         </div>
       </div>
 
-      <div id="login-overlay">
+      <div id="login-overlay" onclick="toggle(this)">
         <div>
-          <!-- TODO -->
+          <h2>Login</h2>
+          <form id="login-form" method="POST" action="/login">
+            <p><label>User name:<input type="text" name="u"/></label></p>
+            <p><label>Password:<input type="password" name="p"/></label></p>
+            <p><button type="submit">Login</button></p>
+            <p id="create-account">Don't have an account? <a href="mailto:admin@seeduml.com?Subject=I%20want%20to%20join%20SeedUML&Body=Hi%2C%0A%0AI%20would%20like%20to%20have%20an%20account%20on%20SeedUML.com%2C%20here%27s%20my%20details%3A%0A%0Afull%20name%3A%0Ausername%3A%0A%0AThanks%2C">Sign up!</a></p>
+          </form>
         </div>
       </div>
   </body>
