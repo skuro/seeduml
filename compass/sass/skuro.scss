@@ -142,7 +142,15 @@ img#graph {
   @extend #overlay;
 }
 
+#login-overlay {
+  @extend #overlay;
+}
+
 #about-overlay div {
+  @extend #overlay-div;
+}
+
+#login-overlay div {
   @extend #overlay-div;
 }
 
