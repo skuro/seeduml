@@ -126,7 +126,7 @@ img#graph {
 }
 
 /* line 120, ../sass/skuro.scss */
-#overlay, #about-overlay, #login-overlay {
+#overlay, #about-overlay {
   visibility: hidden;
   position: absolute;
   left: 0px;
@@ -139,7 +139,7 @@ img#graph {
 }
 
 /* line 132, ../sass/skuro.scss */
-#overlay-div, #about-overlay div, #login-overlay div {
+#overlay-div, #about-overlay div {
   width: 300px;
   margin: 100px auto;
   background-color: #fff;
@@ -148,12 +148,12 @@ img#graph {
   text-align: center;
 }
 
-/* line 157, ../sass/skuro.scss */
+/* line 149, ../sass/skuro.scss */
 a {
   text-decoration: none;
 }
 
-/* line 161, ../sass/skuro.scss */
+/* line 153, ../sass/skuro.scss */
 img.poweredby {
   display: inline;
   margin-left: 0px;
