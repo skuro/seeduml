@@ -23383,10 +23383,28 @@ cljs.core.special_symbol_QMARK_ = function special_symbol_QMARK_(x) {
 };
 goog.provide("seeduml.editor");
 goog.require("cljs.core");
+seeduml.editor.submit = function submit() {
+  return console.log("Called submit");
+};
+seeduml.editor.set_timer = function set_timer(editor) {
+  return editor["timer"] = setTimeout(seeduml.editor.submit, 300);
+};
+seeduml.editor.clear_timer = function clear_timer(editor) {
+  console.log("Called clear-timer");
+  return clearTimeout(editor.timer);
+};
+seeduml.editor.repaint = function repaint(editor) {
+  return function() {
+    seeduml.editor.clear_timer.call(null, editor);
+    seeduml.editor.set_timer.call(null, editor);
+    return console.log("Called repaint");
+  };
+};
 seeduml.editor.init = function init(elem) {
   var config = {"lineNumbers":true, "mode":"plantuml", "value":"@startuml\nBob -\x3e Alice : hello\n@enduml"};
   var editor = CodeMirror.fromTextArea(elem, config);
-  return editor.setSize("auto", "80%");
+  editor.setSize("auto", "80%");
+  return editor.on("change", seeduml.editor.repaint.call(null, editor));
 };
 goog.provide("goog.userAgent");
 goog.require("goog.string");

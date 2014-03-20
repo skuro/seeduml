@@ -5,7 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :profiles {:dev {:dependencies [[midje "1.5.1"]
                                   [org.clojure/clojurescript "0.0-2194"
-                                   :exclusions [org.apache.ant/ant]]]
+                                   :exclusions [org.apache.ant/ant]]
+                                  [cljs-ajax "0.2.3"]]
                    :env {:neo4j-url "http://localhost:7474/db/data"}}}
   :uberjar-name "seeduml.jar"
   :min-lein-version "2.0.0"
