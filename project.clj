@@ -13,4 +13,4 @@
                  [ring/ring-jetty-adapter "1.2.0"]
                  [clojurewerkz/neocons "2.0.0"]
                  [environ "0.4.0"]
-                 [net.sourceforge.plantuml/plantuml "7972"]])
+                 [net.sourceforge.plantuml/plantuml "7995"]])
