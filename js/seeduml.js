@@ -23381,6 +23381,13 @@ cljs.core.special_symbol_QMARK_ = function special_symbol_QMARK_(x) {
   "recur", "recur", -1532142362, null), null, new cljs.core.Symbol(null, ".", ".", -1640531481, null), null, new cljs.core.Symbol(null, "ns", "ns", -1640528002, null), null, new cljs.core.Symbol(null, "do", "do", -1640528316, null), null, new cljs.core.Symbol(null, "fn*", "fn*", -1640430053, null), null, new cljs.core.Symbol(null, "throw", "throw", -1530191713, null), null, new cljs.core.Symbol(null, "letfn*", "letfn*", 1548249632, null), null, new cljs.core.Symbol(null, "js*", "js*", -1640426054, 
   null), null, new cljs.core.Symbol(null, "defrecord*", "defrecord*", 774272013, null), null, new cljs.core.Symbol(null, "let*", "let*", -1637213400, null), null, new cljs.core.Symbol(null, "loop*", "loop*", -1537374273, null), null, new cljs.core.Symbol(null, "try", "try", -1640416396, null), null, new cljs.core.Symbol(null, "if", "if", -1640528170, null), null, new cljs.core.Symbol(null, "def", "def", -1640432194, null), null], null), null), x);
 };
+goog.provide("seeduml.editor");
+goog.require("cljs.core");
+seeduml.editor.init = function init(elem) {
+  var config = {"lineNumbers":true, "mode":"plantuml", "value":"@startuml\nBob -\x3e Alice : hello\n@enduml"};
+  var editor = CodeMirror.fromTextArea(elem, config);
+  return editor.setSize("auto", "80%");
+};
 goog.provide("goog.userAgent");
 goog.require("goog.string");
 goog.userAgent.ASSUME_IE = false;
@@ -31589,11 +31596,10 @@ clojure.browser.repl.connect = function connect(repl_server_url) {
 };
 goog.provide("seeduml");
 goog.require("cljs.core");
+goog.require("seeduml.editor");
+goog.require("seeduml.editor");
 goog.require("clojure.browser.repl");
 goog.require("clojure.browser.repl");
 clojure.browser.repl.connect.call(null, "http://localhost:9000/repl");
-seeduml.init_codemirror = function init_codemirror(elem) {
-  return CodeMirror.fromTextArea(elem, {"lineNumbers":true, "mode":"plantuml", "value":"@startuml\nBob -\x3e Alice : hello\n@enduml"});
-};
-var textArea_5937 = document.getElementById("plantuml");
-seeduml.init_codemirror.call(null, textArea_5937);
+var textArea_5940 = document.getElementById("plantuml");
+seeduml.editor.init.call(null, textArea_5940);
