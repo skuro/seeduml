@@ -3,10 +3,20 @@
   :url "http://seeduml.net"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :profiles {:dev {:dependencies [[midje "1.5.1"]]
+  :profiles {:dev {:dependencies [[midje "1.5.1"]
+                                  [org.clojure/clojurescript "0.0-2194"
+                                   :exclusions [org.apache.ant/ant]]]
                    :env {:neo4j-url "http://localhost:7474/db/data"}}}
   :uberjar-name "seeduml.jar"
   :min-lein-version "2.0.0"
+  :plugins [[lein-cljsbuild "1.0.2"]]
+  ; automatically compiles clojurescript sources during clean, compile, test, and jar
+  :hooks [leiningen.cljsbuild]
+  :cljsbuild {
+    :builds [{:source-paths ["cljs"]
+              :compiler {:output-to "js/seeduml.js"
+                         :optimizations :whitespace
+                         :pretty-print true}}]}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [compojure "1.1.5"]
                  [me.raynes/laser "1.1.1"]
