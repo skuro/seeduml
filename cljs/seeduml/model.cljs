@@ -19,5 +19,4 @@
 (defn get-pad-id
   "Retrieves the ID of the current plant UML graph"
   []
-  (.log js/console "TODO: move to the application state")
   (aget (js/document.location.pathname.split "/") 1))

@@ -24,5 +24,6 @@
                  [me.raynes/laser "1.1.1"]
                  [ring/ring-jetty-adapter "1.2.0"]
                  [clojurewerkz/neocons "2.0.0"]
+                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"]
                  [environ "0.4.0"]
                  [net.sourceforge.plantuml/plantuml "7972"]])
