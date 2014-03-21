@@ -1,28 +1,31 @@
 (ns seeduml.editor
-  ;(:require [ajax.core :refer [POST]])
-  )
+  "Creates an interactive source editor, based on CodeMirror"
+  (:require [seeduml.model :as model]
+            [seeduml.store :as store]))
 
-(defn submit
-  "Not implemented, will post data to the server"
-  []
-  (.log js/console "Called submit"))
+(defn version-code
+  "Creates a new version of the application state from the current content of the editor, which is then returned"
+  [editor]
+  (let [code (.getValue editor)]
+    (store/update-plantuml code)
+    (model/update [:editor :code] code)))
 
 (defn set-timer
+  "Resets the repainting timer"
   [editor]
-  (aset editor "timer" (js/setTimeout submit 300)))
+  (aset editor "timer" (js/setTimeout #(version-code editor) 300)))
 
 (defn clear-timer
+  "Cancels the repainting timer"
   [editor]
-  (.log js/console "Called clear-timer")
   (js/clearTimeout (.-timer editor)))
 
-(defn repaint
+(defn reset-watch
   "Creates a function that repaints the graph after an edit"
   [editor]
   (fn []
     (clear-timer editor)
-    (set-timer editor)
-    (.log js/console "Called repaint")))
+    (set-timer editor)))
 
 (defn init
   "Initializes CodeMirror attaching it to the provided DOM element"
@@ -32,4 +35,4 @@
                     :lineNumbers true}
         editor (.fromTextArea js/CodeMirror elem config)]
     (.setSize editor "auto" "80%")
-    (.on editor "change" (repaint editor))))
+    (.on editor "change" (reset-watch editor))))

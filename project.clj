@@ -6,6 +6,7 @@
   :profiles {:dev {:dependencies [[midje "1.5.1"]
                                   [org.clojure/clojurescript "0.0-2194"
                                    :exclusions [org.apache.ant/ant]]
+                                  [om "0.5.3"]
                                   [cljs-ajax "0.2.3"]]
                    :env {:neo4j-url "http://localhost:7474/db/data"}}}
   :uberjar-name "seeduml.jar"

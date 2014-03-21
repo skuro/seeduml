@@ -23381,163 +23381,130 @@ cljs.core.special_symbol_QMARK_ = function special_symbol_QMARK_(x) {
   "recur", "recur", -1532142362, null), null, new cljs.core.Symbol(null, ".", ".", -1640531481, null), null, new cljs.core.Symbol(null, "ns", "ns", -1640528002, null), null, new cljs.core.Symbol(null, "do", "do", -1640528316, null), null, new cljs.core.Symbol(null, "fn*", "fn*", -1640430053, null), null, new cljs.core.Symbol(null, "throw", "throw", -1530191713, null), null, new cljs.core.Symbol(null, "letfn*", "letfn*", 1548249632, null), null, new cljs.core.Symbol(null, "js*", "js*", -1640426054, 
   null), null, new cljs.core.Symbol(null, "defrecord*", "defrecord*", 774272013, null), null, new cljs.core.Symbol(null, "let*", "let*", -1637213400, null), null, new cljs.core.Symbol(null, "loop*", "loop*", -1537374273, null), null, new cljs.core.Symbol(null, "try", "try", -1640416396, null), null, new cljs.core.Symbol(null, "if", "if", -1640528170, null), null, new cljs.core.Symbol(null, "def", "def", -1640432194, null), null], null), null), x);
 };
-goog.provide("seeduml.editor");
-goog.require("cljs.core");
-seeduml.editor.submit = function submit() {
-  return console.log("Called submit");
+goog.provide("goog.json");
+goog.provide("goog.json.Serializer");
+goog.json.isValid_ = function(s) {
+  if (/^\s*$/.test(s)) {
+    return false;
+  }
+  var backslashesRe = /\\["\\\/bfnrtu]/g;
+  var simpleValuesRe = /"[^"\\\n\r\u2028\u2029\x00-\x08\x0a-\x1f]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g;
+  var openBracketsRe = /(?:^|:|,)(?:[\s\u2028\u2029]*\[)+/g;
+  var remainderRe = /^[\],:{}\s\u2028\u2029]*$/;
+  return remainderRe.test(s.replace(backslashesRe, "@").replace(simpleValuesRe, "]").replace(openBracketsRe, ""));
 };
-seeduml.editor.set_timer = function set_timer(editor) {
-  return editor["timer"] = setTimeout(seeduml.editor.submit, 300);
+goog.json.parse = function(s) {
+  var o = String(s);
+  if (goog.json.isValid_(o)) {
+    try {
+      return(eval("(" + o + ")"));
+    } catch (ex) {
+    }
+  }
+  throw Error("Invalid JSON string: " + o);
 };
-seeduml.editor.clear_timer = function clear_timer(editor) {
-  console.log("Called clear-timer");
-  return clearTimeout(editor.timer);
+goog.json.unsafeParse = function(s) {
+  return(eval("(" + s + ")"));
 };
-seeduml.editor.repaint = function repaint(editor) {
-  return function() {
-    seeduml.editor.clear_timer.call(null, editor);
-    seeduml.editor.set_timer.call(null, editor);
-    return console.log("Called repaint");
-  };
+goog.json.Replacer;
+goog.json.Reviver;
+goog.json.serialize = function(object, opt_replacer) {
+  return(new goog.json.Serializer(opt_replacer)).serialize(object);
 };
-seeduml.editor.init = function init(elem) {
-  var config = {"lineNumbers":true, "mode":"plantuml", "value":"@startuml\nBob -\x3e Alice : hello\n@enduml"};
-  var editor = CodeMirror.fromTextArea(elem, config);
-  editor.setSize("auto", "80%");
-  return editor.on("change", seeduml.editor.repaint.call(null, editor));
+goog.json.Serializer = function(opt_replacer) {
+  this.replacer_ = opt_replacer;
 };
-goog.provide("goog.userAgent");
-goog.require("goog.string");
-goog.userAgent.ASSUME_IE = false;
-goog.userAgent.ASSUME_GECKO = false;
-goog.userAgent.ASSUME_WEBKIT = false;
-goog.userAgent.ASSUME_MOBILE_WEBKIT = false;
-goog.userAgent.ASSUME_OPERA = false;
-goog.userAgent.ASSUME_ANY_VERSION = false;
-goog.userAgent.BROWSER_KNOWN_ = goog.userAgent.ASSUME_IE || (goog.userAgent.ASSUME_GECKO || (goog.userAgent.ASSUME_MOBILE_WEBKIT || (goog.userAgent.ASSUME_WEBKIT || goog.userAgent.ASSUME_OPERA)));
-goog.userAgent.getUserAgentString = function() {
-  return goog.global["navigator"] ? goog.global["navigator"].userAgent : null;
+goog.json.Serializer.prototype.serialize = function(object) {
+  var sb = [];
+  this.serialize_(object, sb);
+  return sb.join("");
 };
-goog.userAgent.getNavigator = function() {
-  return goog.global["navigator"];
-};
-goog.userAgent.init_ = function() {
-  goog.userAgent.detectedOpera_ = false;
-  goog.userAgent.detectedIe_ = false;
-  goog.userAgent.detectedWebkit_ = false;
-  goog.userAgent.detectedMobile_ = false;
-  goog.userAgent.detectedGecko_ = false;
-  var ua;
-  if (!goog.userAgent.BROWSER_KNOWN_ && (ua = goog.userAgent.getUserAgentString())) {
-    var navigator = goog.userAgent.getNavigator();
-    goog.userAgent.detectedOpera_ = ua.indexOf("Opera") == 0;
-    goog.userAgent.detectedIe_ = !goog.userAgent.detectedOpera_ && ua.indexOf("MSIE") != -1;
-    goog.userAgent.detectedWebkit_ = !goog.userAgent.detectedOpera_ && ua.indexOf("WebKit") != -1;
-    goog.userAgent.detectedMobile_ = goog.userAgent.detectedWebkit_ && ua.indexOf("Mobile") != -1;
-    goog.userAgent.detectedGecko_ = !goog.userAgent.detectedOpera_ && (!goog.userAgent.detectedWebkit_ && navigator.product == "Gecko");
+goog.json.Serializer.prototype.serialize_ = function(object, sb) {
+  switch(typeof object) {
+    case "string":
+      this.serializeString_((object), sb);
+      break;
+    case "number":
+      this.serializeNumber_((object), sb);
+      break;
+    case "boolean":
+      sb.push(object);
+      break;
+    case "undefined":
+      sb.push("null");
+      break;
+    case "object":
+      if (object == null) {
+        sb.push("null");
+        break;
+      }
+      if (goog.isArray(object)) {
+        this.serializeArray((object), sb);
+        break;
+      }
+      this.serializeObject_((object), sb);
+      break;
+    case "function":
+      break;
+    default:
+      throw Error("Unknown type: " + typeof object);;
   }
 };
-if (!goog.userAgent.BROWSER_KNOWN_) {
-  goog.userAgent.init_();
-}
-goog.userAgent.OPERA = goog.userAgent.BROWSER_KNOWN_ ? goog.userAgent.ASSUME_OPERA : goog.userAgent.detectedOpera_;
-goog.userAgent.IE = goog.userAgent.BROWSER_KNOWN_ ? goog.userAgent.ASSUME_IE : goog.userAgent.detectedIe_;
-goog.userAgent.GECKO = goog.userAgent.BROWSER_KNOWN_ ? goog.userAgent.ASSUME_GECKO : goog.userAgent.detectedGecko_;
-goog.userAgent.WEBKIT = goog.userAgent.BROWSER_KNOWN_ ? goog.userAgent.ASSUME_WEBKIT || goog.userAgent.ASSUME_MOBILE_WEBKIT : goog.userAgent.detectedWebkit_;
-goog.userAgent.MOBILE = goog.userAgent.ASSUME_MOBILE_WEBKIT || goog.userAgent.detectedMobile_;
-goog.userAgent.SAFARI = goog.userAgent.WEBKIT;
-goog.userAgent.determinePlatform_ = function() {
-  var navigator = goog.userAgent.getNavigator();
-  return navigator && navigator.platform || "";
-};
-goog.userAgent.PLATFORM = goog.userAgent.determinePlatform_();
-goog.userAgent.ASSUME_MAC = false;
-goog.userAgent.ASSUME_WINDOWS = false;
-goog.userAgent.ASSUME_LINUX = false;
-goog.userAgent.ASSUME_X11 = false;
-goog.userAgent.ASSUME_ANDROID = false;
-goog.userAgent.ASSUME_IPHONE = false;
-goog.userAgent.ASSUME_IPAD = false;
-goog.userAgent.PLATFORM_KNOWN_ = goog.userAgent.ASSUME_MAC || (goog.userAgent.ASSUME_WINDOWS || (goog.userAgent.ASSUME_LINUX || (goog.userAgent.ASSUME_X11 || (goog.userAgent.ASSUME_ANDROID || (goog.userAgent.ASSUME_IPHONE || goog.userAgent.ASSUME_IPAD)))));
-goog.userAgent.initPlatform_ = function() {
-  goog.userAgent.detectedMac_ = goog.string.contains(goog.userAgent.PLATFORM, "Mac");
-  goog.userAgent.detectedWindows_ = goog.string.contains(goog.userAgent.PLATFORM, "Win");
-  goog.userAgent.detectedLinux_ = goog.string.contains(goog.userAgent.PLATFORM, "Linux");
-  goog.userAgent.detectedX11_ = !!goog.userAgent.getNavigator() && goog.string.contains(goog.userAgent.getNavigator()["appVersion"] || "", "X11");
-  var ua = goog.userAgent.getUserAgentString();
-  goog.userAgent.detectedAndroid_ = !!ua && ua.indexOf("Android") >= 0;
-  goog.userAgent.detectedIPhone_ = !!ua && ua.indexOf("iPhone") >= 0;
-  goog.userAgent.detectedIPad_ = !!ua && ua.indexOf("iPad") >= 0;
-};
-if (!goog.userAgent.PLATFORM_KNOWN_) {
-  goog.userAgent.initPlatform_();
-}
-goog.userAgent.MAC = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_MAC : goog.userAgent.detectedMac_;
-goog.userAgent.WINDOWS = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_WINDOWS : goog.userAgent.detectedWindows_;
-goog.userAgent.LINUX = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_LINUX : goog.userAgent.detectedLinux_;
-goog.userAgent.X11 = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_X11 : goog.userAgent.detectedX11_;
-goog.userAgent.ANDROID = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_ANDROID : goog.userAgent.detectedAndroid_;
-goog.userAgent.IPHONE = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_IPHONE : goog.userAgent.detectedIPhone_;
-goog.userAgent.IPAD = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_IPAD : goog.userAgent.detectedIPad_;
-goog.userAgent.determineVersion_ = function() {
-  var version = "", re;
-  if (goog.userAgent.OPERA && goog.global["opera"]) {
-    var operaVersion = goog.global["opera"].version;
-    version = typeof operaVersion == "function" ? operaVersion() : operaVersion;
-  } else {
-    if (goog.userAgent.GECKO) {
-      re = /rv\:([^\);]+)(\)|;)/;
+goog.json.Serializer.charToJsonCharCache_ = {'"':'\\"', "\\":"\\\\", "/":"\\/", "\b":"\\b", "\f":"\\f", "\n":"\\n", "\r":"\\r", "\t":"\\t", "\x0B":"\\u000b"};
+goog.json.Serializer.charsToReplace_ = /\uffff/.test("\uffff") ? /[\\\"\x00-\x1f\x7f-\uffff]/g : /[\\\"\x00-\x1f\x7f-\xff]/g;
+goog.json.Serializer.prototype.serializeString_ = function(s, sb) {
+  sb.push('"', s.replace(goog.json.Serializer.charsToReplace_, function(c) {
+    if (c in goog.json.Serializer.charToJsonCharCache_) {
+      return goog.json.Serializer.charToJsonCharCache_[c];
+    }
+    var cc = c.charCodeAt(0);
+    var rv = "\\u";
+    if (cc < 16) {
+      rv += "000";
     } else {
-      if (goog.userAgent.IE) {
-        re = /MSIE\s+([^\);]+)(\)|;)/;
+      if (cc < 256) {
+        rv += "00";
       } else {
-        if (goog.userAgent.WEBKIT) {
-          re = /WebKit\/(\S+)/;
+        if (cc < 4096) {
+          rv += "0";
         }
       }
     }
-    if (re) {
-      var arr = re.exec(goog.userAgent.getUserAgentString());
-      version = arr ? arr[1] : "";
+    return goog.json.Serializer.charToJsonCharCache_[c] = rv + cc.toString(16);
+  }), '"');
+};
+goog.json.Serializer.prototype.serializeNumber_ = function(n, sb) {
+  sb.push(isFinite(n) && !isNaN(n) ? n : "null");
+};
+goog.json.Serializer.prototype.serializeArray = function(arr, sb) {
+  var l = arr.length;
+  sb.push("[");
+  var sep = "";
+  for (var i = 0;i < l;i++) {
+    sb.push(sep);
+    var value = arr[i];
+    this.serialize_(this.replacer_ ? this.replacer_.call(arr, String(i), value) : value, sb);
+    sep = ",";
+  }
+  sb.push("]");
+};
+goog.json.Serializer.prototype.serializeObject_ = function(obj, sb) {
+  sb.push("{");
+  var sep = "";
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      var value = obj[key];
+      if (typeof value != "function") {
+        sb.push(sep);
+        this.serializeString_(key, sb);
+        sb.push(":");
+        this.serialize_(this.replacer_ ? this.replacer_.call(obj, key, value) : value, sb);
+        sep = ",";
+      }
     }
   }
-  if (goog.userAgent.IE) {
-    var docMode = goog.userAgent.getDocumentMode_();
-    if (docMode > parseFloat(version)) {
-      return String(docMode);
-    }
-  }
-  return version;
+  sb.push("}");
 };
-goog.userAgent.getDocumentMode_ = function() {
-  var doc = goog.global["document"];
-  return doc ? doc["documentMode"] : undefined;
-};
-goog.userAgent.VERSION = goog.userAgent.determineVersion_();
-goog.userAgent.compare = function(v1, v2) {
-  return goog.string.compareVersions(v1, v2);
-};
-goog.userAgent.isVersionCache_ = {};
-goog.userAgent.isVersion = function(version) {
-  return goog.userAgent.ASSUME_ANY_VERSION || (goog.userAgent.isVersionCache_[version] || (goog.userAgent.isVersionCache_[version] = goog.string.compareVersions(goog.userAgent.VERSION, version) >= 0));
-};
-goog.userAgent.isDocumentMode = function(documentMode) {
-  return goog.userAgent.IE && goog.userAgent.DOCUMENT_MODE >= documentMode;
-};
-goog.userAgent.DOCUMENT_MODE = function() {
-  var doc = goog.global["document"];
-  if (!doc || !goog.userAgent.IE) {
-    return undefined;
-  }
-  var mode = goog.userAgent.getDocumentMode_();
-  return mode || (doc["compatMode"] == "CSS1Compat" ? parseInt(goog.userAgent.VERSION, 10) : 5);
-}();
-goog.provide("goog.events.EventType");
-goog.require("goog.userAgent");
-goog.events.EventType = {CLICK:"click", DBLCLICK:"dblclick", MOUSEDOWN:"mousedown", MOUSEUP:"mouseup", MOUSEOVER:"mouseover", MOUSEOUT:"mouseout", MOUSEMOVE:"mousemove", SELECTSTART:"selectstart", KEYPRESS:"keypress", KEYDOWN:"keydown", KEYUP:"keyup", BLUR:"blur", FOCUS:"focus", DEACTIVATE:"deactivate", FOCUSIN:goog.userAgent.IE ? "focusin" : "DOMFocusIn", FOCUSOUT:goog.userAgent.IE ? "focusout" : "DOMFocusOut", CHANGE:"change", SELECT:"select", SUBMIT:"submit", INPUT:"input", PROPERTYCHANGE:"propertychange", 
-DRAGSTART:"dragstart", DRAG:"drag", DRAGENTER:"dragenter", DRAGOVER:"dragover", DRAGLEAVE:"dragleave", DROP:"drop", DRAGEND:"dragend", TOUCHSTART:"touchstart", TOUCHMOVE:"touchmove", TOUCHEND:"touchend", TOUCHCANCEL:"touchcancel", BEFOREUNLOAD:"beforeunload", CONTEXTMENU:"contextmenu", ERROR:"error", HELP:"help", LOAD:"load", LOSECAPTURE:"losecapture", READYSTATECHANGE:"readystatechange", RESIZE:"resize", SCROLL:"scroll", UNLOAD:"unload", HASHCHANGE:"hashchange", PAGEHIDE:"pagehide", PAGESHOW:"pageshow", 
-POPSTATE:"popstate", COPY:"copy", PASTE:"paste", CUT:"cut", BEFORECOPY:"beforecopy", BEFORECUT:"beforecut", BEFOREPASTE:"beforepaste", ONLINE:"online", OFFLINE:"offline", MESSAGE:"message", CONNECT:"connect", TRANSITIONEND:goog.userAgent.WEBKIT ? "webkitTransitionEnd" : goog.userAgent.OPERA ? "oTransitionEnd" : "transitionend", MSGESTURECHANGE:"MSGestureChange", MSGESTUREEND:"MSGestureEnd", MSGESTUREHOLD:"MSGestureHold", MSGESTURESTART:"MSGestureStart", MSGESTURETAP:"MSGestureTap", MSGOTPOINTERCAPTURE:"MSGotPointerCapture", 
-MSINERTIASTART:"MSInertiaStart", MSLOSTPOINTERCAPTURE:"MSLostPointerCapture", MSPOINTERCANCEL:"MSPointerCancel", MSPOINTERDOWN:"MSPointerDown", MSPOINTERMOVE:"MSPointerMove", MSPOINTEROVER:"MSPointerOver", MSPOINTEROUT:"MSPointerOut", MSPOINTERUP:"MSPointerUp", TEXTINPUT:"textinput", COMPOSITIONSTART:"compositionstart", COMPOSITIONUPDATE:"compositionupdate", COMPOSITIONEND:"compositionend"};
 goog.provide("goog.disposable.IDisposable");
 goog.disposable.IDisposable = function() {
 };
@@ -23664,6 +23631,132 @@ goog.provide("goog.debug.errorHandlerWeakDep");
 goog.debug.errorHandlerWeakDep = {protectEntryPoint:function(fn, opt_tracers) {
   return fn;
 }};
+goog.provide("goog.userAgent");
+goog.require("goog.string");
+goog.userAgent.ASSUME_IE = false;
+goog.userAgent.ASSUME_GECKO = false;
+goog.userAgent.ASSUME_WEBKIT = false;
+goog.userAgent.ASSUME_MOBILE_WEBKIT = false;
+goog.userAgent.ASSUME_OPERA = false;
+goog.userAgent.ASSUME_ANY_VERSION = false;
+goog.userAgent.BROWSER_KNOWN_ = goog.userAgent.ASSUME_IE || (goog.userAgent.ASSUME_GECKO || (goog.userAgent.ASSUME_MOBILE_WEBKIT || (goog.userAgent.ASSUME_WEBKIT || goog.userAgent.ASSUME_OPERA)));
+goog.userAgent.getUserAgentString = function() {
+  return goog.global["navigator"] ? goog.global["navigator"].userAgent : null;
+};
+goog.userAgent.getNavigator = function() {
+  return goog.global["navigator"];
+};
+goog.userAgent.init_ = function() {
+  goog.userAgent.detectedOpera_ = false;
+  goog.userAgent.detectedIe_ = false;
+  goog.userAgent.detectedWebkit_ = false;
+  goog.userAgent.detectedMobile_ = false;
+  goog.userAgent.detectedGecko_ = false;
+  var ua;
+  if (!goog.userAgent.BROWSER_KNOWN_ && (ua = goog.userAgent.getUserAgentString())) {
+    var navigator = goog.userAgent.getNavigator();
+    goog.userAgent.detectedOpera_ = ua.indexOf("Opera") == 0;
+    goog.userAgent.detectedIe_ = !goog.userAgent.detectedOpera_ && ua.indexOf("MSIE") != -1;
+    goog.userAgent.detectedWebkit_ = !goog.userAgent.detectedOpera_ && ua.indexOf("WebKit") != -1;
+    goog.userAgent.detectedMobile_ = goog.userAgent.detectedWebkit_ && ua.indexOf("Mobile") != -1;
+    goog.userAgent.detectedGecko_ = !goog.userAgent.detectedOpera_ && (!goog.userAgent.detectedWebkit_ && navigator.product == "Gecko");
+  }
+};
+if (!goog.userAgent.BROWSER_KNOWN_) {
+  goog.userAgent.init_();
+}
+goog.userAgent.OPERA = goog.userAgent.BROWSER_KNOWN_ ? goog.userAgent.ASSUME_OPERA : goog.userAgent.detectedOpera_;
+goog.userAgent.IE = goog.userAgent.BROWSER_KNOWN_ ? goog.userAgent.ASSUME_IE : goog.userAgent.detectedIe_;
+goog.userAgent.GECKO = goog.userAgent.BROWSER_KNOWN_ ? goog.userAgent.ASSUME_GECKO : goog.userAgent.detectedGecko_;
+goog.userAgent.WEBKIT = goog.userAgent.BROWSER_KNOWN_ ? goog.userAgent.ASSUME_WEBKIT || goog.userAgent.ASSUME_MOBILE_WEBKIT : goog.userAgent.detectedWebkit_;
+goog.userAgent.MOBILE = goog.userAgent.ASSUME_MOBILE_WEBKIT || goog.userAgent.detectedMobile_;
+goog.userAgent.SAFARI = goog.userAgent.WEBKIT;
+goog.userAgent.determinePlatform_ = function() {
+  var navigator = goog.userAgent.getNavigator();
+  return navigator && navigator.platform || "";
+};
+goog.userAgent.PLATFORM = goog.userAgent.determinePlatform_();
+goog.userAgent.ASSUME_MAC = false;
+goog.userAgent.ASSUME_WINDOWS = false;
+goog.userAgent.ASSUME_LINUX = false;
+goog.userAgent.ASSUME_X11 = false;
+goog.userAgent.ASSUME_ANDROID = false;
+goog.userAgent.ASSUME_IPHONE = false;
+goog.userAgent.ASSUME_IPAD = false;
+goog.userAgent.PLATFORM_KNOWN_ = goog.userAgent.ASSUME_MAC || (goog.userAgent.ASSUME_WINDOWS || (goog.userAgent.ASSUME_LINUX || (goog.userAgent.ASSUME_X11 || (goog.userAgent.ASSUME_ANDROID || (goog.userAgent.ASSUME_IPHONE || goog.userAgent.ASSUME_IPAD)))));
+goog.userAgent.initPlatform_ = function() {
+  goog.userAgent.detectedMac_ = goog.string.contains(goog.userAgent.PLATFORM, "Mac");
+  goog.userAgent.detectedWindows_ = goog.string.contains(goog.userAgent.PLATFORM, "Win");
+  goog.userAgent.detectedLinux_ = goog.string.contains(goog.userAgent.PLATFORM, "Linux");
+  goog.userAgent.detectedX11_ = !!goog.userAgent.getNavigator() && goog.string.contains(goog.userAgent.getNavigator()["appVersion"] || "", "X11");
+  var ua = goog.userAgent.getUserAgentString();
+  goog.userAgent.detectedAndroid_ = !!ua && ua.indexOf("Android") >= 0;
+  goog.userAgent.detectedIPhone_ = !!ua && ua.indexOf("iPhone") >= 0;
+  goog.userAgent.detectedIPad_ = !!ua && ua.indexOf("iPad") >= 0;
+};
+if (!goog.userAgent.PLATFORM_KNOWN_) {
+  goog.userAgent.initPlatform_();
+}
+goog.userAgent.MAC = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_MAC : goog.userAgent.detectedMac_;
+goog.userAgent.WINDOWS = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_WINDOWS : goog.userAgent.detectedWindows_;
+goog.userAgent.LINUX = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_LINUX : goog.userAgent.detectedLinux_;
+goog.userAgent.X11 = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_X11 : goog.userAgent.detectedX11_;
+goog.userAgent.ANDROID = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_ANDROID : goog.userAgent.detectedAndroid_;
+goog.userAgent.IPHONE = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_IPHONE : goog.userAgent.detectedIPhone_;
+goog.userAgent.IPAD = goog.userAgent.PLATFORM_KNOWN_ ? goog.userAgent.ASSUME_IPAD : goog.userAgent.detectedIPad_;
+goog.userAgent.determineVersion_ = function() {
+  var version = "", re;
+  if (goog.userAgent.OPERA && goog.global["opera"]) {
+    var operaVersion = goog.global["opera"].version;
+    version = typeof operaVersion == "function" ? operaVersion() : operaVersion;
+  } else {
+    if (goog.userAgent.GECKO) {
+      re = /rv\:([^\);]+)(\)|;)/;
+    } else {
+      if (goog.userAgent.IE) {
+        re = /MSIE\s+([^\);]+)(\)|;)/;
+      } else {
+        if (goog.userAgent.WEBKIT) {
+          re = /WebKit\/(\S+)/;
+        }
+      }
+    }
+    if (re) {
+      var arr = re.exec(goog.userAgent.getUserAgentString());
+      version = arr ? arr[1] : "";
+    }
+  }
+  if (goog.userAgent.IE) {
+    var docMode = goog.userAgent.getDocumentMode_();
+    if (docMode > parseFloat(version)) {
+      return String(docMode);
+    }
+  }
+  return version;
+};
+goog.userAgent.getDocumentMode_ = function() {
+  var doc = goog.global["document"];
+  return doc ? doc["documentMode"] : undefined;
+};
+goog.userAgent.VERSION = goog.userAgent.determineVersion_();
+goog.userAgent.compare = function(v1, v2) {
+  return goog.string.compareVersions(v1, v2);
+};
+goog.userAgent.isVersionCache_ = {};
+goog.userAgent.isVersion = function(version) {
+  return goog.userAgent.ASSUME_ANY_VERSION || (goog.userAgent.isVersionCache_[version] || (goog.userAgent.isVersionCache_[version] = goog.string.compareVersions(goog.userAgent.VERSION, version) >= 0));
+};
+goog.userAgent.isDocumentMode = function(documentMode) {
+  return goog.userAgent.IE && goog.userAgent.DOCUMENT_MODE >= documentMode;
+};
+goog.userAgent.DOCUMENT_MODE = function() {
+  var doc = goog.global["document"];
+  if (!doc || !goog.userAgent.IE) {
+    return undefined;
+  }
+  var mode = goog.userAgent.getDocumentMode_();
+  return mode || (doc["compatMode"] == "CSS1Compat" ? parseInt(goog.userAgent.VERSION, 10) : 5);
+}();
 goog.provide("goog.events.BrowserFeature");
 goog.require("goog.userAgent");
 goog.events.BrowserFeature = {HAS_W3C_BUTTON:!goog.userAgent.IE || goog.userAgent.isDocumentMode(9), HAS_W3C_EVENT_SUPPORT:!goog.userAgent.IE || goog.userAgent.isDocumentMode(9), SET_KEY_CODE_TO_PREVENT_DEFAULT:goog.userAgent.IE && !goog.userAgent.isVersion("9"), HAS_NAVIGATOR_ONLINE_PROPERTY:!goog.userAgent.WEBKIT || goog.userAgent.isVersion("528"), HAS_HTML5_NETWORK_EVENT_SUPPORT:goog.userAgent.GECKO && goog.userAgent.isVersion("1.9b") || (goog.userAgent.IE && goog.userAgent.isVersion("8") || (goog.userAgent.OPERA && 
@@ -23697,6 +23790,12 @@ goog.events.Event.stopPropagation = function(e) {
 goog.events.Event.preventDefault = function(e) {
   e.preventDefault();
 };
+goog.provide("goog.events.EventType");
+goog.require("goog.userAgent");
+goog.events.EventType = {CLICK:"click", DBLCLICK:"dblclick", MOUSEDOWN:"mousedown", MOUSEUP:"mouseup", MOUSEOVER:"mouseover", MOUSEOUT:"mouseout", MOUSEMOVE:"mousemove", SELECTSTART:"selectstart", KEYPRESS:"keypress", KEYDOWN:"keydown", KEYUP:"keyup", BLUR:"blur", FOCUS:"focus", DEACTIVATE:"deactivate", FOCUSIN:goog.userAgent.IE ? "focusin" : "DOMFocusIn", FOCUSOUT:goog.userAgent.IE ? "focusout" : "DOMFocusOut", CHANGE:"change", SELECT:"select", SUBMIT:"submit", INPUT:"input", PROPERTYCHANGE:"propertychange", 
+DRAGSTART:"dragstart", DRAG:"drag", DRAGENTER:"dragenter", DRAGOVER:"dragover", DRAGLEAVE:"dragleave", DROP:"drop", DRAGEND:"dragend", TOUCHSTART:"touchstart", TOUCHMOVE:"touchmove", TOUCHEND:"touchend", TOUCHCANCEL:"touchcancel", BEFOREUNLOAD:"beforeunload", CONTEXTMENU:"contextmenu", ERROR:"error", HELP:"help", LOAD:"load", LOSECAPTURE:"losecapture", READYSTATECHANGE:"readystatechange", RESIZE:"resize", SCROLL:"scroll", UNLOAD:"unload", HASHCHANGE:"hashchange", PAGEHIDE:"pagehide", PAGESHOW:"pageshow", 
+POPSTATE:"popstate", COPY:"copy", PASTE:"paste", CUT:"cut", BEFORECOPY:"beforecopy", BEFORECUT:"beforecut", BEFOREPASTE:"beforepaste", ONLINE:"online", OFFLINE:"offline", MESSAGE:"message", CONNECT:"connect", TRANSITIONEND:goog.userAgent.WEBKIT ? "webkitTransitionEnd" : goog.userAgent.OPERA ? "oTransitionEnd" : "transitionend", MSGESTURECHANGE:"MSGestureChange", MSGESTUREEND:"MSGestureEnd", MSGESTUREHOLD:"MSGestureHold", MSGESTURESTART:"MSGestureStart", MSGESTURETAP:"MSGestureTap", MSGOTPOINTERCAPTURE:"MSGotPointerCapture", 
+MSINERTIASTART:"MSInertiaStart", MSLOSTPOINTERCAPTURE:"MSLostPointerCapture", MSPOINTERCANCEL:"MSPointerCancel", MSPOINTERDOWN:"MSPointerDown", MSPOINTERMOVE:"MSPointerMove", MSPOINTEROVER:"MSPointerOver", MSPOINTEROUT:"MSPointerOut", MSPOINTERUP:"MSPointerUp", TEXTINPUT:"textinput", COMPOSITIONSTART:"compositionstart", COMPOSITIONUPDATE:"compositionupdate", COMPOSITIONEND:"compositionend"};
 goog.provide("goog.reflect");
 goog.reflect.object = function(type, object) {
   return object;
@@ -24450,6 +24549,77 @@ goog.events.wrapListener_ = function(listener) {
 goog.debug.entryPointRegistry.register(function(transformer) {
   goog.events.handleBrowserEvent_ = transformer(goog.events.handleBrowserEvent_);
 });
+goog.provide("goog.events.EventHandler");
+goog.require("goog.Disposable");
+goog.require("goog.array");
+goog.require("goog.events");
+goog.require("goog.events.EventWrapper");
+goog.events.EventHandler = function(opt_handler) {
+  goog.Disposable.call(this);
+  this.handler_ = opt_handler;
+  this.keys_ = [];
+};
+goog.inherits(goog.events.EventHandler, goog.Disposable);
+goog.events.EventHandler.typeArray_ = [];
+goog.events.EventHandler.prototype.listen = function(src, type, opt_fn, opt_capture, opt_handler) {
+  if (!goog.isArray(type)) {
+    goog.events.EventHandler.typeArray_[0] = (type);
+    type = goog.events.EventHandler.typeArray_;
+  }
+  for (var i = 0;i < type.length;i++) {
+    var key = (goog.events.listen(src, type[i], opt_fn || this, opt_capture || false, opt_handler || (this.handler_ || this)));
+    this.keys_.push(key);
+  }
+  return this;
+};
+goog.events.EventHandler.prototype.listenOnce = function(src, type, opt_fn, opt_capture, opt_handler) {
+  if (goog.isArray(type)) {
+    for (var i = 0;i < type.length;i++) {
+      this.listenOnce(src, type[i], opt_fn, opt_capture, opt_handler);
+    }
+  } else {
+    var key = (goog.events.listenOnce(src, type, opt_fn || this, opt_capture, opt_handler || (this.handler_ || this)));
+    this.keys_.push(key);
+  }
+  return this;
+};
+goog.events.EventHandler.prototype.listenWithWrapper = function(src, wrapper, listener, opt_capt, opt_handler) {
+  wrapper.listen(src, listener, opt_capt, opt_handler || (this.handler_ || this), this);
+  return this;
+};
+goog.events.EventHandler.prototype.getListenerCount = function() {
+  return this.keys_.length;
+};
+goog.events.EventHandler.prototype.unlisten = function(src, type, opt_fn, opt_capture, opt_handler) {
+  if (goog.isArray(type)) {
+    for (var i = 0;i < type.length;i++) {
+      this.unlisten(src, type[i], opt_fn, opt_capture, opt_handler);
+    }
+  } else {
+    var listener = goog.events.getListener(src, type, opt_fn || this, opt_capture, opt_handler || (this.handler_ || this));
+    if (listener) {
+      var key = listener.key;
+      goog.events.unlistenByKey(key);
+      goog.array.remove(this.keys_, key);
+    }
+  }
+  return this;
+};
+goog.events.EventHandler.prototype.unlistenWithWrapper = function(src, wrapper, listener, opt_capt, opt_handler) {
+  wrapper.unlisten(src, listener, opt_capt, opt_handler || (this.handler_ || this), this);
+  return this;
+};
+goog.events.EventHandler.prototype.removeAll = function() {
+  goog.array.forEach(this.keys_, goog.events.unlistenByKey);
+  this.keys_.length = 0;
+};
+goog.events.EventHandler.prototype.disposeInternal = function() {
+  goog.events.EventHandler.superClass_.disposeInternal.call(this);
+  this.removeAll();
+};
+goog.events.EventHandler.prototype.handleEvent = function(e) {
+  throw Error("EventHandler.handleEvent not implemented");
+};
 goog.provide("goog.events.EventTarget");
 goog.require("goog.Disposable");
 goog.require("goog.events");
@@ -24678,161 +24848,94 @@ if (goog.events.Listenable.USE_LISTENABLE_INTERFACE) {
     return-1;
   };
 }
-;goog.provide("clojure.browser.event");
-goog.require("cljs.core");
-goog.require("goog.events.EventType");
-goog.require("goog.events.EventType");
+;goog.provide("goog.net.EventType");
+goog.net.EventType = {COMPLETE:"complete", SUCCESS:"success", ERROR:"error", ABORT:"abort", READY:"ready", READY_STATE_CHANGE:"readystatechange", TIMEOUT:"timeout", INCREMENTAL_DATA:"incrementaldata", PROGRESS:"progress"};
+goog.provide("goog.Timer");
 goog.require("goog.events.EventTarget");
-goog.require("goog.events.EventTarget");
-goog.require("goog.events");
-goog.require("goog.events");
-clojure.browser.event.EventType = function() {
-  var obj5932 = {};
-  return obj5932;
-}();
-clojure.browser.event.event_types = function event_types(this$) {
-  if (function() {
-    var and__3450__auto__ = this$;
-    if (and__3450__auto__) {
-      return this$.clojure$browser$event$EventType$event_types$arity$1;
-    } else {
-      return and__3450__auto__;
-    }
-  }()) {
-    return this$.clojure$browser$event$EventType$event_types$arity$1(this$);
+goog.Timer = function(opt_interval, opt_timerObject) {
+  goog.events.EventTarget.call(this);
+  this.interval_ = opt_interval || 1;
+  this.timerObject_ = opt_timerObject || goog.Timer.defaultTimerObject;
+  this.boundTick_ = goog.bind(this.tick_, this);
+  this.last_ = goog.now();
+};
+goog.inherits(goog.Timer, goog.events.EventTarget);
+goog.Timer.MAX_TIMEOUT_ = 2147483647;
+goog.Timer.prototype.enabled = false;
+goog.Timer.defaultTimerObject = goog.global;
+goog.Timer.intervalScale = 0.8;
+goog.Timer.prototype.timer_ = null;
+goog.Timer.prototype.getInterval = function() {
+  return this.interval_;
+};
+goog.Timer.prototype.setInterval = function(interval) {
+  this.interval_ = interval;
+  if (this.timer_ && this.enabled) {
+    this.stop();
+    this.start();
   } else {
-    var x__4089__auto__ = this$ == null ? null : this$;
-    return function() {
-      var or__3462__auto__ = clojure.browser.event.event_types[goog.typeOf(x__4089__auto__)];
-      if (or__3462__auto__) {
-        return or__3462__auto__;
-      } else {
-        var or__3462__auto____$1 = clojure.browser.event.event_types["_"];
-        if (or__3462__auto____$1) {
-          return or__3462__auto____$1;
-        } else {
-          throw cljs.core.missing_protocol.call(null, "EventType.event-types", this$);
-        }
-      }
-    }().call(null, this$);
+    if (this.timer_) {
+      this.stop();
+    }
   }
 };
-Element.prototype.clojure$browser$event$EventType$ = true;
-Element.prototype.clojure$browser$event$EventType$event_types$arity$1 = function(this$) {
-  var this$__$1 = this;
-  return cljs.core.into.call(null, cljs.core.PersistentArrayMap.EMPTY, cljs.core.map.call(null, function(this$__$1) {
-    return function(p__5933) {
-      var vec__5934 = p__5933;
-      var k = cljs.core.nth.call(null, vec__5934, 0, null);
-      var v = cljs.core.nth.call(null, vec__5934, 1, null);
-      return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.keyword.call(null, k.toLowerCase()), v], null);
-    };
-  }(this$__$1), cljs.core.merge.call(null, cljs.core.js__GT_clj.call(null, goog.events.EventType))));
-};
-goog.events.EventTarget.prototype.clojure$browser$event$EventType$ = true;
-goog.events.EventTarget.prototype.clojure$browser$event$EventType$event_types$arity$1 = function(this$) {
-  var this$__$1 = this;
-  return cljs.core.into.call(null, cljs.core.PersistentArrayMap.EMPTY, cljs.core.map.call(null, function(this$__$1) {
-    return function(p__5935) {
-      var vec__5936 = p__5935;
-      var k = cljs.core.nth.call(null, vec__5936, 0, null);
-      var v = cljs.core.nth.call(null, vec__5936, 1, null);
-      return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.keyword.call(null, k.toLowerCase()), v], null);
-    };
-  }(this$__$1), cljs.core.merge.call(null, cljs.core.js__GT_clj.call(null, goog.events.EventType))));
-};
-clojure.browser.event.listen = function() {
-  var listen = null;
-  var listen__3 = function(src, type, fn) {
-    return listen.call(null, src, type, fn, false);
-  };
-  var listen__4 = function(src, type, fn, capture_QMARK_) {
-    return goog.events.listen(src, cljs.core.get.call(null, clojure.browser.event.event_types.call(null, src), type, type), fn, capture_QMARK_);
-  };
-  listen = function(src, type, fn, capture_QMARK_) {
-    switch(arguments.length) {
-      case 3:
-        return listen__3.call(this, src, type, fn);
-      case 4:
-        return listen__4.call(this, src, type, fn, capture_QMARK_);
+goog.Timer.prototype.tick_ = function() {
+  if (this.enabled) {
+    var elapsed = goog.now() - this.last_;
+    if (elapsed > 0 && elapsed < this.interval_ * goog.Timer.intervalScale) {
+      this.timer_ = this.timerObject_.setTimeout(this.boundTick_, this.interval_ - elapsed);
+      return;
     }
-    throw new Error("Invalid arity: " + arguments.length);
-  };
-  listen.cljs$core$IFn$_invoke$arity$3 = listen__3;
-  listen.cljs$core$IFn$_invoke$arity$4 = listen__4;
-  return listen;
-}();
-clojure.browser.event.listen_once = function() {
-  var listen_once = null;
-  var listen_once__3 = function(src, type, fn) {
-    return listen_once.call(null, src, type, fn, false);
-  };
-  var listen_once__4 = function(src, type, fn, capture_QMARK_) {
-    return goog.events.listenOnce(src, cljs.core.get.call(null, clojure.browser.event.event_types.call(null, src), type, type), fn, capture_QMARK_);
-  };
-  listen_once = function(src, type, fn, capture_QMARK_) {
-    switch(arguments.length) {
-      case 3:
-        return listen_once__3.call(this, src, type, fn);
-      case 4:
-        return listen_once__4.call(this, src, type, fn, capture_QMARK_);
+    this.dispatchTick();
+    if (this.enabled) {
+      this.timer_ = this.timerObject_.setTimeout(this.boundTick_, this.interval_);
+      this.last_ = goog.now();
     }
-    throw new Error("Invalid arity: " + arguments.length);
-  };
-  listen_once.cljs$core$IFn$_invoke$arity$3 = listen_once__3;
-  listen_once.cljs$core$IFn$_invoke$arity$4 = listen_once__4;
-  return listen_once;
-}();
-clojure.browser.event.unlisten = function() {
-  var unlisten = null;
-  var unlisten__3 = function(src, type, fn) {
-    return unlisten.call(null, src, type, fn, false);
-  };
-  var unlisten__4 = function(src, type, fn, capture_QMARK_) {
-    return goog.events.unlisten(src, cljs.core.get.call(null, clojure.browser.event.event_types.call(null, src), type, type), fn, capture_QMARK_);
-  };
-  unlisten = function(src, type, fn, capture_QMARK_) {
-    switch(arguments.length) {
-      case 3:
-        return unlisten__3.call(this, src, type, fn);
-      case 4:
-        return unlisten__4.call(this, src, type, fn, capture_QMARK_);
+  }
+};
+goog.Timer.prototype.dispatchTick = function() {
+  this.dispatchEvent(goog.Timer.TICK);
+};
+goog.Timer.prototype.start = function() {
+  this.enabled = true;
+  if (!this.timer_) {
+    this.timer_ = this.timerObject_.setTimeout(this.boundTick_, this.interval_);
+    this.last_ = goog.now();
+  }
+};
+goog.Timer.prototype.stop = function() {
+  this.enabled = false;
+  if (this.timer_) {
+    this.timerObject_.clearTimeout(this.timer_);
+    this.timer_ = null;
+  }
+};
+goog.Timer.prototype.disposeInternal = function() {
+  goog.Timer.superClass_.disposeInternal.call(this);
+  this.stop();
+  delete this.timerObject_;
+};
+goog.Timer.TICK = "tick";
+goog.Timer.callOnce = function(listener, opt_delay, opt_handler) {
+  if (goog.isFunction(listener)) {
+    if (opt_handler) {
+      listener = goog.bind(listener, opt_handler);
     }
-    throw new Error("Invalid arity: " + arguments.length);
-  };
-  unlisten.cljs$core$IFn$_invoke$arity$3 = unlisten__3;
-  unlisten.cljs$core$IFn$_invoke$arity$4 = unlisten__4;
-  return unlisten;
-}();
-clojure.browser.event.unlisten_by_key = function unlisten_by_key(key) {
-  return goog.events.unlistenByKey(key);
+  } else {
+    if (listener && typeof listener.handleEvent == "function") {
+      listener = goog.bind(listener.handleEvent, listener);
+    } else {
+      throw Error("Invalid listener argument");
+    }
+  }
+  if (opt_delay > goog.Timer.MAX_TIMEOUT_) {
+    return-1;
+  } else {
+    return goog.Timer.defaultTimerObject.setTimeout(listener, opt_delay || 0);
+  }
 };
-clojure.browser.event.dispatch_event = function dispatch_event(src, event) {
-  return goog.events.dispatchEvent(src, event);
-};
-clojure.browser.event.expose = function expose(e) {
-  return goog.events.expose(e);
-};
-clojure.browser.event.fire_listeners = function fire_listeners(obj, type, capture, event) {
-  return null;
-};
-clojure.browser.event.total_listener_count = function total_listener_count() {
-  return goog.events.getTotalListenerCount();
-};
-clojure.browser.event.get_listener = function get_listener(src, type, listener, opt_capt, opt_handler) {
-  return null;
-};
-clojure.browser.event.all_listeners = function all_listeners(obj, type, capture) {
-  return null;
-};
-clojure.browser.event.unique_event_id = function unique_event_id(event_type) {
-  return null;
-};
-clojure.browser.event.has_listener = function has_listener(obj, opt_type, opt_capture) {
-  return null;
-};
-clojure.browser.event.remove_all = function remove_all(opt_obj, opt_type, opt_capt) {
-  return null;
+goog.Timer.clear = function(timerId) {
+  goog.Timer.defaultTimerObject.clearTimeout(timerId);
 };
 goog.provide("goog.structs");
 goog.require("goog.array");
@@ -25014,6 +25117,13 @@ goog.structs.every = function(col, f, opt_obj) {
   }
   return true;
 };
+goog.provide("goog.structs.Collection");
+goog.structs.Collection = function() {
+};
+goog.structs.Collection.prototype.add;
+goog.structs.Collection.prototype.remove;
+goog.structs.Collection.prototype.contains;
+goog.structs.Collection.prototype.getCount;
 goog.provide("goog.iter");
 goog.provide("goog.iter.Iterator");
 goog.provide("goog.iter.StopIteration");
@@ -25543,6 +25653,872 @@ goog.structs.Map.prototype.__iterator__ = function(opt_keys) {
 goog.structs.Map.hasKey_ = function(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
+goog.provide("goog.structs.Set");
+goog.require("goog.structs");
+goog.require("goog.structs.Collection");
+goog.require("goog.structs.Map");
+goog.structs.Set = function(opt_values) {
+  this.map_ = new goog.structs.Map;
+  if (opt_values) {
+    this.addAll(opt_values);
+  }
+};
+goog.structs.Set.getKey_ = function(val) {
+  var type = typeof val;
+  if (type == "object" && val || type == "function") {
+    return "o" + goog.getUid((val));
+  } else {
+    return type.substr(0, 1) + val;
+  }
+};
+goog.structs.Set.prototype.getCount = function() {
+  return this.map_.getCount();
+};
+goog.structs.Set.prototype.add = function(element) {
+  this.map_.set(goog.structs.Set.getKey_(element), element);
+};
+goog.structs.Set.prototype.addAll = function(col) {
+  var values = goog.structs.getValues(col);
+  var l = values.length;
+  for (var i = 0;i < l;i++) {
+    this.add(values[i]);
+  }
+};
+goog.structs.Set.prototype.removeAll = function(col) {
+  var values = goog.structs.getValues(col);
+  var l = values.length;
+  for (var i = 0;i < l;i++) {
+    this.remove(values[i]);
+  }
+};
+goog.structs.Set.prototype.remove = function(element) {
+  return this.map_.remove(goog.structs.Set.getKey_(element));
+};
+goog.structs.Set.prototype.clear = function() {
+  this.map_.clear();
+};
+goog.structs.Set.prototype.isEmpty = function() {
+  return this.map_.isEmpty();
+};
+goog.structs.Set.prototype.contains = function(element) {
+  return this.map_.containsKey(goog.structs.Set.getKey_(element));
+};
+goog.structs.Set.prototype.containsAll = function(col) {
+  return goog.structs.every(col, this.contains, this);
+};
+goog.structs.Set.prototype.intersection = function(col) {
+  var result = new goog.structs.Set;
+  var values = goog.structs.getValues(col);
+  for (var i = 0;i < values.length;i++) {
+    var value = values[i];
+    if (this.contains(value)) {
+      result.add(value);
+    }
+  }
+  return result;
+};
+goog.structs.Set.prototype.difference = function(col) {
+  var result = this.clone();
+  result.removeAll(col);
+  return result;
+};
+goog.structs.Set.prototype.getValues = function() {
+  return this.map_.getValues();
+};
+goog.structs.Set.prototype.clone = function() {
+  return new goog.structs.Set(this);
+};
+goog.structs.Set.prototype.equals = function(col) {
+  return this.getCount() == goog.structs.getCount(col) && this.isSubsetOf(col);
+};
+goog.structs.Set.prototype.isSubsetOf = function(col) {
+  var colCount = goog.structs.getCount(col);
+  if (this.getCount() > colCount) {
+    return false;
+  }
+  if (!(col instanceof goog.structs.Set) && colCount > 5) {
+    col = new goog.structs.Set(col);
+  }
+  return goog.structs.every(this, function(value) {
+    return goog.structs.contains(col, value);
+  });
+};
+goog.structs.Set.prototype.__iterator__ = function(opt_keys) {
+  return this.map_.__iterator__(false);
+};
+goog.provide("goog.debug");
+goog.require("goog.array");
+goog.require("goog.string");
+goog.require("goog.structs.Set");
+goog.require("goog.userAgent");
+goog.debug.catchErrors = function(logFunc, opt_cancel, opt_target) {
+  var target = opt_target || goog.global;
+  var oldErrorHandler = target.onerror;
+  var retVal = !!opt_cancel;
+  if (goog.userAgent.WEBKIT && !goog.userAgent.isVersion("535.3")) {
+    retVal = !retVal;
+  }
+  target.onerror = function(message, url, line) {
+    if (oldErrorHandler) {
+      oldErrorHandler(message, url, line);
+    }
+    logFunc({message:message, fileName:url, line:line});
+    return retVal;
+  };
+};
+goog.debug.expose = function(obj, opt_showFn) {
+  if (typeof obj == "undefined") {
+    return "undefined";
+  }
+  if (obj == null) {
+    return "NULL";
+  }
+  var str = [];
+  for (var x in obj) {
+    if (!opt_showFn && goog.isFunction(obj[x])) {
+      continue;
+    }
+    var s = x + " \x3d ";
+    try {
+      s += obj[x];
+    } catch (e) {
+      s += "*** " + e + " ***";
+    }
+    str.push(s);
+  }
+  return str.join("\n");
+};
+goog.debug.deepExpose = function(obj, opt_showFn) {
+  var previous = new goog.structs.Set;
+  var str = [];
+  var helper = function(obj, space) {
+    var nestspace = space + "  ";
+    var indentMultiline = function(str) {
+      return str.replace(/\n/g, "\n" + space);
+    };
+    try {
+      if (!goog.isDef(obj)) {
+        str.push("undefined");
+      } else {
+        if (goog.isNull(obj)) {
+          str.push("NULL");
+        } else {
+          if (goog.isString(obj)) {
+            str.push('"' + indentMultiline(obj) + '"');
+          } else {
+            if (goog.isFunction(obj)) {
+              str.push(indentMultiline(String(obj)));
+            } else {
+              if (goog.isObject(obj)) {
+                if (previous.contains(obj)) {
+                  str.push("*** reference loop detected ***");
+                } else {
+                  previous.add(obj);
+                  str.push("{");
+                  for (var x in obj) {
+                    if (!opt_showFn && goog.isFunction(obj[x])) {
+                      continue;
+                    }
+                    str.push("\n");
+                    str.push(nestspace);
+                    str.push(x + " \x3d ");
+                    helper(obj[x], nestspace);
+                  }
+                  str.push("\n" + space + "}");
+                }
+              } else {
+                str.push(obj);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      str.push("*** " + e + " ***");
+    }
+  };
+  helper(obj, "");
+  return str.join("");
+};
+goog.debug.exposeArray = function(arr) {
+  var str = [];
+  for (var i = 0;i < arr.length;i++) {
+    if (goog.isArray(arr[i])) {
+      str.push(goog.debug.exposeArray(arr[i]));
+    } else {
+      str.push(arr[i]);
+    }
+  }
+  return "[ " + str.join(", ") + " ]";
+};
+goog.debug.exposeException = function(err, opt_fn) {
+  try {
+    var e = goog.debug.normalizeErrorObject(err);
+    var error = "Message: " + goog.string.htmlEscape(e.message) + '\nUrl: \x3ca href\x3d"view-source:' + e.fileName + '" target\x3d"_new"\x3e' + e.fileName + "\x3c/a\x3e\nLine: " + e.lineNumber + "\n\nBrowser stack:\n" + goog.string.htmlEscape(e.stack + "-\x3e ") + "[end]\n\nJS stack traversal:\n" + goog.string.htmlEscape(goog.debug.getStacktrace(opt_fn) + "-\x3e ");
+    return error;
+  } catch (e2) {
+    return "Exception trying to expose exception! You win, we lose. " + e2;
+  }
+};
+goog.debug.normalizeErrorObject = function(err) {
+  var href = goog.getObjectByName("window.location.href");
+  if (goog.isString(err)) {
+    return{"message":err, "name":"Unknown error", "lineNumber":"Not available", "fileName":href, "stack":"Not available"};
+  }
+  var lineNumber, fileName;
+  var threwError = false;
+  try {
+    lineNumber = err.lineNumber || (err.line || "Not available");
+  } catch (e) {
+    lineNumber = "Not available";
+    threwError = true;
+  }
+  try {
+    fileName = err.fileName || (err.filename || (err.sourceURL || (goog.global["$googDebugFname"] || href)));
+  } catch (e) {
+    fileName = "Not available";
+    threwError = true;
+  }
+  if (threwError || (!err.lineNumber || (!err.fileName || !err.stack))) {
+    return{"message":err.message, "name":err.name, "lineNumber":lineNumber, "fileName":fileName, "stack":err.stack || "Not available"};
+  }
+  return err;
+};
+goog.debug.enhanceError = function(err, opt_message) {
+  var error = typeof err == "string" ? Error(err) : err;
+  if (!error.stack) {
+    error.stack = goog.debug.getStacktrace(arguments.callee.caller);
+  }
+  if (opt_message) {
+    var x = 0;
+    while (error["message" + x]) {
+      ++x;
+    }
+    error["message" + x] = String(opt_message);
+  }
+  return error;
+};
+goog.debug.getStacktraceSimple = function(opt_depth) {
+  var sb = [];
+  var fn = arguments.callee.caller;
+  var depth = 0;
+  while (fn && (!opt_depth || depth < opt_depth)) {
+    sb.push(goog.debug.getFunctionName(fn));
+    sb.push("()\n");
+    try {
+      fn = fn.caller;
+    } catch (e) {
+      sb.push("[exception trying to get caller]\n");
+      break;
+    }
+    depth++;
+    if (depth >= goog.debug.MAX_STACK_DEPTH) {
+      sb.push("[...long stack...]");
+      break;
+    }
+  }
+  if (opt_depth && depth >= opt_depth) {
+    sb.push("[...reached max depth limit...]");
+  } else {
+    sb.push("[end]");
+  }
+  return sb.join("");
+};
+goog.debug.MAX_STACK_DEPTH = 50;
+goog.debug.getStacktrace = function(opt_fn) {
+  return goog.debug.getStacktraceHelper_(opt_fn || arguments.callee.caller, []);
+};
+goog.debug.getStacktraceHelper_ = function(fn, visited) {
+  var sb = [];
+  if (goog.array.contains(visited, fn)) {
+    sb.push("[...circular reference...]");
+  } else {
+    if (fn && visited.length < goog.debug.MAX_STACK_DEPTH) {
+      sb.push(goog.debug.getFunctionName(fn) + "(");
+      var args = fn.arguments;
+      for (var i = 0;i < args.length;i++) {
+        if (i > 0) {
+          sb.push(", ");
+        }
+        var argDesc;
+        var arg = args[i];
+        switch(typeof arg) {
+          case "object":
+            argDesc = arg ? "object" : "null";
+            break;
+          case "string":
+            argDesc = arg;
+            break;
+          case "number":
+            argDesc = String(arg);
+            break;
+          case "boolean":
+            argDesc = arg ? "true" : "false";
+            break;
+          case "function":
+            argDesc = goog.debug.getFunctionName(arg);
+            argDesc = argDesc ? argDesc : "[fn]";
+            break;
+          case "undefined":
+          ;
+          default:
+            argDesc = typeof arg;
+            break;
+        }
+        if (argDesc.length > 40) {
+          argDesc = argDesc.substr(0, 40) + "...";
+        }
+        sb.push(argDesc);
+      }
+      visited.push(fn);
+      sb.push(")\n");
+      try {
+        sb.push(goog.debug.getStacktraceHelper_(fn.caller, visited));
+      } catch (e) {
+        sb.push("[exception trying to get caller]\n");
+      }
+    } else {
+      if (fn) {
+        sb.push("[...long stack...]");
+      } else {
+        sb.push("[end]");
+      }
+    }
+  }
+  return sb.join("");
+};
+goog.debug.setFunctionResolver = function(resolver) {
+  goog.debug.fnNameResolver_ = resolver;
+};
+goog.debug.getFunctionName = function(fn) {
+  if (goog.debug.fnNameCache_[fn]) {
+    return goog.debug.fnNameCache_[fn];
+  }
+  if (goog.debug.fnNameResolver_) {
+    var name = goog.debug.fnNameResolver_(fn);
+    if (name) {
+      goog.debug.fnNameCache_[fn] = name;
+      return name;
+    }
+  }
+  var functionSource = String(fn);
+  if (!goog.debug.fnNameCache_[functionSource]) {
+    var matches = /function ([^\(]+)/.exec(functionSource);
+    if (matches) {
+      var method = matches[1];
+      goog.debug.fnNameCache_[functionSource] = method;
+    } else {
+      goog.debug.fnNameCache_[functionSource] = "[Anonymous]";
+    }
+  }
+  return goog.debug.fnNameCache_[functionSource];
+};
+goog.debug.makeWhitespaceVisible = function(string) {
+  return string.replace(/ /g, "[_]").replace(/\f/g, "[f]").replace(/\n/g, "[n]\n").replace(/\r/g, "[r]").replace(/\t/g, "[t]");
+};
+goog.debug.fnNameCache_ = {};
+goog.debug.fnNameResolver_;
+goog.provide("goog.debug.LogRecord");
+goog.debug.LogRecord = function(level, msg, loggerName, opt_time, opt_sequenceNumber) {
+  this.reset(level, msg, loggerName, opt_time, opt_sequenceNumber);
+};
+goog.debug.LogRecord.prototype.time_;
+goog.debug.LogRecord.prototype.level_;
+goog.debug.LogRecord.prototype.msg_;
+goog.debug.LogRecord.prototype.loggerName_;
+goog.debug.LogRecord.prototype.sequenceNumber_ = 0;
+goog.debug.LogRecord.prototype.exception_ = null;
+goog.debug.LogRecord.prototype.exceptionText_ = null;
+goog.debug.LogRecord.ENABLE_SEQUENCE_NUMBERS = true;
+goog.debug.LogRecord.nextSequenceNumber_ = 0;
+goog.debug.LogRecord.prototype.reset = function(level, msg, loggerName, opt_time, opt_sequenceNumber) {
+  if (goog.debug.LogRecord.ENABLE_SEQUENCE_NUMBERS) {
+    this.sequenceNumber_ = typeof opt_sequenceNumber == "number" ? opt_sequenceNumber : goog.debug.LogRecord.nextSequenceNumber_++;
+  }
+  this.time_ = opt_time || goog.now();
+  this.level_ = level;
+  this.msg_ = msg;
+  this.loggerName_ = loggerName;
+  delete this.exception_;
+  delete this.exceptionText_;
+};
+goog.debug.LogRecord.prototype.getLoggerName = function() {
+  return this.loggerName_;
+};
+goog.debug.LogRecord.prototype.getException = function() {
+  return this.exception_;
+};
+goog.debug.LogRecord.prototype.setException = function(exception) {
+  this.exception_ = exception;
+};
+goog.debug.LogRecord.prototype.getExceptionText = function() {
+  return this.exceptionText_;
+};
+goog.debug.LogRecord.prototype.setExceptionText = function(text) {
+  this.exceptionText_ = text;
+};
+goog.debug.LogRecord.prototype.setLoggerName = function(loggerName) {
+  this.loggerName_ = loggerName;
+};
+goog.debug.LogRecord.prototype.getLevel = function() {
+  return this.level_;
+};
+goog.debug.LogRecord.prototype.setLevel = function(level) {
+  this.level_ = level;
+};
+goog.debug.LogRecord.prototype.getMessage = function() {
+  return this.msg_;
+};
+goog.debug.LogRecord.prototype.setMessage = function(msg) {
+  this.msg_ = msg;
+};
+goog.debug.LogRecord.prototype.getMillis = function() {
+  return this.time_;
+};
+goog.debug.LogRecord.prototype.setMillis = function(time) {
+  this.time_ = time;
+};
+goog.debug.LogRecord.prototype.getSequenceNumber = function() {
+  return this.sequenceNumber_;
+};
+goog.provide("goog.debug.LogBuffer");
+goog.require("goog.asserts");
+goog.require("goog.debug.LogRecord");
+goog.debug.LogBuffer = function() {
+  goog.asserts.assert(goog.debug.LogBuffer.isBufferingEnabled(), "Cannot use goog.debug.LogBuffer without defining " + "goog.debug.LogBuffer.CAPACITY.");
+  this.clear();
+};
+goog.debug.LogBuffer.getInstance = function() {
+  if (!goog.debug.LogBuffer.instance_) {
+    goog.debug.LogBuffer.instance_ = new goog.debug.LogBuffer;
+  }
+  return goog.debug.LogBuffer.instance_;
+};
+goog.debug.LogBuffer.CAPACITY = 0;
+goog.debug.LogBuffer.prototype.buffer_;
+goog.debug.LogBuffer.prototype.curIndex_;
+goog.debug.LogBuffer.prototype.isFull_;
+goog.debug.LogBuffer.prototype.addRecord = function(level, msg, loggerName) {
+  var curIndex = (this.curIndex_ + 1) % goog.debug.LogBuffer.CAPACITY;
+  this.curIndex_ = curIndex;
+  if (this.isFull_) {
+    var ret = this.buffer_[curIndex];
+    ret.reset(level, msg, loggerName);
+    return ret;
+  }
+  this.isFull_ = curIndex == goog.debug.LogBuffer.CAPACITY - 1;
+  return this.buffer_[curIndex] = new goog.debug.LogRecord(level, msg, loggerName);
+};
+goog.debug.LogBuffer.isBufferingEnabled = function() {
+  return goog.debug.LogBuffer.CAPACITY > 0;
+};
+goog.debug.LogBuffer.prototype.clear = function() {
+  this.buffer_ = new Array(goog.debug.LogBuffer.CAPACITY);
+  this.curIndex_ = -1;
+  this.isFull_ = false;
+};
+goog.debug.LogBuffer.prototype.forEachRecord = function(func) {
+  var buffer = this.buffer_;
+  if (!buffer[0]) {
+    return;
+  }
+  var curIndex = this.curIndex_;
+  var i = this.isFull_ ? curIndex : -1;
+  do {
+    i = (i + 1) % goog.debug.LogBuffer.CAPACITY;
+    func((buffer[i]));
+  } while (i != curIndex);
+};
+goog.provide("goog.debug.LogManager");
+goog.provide("goog.debug.Logger");
+goog.provide("goog.debug.Logger.Level");
+goog.require("goog.array");
+goog.require("goog.asserts");
+goog.require("goog.debug");
+goog.require("goog.debug.LogBuffer");
+goog.require("goog.debug.LogRecord");
+goog.debug.Logger = function(name) {
+  this.name_ = name;
+};
+goog.debug.Logger.prototype.parent_ = null;
+goog.debug.Logger.prototype.level_ = null;
+goog.debug.Logger.prototype.children_ = null;
+goog.debug.Logger.prototype.handlers_ = null;
+goog.debug.Logger.ENABLE_HIERARCHY = true;
+if (!goog.debug.Logger.ENABLE_HIERARCHY) {
+  goog.debug.Logger.rootHandlers_ = [];
+  goog.debug.Logger.rootLevel_;
+}
+goog.debug.Logger.Level = function(name, value) {
+  this.name = name;
+  this.value = value;
+};
+goog.debug.Logger.Level.prototype.toString = function() {
+  return this.name;
+};
+goog.debug.Logger.Level.OFF = new goog.debug.Logger.Level("OFF", Infinity);
+goog.debug.Logger.Level.SHOUT = new goog.debug.Logger.Level("SHOUT", 1200);
+goog.debug.Logger.Level.SEVERE = new goog.debug.Logger.Level("SEVERE", 1E3);
+goog.debug.Logger.Level.WARNING = new goog.debug.Logger.Level("WARNING", 900);
+goog.debug.Logger.Level.INFO = new goog.debug.Logger.Level("INFO", 800);
+goog.debug.Logger.Level.CONFIG = new goog.debug.Logger.Level("CONFIG", 700);
+goog.debug.Logger.Level.FINE = new goog.debug.Logger.Level("FINE", 500);
+goog.debug.Logger.Level.FINER = new goog.debug.Logger.Level("FINER", 400);
+goog.debug.Logger.Level.FINEST = new goog.debug.Logger.Level("FINEST", 300);
+goog.debug.Logger.Level.ALL = new goog.debug.Logger.Level("ALL", 0);
+goog.debug.Logger.Level.PREDEFINED_LEVELS = [goog.debug.Logger.Level.OFF, goog.debug.Logger.Level.SHOUT, goog.debug.Logger.Level.SEVERE, goog.debug.Logger.Level.WARNING, goog.debug.Logger.Level.INFO, goog.debug.Logger.Level.CONFIG, goog.debug.Logger.Level.FINE, goog.debug.Logger.Level.FINER, goog.debug.Logger.Level.FINEST, goog.debug.Logger.Level.ALL];
+goog.debug.Logger.Level.predefinedLevelsCache_ = null;
+goog.debug.Logger.Level.createPredefinedLevelsCache_ = function() {
+  goog.debug.Logger.Level.predefinedLevelsCache_ = {};
+  for (var i = 0, level;level = goog.debug.Logger.Level.PREDEFINED_LEVELS[i];i++) {
+    goog.debug.Logger.Level.predefinedLevelsCache_[level.value] = level;
+    goog.debug.Logger.Level.predefinedLevelsCache_[level.name] = level;
+  }
+};
+goog.debug.Logger.Level.getPredefinedLevel = function(name) {
+  if (!goog.debug.Logger.Level.predefinedLevelsCache_) {
+    goog.debug.Logger.Level.createPredefinedLevelsCache_();
+  }
+  return goog.debug.Logger.Level.predefinedLevelsCache_[name] || null;
+};
+goog.debug.Logger.Level.getPredefinedLevelByValue = function(value) {
+  if (!goog.debug.Logger.Level.predefinedLevelsCache_) {
+    goog.debug.Logger.Level.createPredefinedLevelsCache_();
+  }
+  if (value in goog.debug.Logger.Level.predefinedLevelsCache_) {
+    return goog.debug.Logger.Level.predefinedLevelsCache_[value];
+  }
+  for (var i = 0;i < goog.debug.Logger.Level.PREDEFINED_LEVELS.length;++i) {
+    var level = goog.debug.Logger.Level.PREDEFINED_LEVELS[i];
+    if (level.value <= value) {
+      return level;
+    }
+  }
+  return null;
+};
+goog.debug.Logger.getLogger = function(name) {
+  return goog.debug.LogManager.getLogger(name);
+};
+goog.debug.Logger.logToProfilers = function(msg) {
+  if (goog.global["console"]) {
+    if (goog.global["console"]["timeStamp"]) {
+      goog.global["console"]["timeStamp"](msg);
+    } else {
+      if (goog.global["console"]["markTimeline"]) {
+        goog.global["console"]["markTimeline"](msg);
+      }
+    }
+  }
+  if (goog.global["msWriteProfilerMark"]) {
+    goog.global["msWriteProfilerMark"](msg);
+  }
+};
+goog.debug.Logger.prototype.getName = function() {
+  return this.name_;
+};
+goog.debug.Logger.prototype.addHandler = function(handler) {
+  if (goog.debug.Logger.ENABLE_HIERARCHY) {
+    if (!this.handlers_) {
+      this.handlers_ = [];
+    }
+    this.handlers_.push(handler);
+  } else {
+    goog.asserts.assert(!this.name_, "Cannot call addHandler on a non-root logger when " + "goog.debug.Logger.ENABLE_HIERARCHY is false.");
+    goog.debug.Logger.rootHandlers_.push(handler);
+  }
+};
+goog.debug.Logger.prototype.removeHandler = function(handler) {
+  var handlers = goog.debug.Logger.ENABLE_HIERARCHY ? this.handlers_ : goog.debug.Logger.rootHandlers_;
+  return!!handlers && goog.array.remove(handlers, handler);
+};
+goog.debug.Logger.prototype.getParent = function() {
+  return this.parent_;
+};
+goog.debug.Logger.prototype.getChildren = function() {
+  if (!this.children_) {
+    this.children_ = {};
+  }
+  return this.children_;
+};
+goog.debug.Logger.prototype.setLevel = function(level) {
+  if (goog.debug.Logger.ENABLE_HIERARCHY) {
+    this.level_ = level;
+  } else {
+    goog.asserts.assert(!this.name_, "Cannot call setLevel() on a non-root logger when " + "goog.debug.Logger.ENABLE_HIERARCHY is false.");
+    goog.debug.Logger.rootLevel_ = level;
+  }
+};
+goog.debug.Logger.prototype.getLevel = function() {
+  return this.level_;
+};
+goog.debug.Logger.prototype.getEffectiveLevel = function() {
+  if (!goog.debug.Logger.ENABLE_HIERARCHY) {
+    return goog.debug.Logger.rootLevel_;
+  }
+  if (this.level_) {
+    return this.level_;
+  }
+  if (this.parent_) {
+    return this.parent_.getEffectiveLevel();
+  }
+  goog.asserts.fail("Root logger has no level set.");
+  return null;
+};
+goog.debug.Logger.prototype.isLoggable = function(level) {
+  return level.value >= this.getEffectiveLevel().value;
+};
+goog.debug.Logger.prototype.log = function(level, msg, opt_exception) {
+  if (this.isLoggable(level)) {
+    this.doLogRecord_(this.getLogRecord(level, msg, opt_exception));
+  }
+};
+goog.debug.Logger.prototype.getLogRecord = function(level, msg, opt_exception) {
+  if (goog.debug.LogBuffer.isBufferingEnabled()) {
+    var logRecord = goog.debug.LogBuffer.getInstance().addRecord(level, msg, this.name_)
+  } else {
+    logRecord = new goog.debug.LogRecord(level, String(msg), this.name_);
+  }
+  if (opt_exception) {
+    logRecord.setException(opt_exception);
+    logRecord.setExceptionText(goog.debug.exposeException(opt_exception, arguments.callee.caller));
+  }
+  return logRecord;
+};
+goog.debug.Logger.prototype.shout = function(msg, opt_exception) {
+  this.log(goog.debug.Logger.Level.SHOUT, msg, opt_exception);
+};
+goog.debug.Logger.prototype.severe = function(msg, opt_exception) {
+  this.log(goog.debug.Logger.Level.SEVERE, msg, opt_exception);
+};
+goog.debug.Logger.prototype.warning = function(msg, opt_exception) {
+  this.log(goog.debug.Logger.Level.WARNING, msg, opt_exception);
+};
+goog.debug.Logger.prototype.info = function(msg, opt_exception) {
+  this.log(goog.debug.Logger.Level.INFO, msg, opt_exception);
+};
+goog.debug.Logger.prototype.config = function(msg, opt_exception) {
+  this.log(goog.debug.Logger.Level.CONFIG, msg, opt_exception);
+};
+goog.debug.Logger.prototype.fine = function(msg, opt_exception) {
+  this.log(goog.debug.Logger.Level.FINE, msg, opt_exception);
+};
+goog.debug.Logger.prototype.finer = function(msg, opt_exception) {
+  this.log(goog.debug.Logger.Level.FINER, msg, opt_exception);
+};
+goog.debug.Logger.prototype.finest = function(msg, opt_exception) {
+  this.log(goog.debug.Logger.Level.FINEST, msg, opt_exception);
+};
+goog.debug.Logger.prototype.logRecord = function(logRecord) {
+  if (this.isLoggable(logRecord.getLevel())) {
+    this.doLogRecord_(logRecord);
+  }
+};
+goog.debug.Logger.prototype.doLogRecord_ = function(logRecord) {
+  goog.debug.Logger.logToProfilers("log:" + logRecord.getMessage());
+  if (goog.debug.Logger.ENABLE_HIERARCHY) {
+    var target = this;
+    while (target) {
+      target.callPublish_(logRecord);
+      target = target.getParent();
+    }
+  } else {
+    for (var i = 0, handler;handler = goog.debug.Logger.rootHandlers_[i++];) {
+      handler(logRecord);
+    }
+  }
+};
+goog.debug.Logger.prototype.callPublish_ = function(logRecord) {
+  if (this.handlers_) {
+    for (var i = 0, handler;handler = this.handlers_[i];i++) {
+      handler(logRecord);
+    }
+  }
+};
+goog.debug.Logger.prototype.setParent_ = function(parent) {
+  this.parent_ = parent;
+};
+goog.debug.Logger.prototype.addChild_ = function(name, logger) {
+  this.getChildren()[name] = logger;
+};
+goog.debug.LogManager = {};
+goog.debug.LogManager.loggers_ = {};
+goog.debug.LogManager.rootLogger_ = null;
+goog.debug.LogManager.initialize = function() {
+  if (!goog.debug.LogManager.rootLogger_) {
+    goog.debug.LogManager.rootLogger_ = new goog.debug.Logger("");
+    goog.debug.LogManager.loggers_[""] = goog.debug.LogManager.rootLogger_;
+    goog.debug.LogManager.rootLogger_.setLevel(goog.debug.Logger.Level.CONFIG);
+  }
+};
+goog.debug.LogManager.getLoggers = function() {
+  return goog.debug.LogManager.loggers_;
+};
+goog.debug.LogManager.getRoot = function() {
+  goog.debug.LogManager.initialize();
+  return(goog.debug.LogManager.rootLogger_);
+};
+goog.debug.LogManager.getLogger = function(name) {
+  goog.debug.LogManager.initialize();
+  var ret = goog.debug.LogManager.loggers_[name];
+  return ret || goog.debug.LogManager.createLogger_(name);
+};
+goog.debug.LogManager.createFunctionForCatchErrors = function(opt_logger) {
+  return function(info) {
+    var logger = opt_logger || goog.debug.LogManager.getRoot();
+    logger.severe("Error: " + info.message + " (" + info.fileName + " @ Line: " + info.line + ")");
+  };
+};
+goog.debug.LogManager.createLogger_ = function(name) {
+  var logger = new goog.debug.Logger(name);
+  if (goog.debug.Logger.ENABLE_HIERARCHY) {
+    var lastDotIndex = name.lastIndexOf(".");
+    var parentName = name.substr(0, lastDotIndex);
+    var leafName = name.substr(lastDotIndex + 1);
+    var parentLogger = goog.debug.LogManager.getLogger(parentName);
+    parentLogger.addChild_(leafName, logger);
+    logger.setParent_(parentLogger);
+  }
+  goog.debug.LogManager.loggers_[name] = logger;
+  return logger;
+};
+goog.provide("goog.net.ErrorCode");
+goog.net.ErrorCode = {NO_ERROR:0, ACCESS_DENIED:1, FILE_NOT_FOUND:2, FF_SILENT_ERROR:3, CUSTOM_ERROR:4, EXCEPTION:5, HTTP_ERROR:6, ABORT:7, TIMEOUT:8, OFFLINE:9};
+goog.net.ErrorCode.getDebugMessage = function(errorCode) {
+  switch(errorCode) {
+    case goog.net.ErrorCode.NO_ERROR:
+      return "No Error";
+    case goog.net.ErrorCode.ACCESS_DENIED:
+      return "Access denied to content document";
+    case goog.net.ErrorCode.FILE_NOT_FOUND:
+      return "File not found";
+    case goog.net.ErrorCode.FF_SILENT_ERROR:
+      return "Firefox silently errored";
+    case goog.net.ErrorCode.CUSTOM_ERROR:
+      return "Application custom error";
+    case goog.net.ErrorCode.EXCEPTION:
+      return "An exception occurred";
+    case goog.net.ErrorCode.HTTP_ERROR:
+      return "Http response at 400 or 500 level";
+    case goog.net.ErrorCode.ABORT:
+      return "Request was aborted";
+    case goog.net.ErrorCode.TIMEOUT:
+      return "Request timed out";
+    case goog.net.ErrorCode.OFFLINE:
+      return "The resource is not available offline";
+    default:
+      return "Unrecognized error code";
+  }
+};
+goog.provide("goog.net.HttpStatus");
+goog.net.HttpStatus = {CONTINUE:100, SWITCHING_PROTOCOLS:101, OK:200, CREATED:201, ACCEPTED:202, NON_AUTHORITATIVE_INFORMATION:203, NO_CONTENT:204, RESET_CONTENT:205, PARTIAL_CONTENT:206, MULTIPLE_CHOICES:300, MOVED_PERMANENTLY:301, FOUND:302, SEE_OTHER:303, NOT_MODIFIED:304, USE_PROXY:305, TEMPORARY_REDIRECT:307, BAD_REQUEST:400, UNAUTHORIZED:401, PAYMENT_REQUIRED:402, FORBIDDEN:403, NOT_FOUND:404, METHOD_NOT_ALLOWED:405, NOT_ACCEPTABLE:406, PROXY_AUTHENTICATION_REQUIRED:407, REQUEST_TIMEOUT:408, 
+CONFLICT:409, GONE:410, LENGTH_REQUIRED:411, PRECONDITION_FAILED:412, REQUEST_ENTITY_TOO_LARGE:413, REQUEST_URI_TOO_LONG:414, UNSUPPORTED_MEDIA_TYPE:415, REQUEST_RANGE_NOT_SATISFIABLE:416, EXPECTATION_FAILED:417, INTERNAL_SERVER_ERROR:500, NOT_IMPLEMENTED:501, BAD_GATEWAY:502, SERVICE_UNAVAILABLE:503, GATEWAY_TIMEOUT:504, HTTP_VERSION_NOT_SUPPORTED:505, QUIRK_IE_NO_CONTENT:1223};
+goog.net.HttpStatus.isSuccess = function(status) {
+  switch(status) {
+    case goog.net.HttpStatus.OK:
+    ;
+    case goog.net.HttpStatus.CREATED:
+    ;
+    case goog.net.HttpStatus.ACCEPTED:
+    ;
+    case goog.net.HttpStatus.NO_CONTENT:
+    ;
+    case goog.net.HttpStatus.PARTIAL_CONTENT:
+    ;
+    case goog.net.HttpStatus.NOT_MODIFIED:
+    ;
+    case goog.net.HttpStatus.QUIRK_IE_NO_CONTENT:
+      return true;
+    default:
+      return false;
+  }
+};
+goog.provide("goog.net.XmlHttpFactory");
+goog.net.XmlHttpFactory = function() {
+};
+goog.net.XmlHttpFactory.prototype.cachedOptions_ = null;
+goog.net.XmlHttpFactory.prototype.createInstance = goog.abstractMethod;
+goog.net.XmlHttpFactory.prototype.getOptions = function() {
+  return this.cachedOptions_ || (this.cachedOptions_ = this.internalGetOptions());
+};
+goog.net.XmlHttpFactory.prototype.internalGetOptions = goog.abstractMethod;
+goog.provide("goog.net.WrapperXmlHttpFactory");
+goog.require("goog.net.XmlHttpFactory");
+goog.net.WrapperXmlHttpFactory = function(xhrFactory, optionsFactory) {
+  goog.net.XmlHttpFactory.call(this);
+  this.xhrFactory_ = xhrFactory;
+  this.optionsFactory_ = optionsFactory;
+};
+goog.inherits(goog.net.WrapperXmlHttpFactory, goog.net.XmlHttpFactory);
+goog.net.WrapperXmlHttpFactory.prototype.createInstance = function() {
+  return this.xhrFactory_();
+};
+goog.net.WrapperXmlHttpFactory.prototype.getOptions = function() {
+  return this.optionsFactory_();
+};
+goog.provide("goog.net.DefaultXmlHttpFactory");
+goog.provide("goog.net.XmlHttp");
+goog.provide("goog.net.XmlHttp.OptionType");
+goog.provide("goog.net.XmlHttp.ReadyState");
+goog.require("goog.net.WrapperXmlHttpFactory");
+goog.require("goog.net.XmlHttpFactory");
+goog.net.XmlHttp = function() {
+  return goog.net.XmlHttp.factory_.createInstance();
+};
+goog.net.XmlHttp.ASSUME_NATIVE_XHR = false;
+goog.net.XmlHttp.getOptions = function() {
+  return goog.net.XmlHttp.factory_.getOptions();
+};
+goog.net.XmlHttp.OptionType = {USE_NULL_FUNCTION:0, LOCAL_REQUEST_ERROR:1};
+goog.net.XmlHttp.ReadyState = {UNINITIALIZED:0, LOADING:1, LOADED:2, INTERACTIVE:3, COMPLETE:4};
+goog.net.XmlHttp.factory_;
+goog.net.XmlHttp.setFactory = function(factory, optionsFactory) {
+  goog.net.XmlHttp.setGlobalFactory(new goog.net.WrapperXmlHttpFactory((factory), (optionsFactory)));
+};
+goog.net.XmlHttp.setGlobalFactory = function(factory) {
+  goog.net.XmlHttp.factory_ = factory;
+};
+goog.net.DefaultXmlHttpFactory = function() {
+  goog.net.XmlHttpFactory.call(this);
+};
+goog.inherits(goog.net.DefaultXmlHttpFactory, goog.net.XmlHttpFactory);
+goog.net.DefaultXmlHttpFactory.prototype.createInstance = function() {
+  var progId = this.getProgId_();
+  if (progId) {
+    return new ActiveXObject(progId);
+  } else {
+    return new XMLHttpRequest;
+  }
+};
+goog.net.DefaultXmlHttpFactory.prototype.internalGetOptions = function() {
+  var progId = this.getProgId_();
+  var options = {};
+  if (progId) {
+    options[goog.net.XmlHttp.OptionType.USE_NULL_FUNCTION] = true;
+    options[goog.net.XmlHttp.OptionType.LOCAL_REQUEST_ERROR] = true;
+  }
+  return options;
+};
+goog.net.DefaultXmlHttpFactory.prototype.ieProgId_;
+goog.net.DefaultXmlHttpFactory.prototype.getProgId_ = function() {
+  if (goog.net.XmlHttp.ASSUME_NATIVE_XHR) {
+    return "";
+  }
+  if (!this.ieProgId_ && (typeof XMLHttpRequest == "undefined" && typeof ActiveXObject != "undefined")) {
+    var ACTIVE_X_IDENTS = ["MSXML2.XMLHTTP.6.0", "MSXML2.XMLHTTP.3.0", "MSXML2.XMLHTTP", "Microsoft.XMLHTTP"];
+    for (var i = 0;i < ACTIVE_X_IDENTS.length;i++) {
+      var candidate = ACTIVE_X_IDENTS[i];
+      try {
+        new ActiveXObject(candidate);
+        this.ieProgId_ = candidate;
+        return candidate;
+      } catch (e) {
+      }
+    }
+    throw Error("Could not create ActiveXObject. ActiveX might be disabled," + " or MSXML might not be installed");
+  }
+  return(this.ieProgId_);
+};
+goog.net.XmlHttp.setGlobalFactory(new goog.net.DefaultXmlHttpFactory);
 goog.provide("goog.uri.utils");
 goog.provide("goog.uri.utils.ComponentIndex");
 goog.provide("goog.uri.utils.QueryArray");
@@ -25798,6 +26774,1066 @@ goog.uri.utils.appendPath = function(baseUri, path) {
 goog.uri.utils.StandardQueryParam = {RANDOM:"zx"};
 goog.uri.utils.makeUnique = function(uri) {
   return goog.uri.utils.setParam(uri, goog.uri.utils.StandardQueryParam.RANDOM, goog.string.getRandomString());
+};
+goog.provide("goog.net.XhrIo");
+goog.provide("goog.net.XhrIo.ResponseType");
+goog.require("goog.Timer");
+goog.require("goog.array");
+goog.require("goog.debug.Logger");
+goog.require("goog.debug.entryPointRegistry");
+goog.require("goog.events");
+goog.require("goog.events.EventTarget");
+goog.require("goog.json");
+goog.require("goog.net.ErrorCode");
+goog.require("goog.net.EventType");
+goog.require("goog.net.HttpStatus");
+goog.require("goog.net.XmlHttp");
+goog.require("goog.object");
+goog.require("goog.structs");
+goog.require("goog.structs.Map");
+goog.require("goog.uri.utils");
+goog.net.XhrIo = function(opt_xmlHttpFactory) {
+  goog.events.EventTarget.call(this);
+  this.headers = new goog.structs.Map;
+  this.xmlHttpFactory_ = opt_xmlHttpFactory || null;
+};
+goog.inherits(goog.net.XhrIo, goog.events.EventTarget);
+goog.net.XhrIo.ResponseType = {DEFAULT:"", TEXT:"text", DOCUMENT:"document", BLOB:"blob", ARRAY_BUFFER:"arraybuffer"};
+goog.net.XhrIo.prototype.logger_ = goog.debug.Logger.getLogger("goog.net.XhrIo");
+goog.net.XhrIo.CONTENT_TYPE_HEADER = "Content-Type";
+goog.net.XhrIo.HTTP_SCHEME_PATTERN = /^https?$/i;
+goog.net.XhrIo.FORM_CONTENT_TYPE = "application/x-www-form-urlencoded;charset\x3dutf-8";
+goog.net.XhrIo.sendInstances_ = [];
+goog.net.XhrIo.send = function(url, opt_callback, opt_method, opt_content, opt_headers, opt_timeoutInterval, opt_withCredentials) {
+  var x = new goog.net.XhrIo;
+  goog.net.XhrIo.sendInstances_.push(x);
+  if (opt_callback) {
+    goog.events.listen(x, goog.net.EventType.COMPLETE, opt_callback);
+  }
+  goog.events.listen(x, goog.net.EventType.READY, goog.partial(goog.net.XhrIo.cleanupSend_, x));
+  if (opt_timeoutInterval) {
+    x.setTimeoutInterval(opt_timeoutInterval);
+  }
+  if (opt_withCredentials) {
+    x.setWithCredentials(opt_withCredentials);
+  }
+  x.send(url, opt_method, opt_content, opt_headers);
+};
+goog.net.XhrIo.cleanup = function() {
+  var instances = goog.net.XhrIo.sendInstances_;
+  while (instances.length) {
+    instances.pop().dispose();
+  }
+};
+goog.net.XhrIo.protectEntryPoints = function(errorHandler) {
+  goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_ = errorHandler.protectEntryPoint(goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_);
+};
+goog.net.XhrIo.cleanupSend_ = function(XhrIo) {
+  XhrIo.dispose();
+  goog.array.remove(goog.net.XhrIo.sendInstances_, XhrIo);
+};
+goog.net.XhrIo.prototype.active_ = false;
+goog.net.XhrIo.prototype.xhr_ = null;
+goog.net.XhrIo.prototype.xhrOptions_ = null;
+goog.net.XhrIo.prototype.lastUri_ = "";
+goog.net.XhrIo.prototype.lastMethod_ = "";
+goog.net.XhrIo.prototype.lastErrorCode_ = goog.net.ErrorCode.NO_ERROR;
+goog.net.XhrIo.prototype.lastError_ = "";
+goog.net.XhrIo.prototype.errorDispatched_ = false;
+goog.net.XhrIo.prototype.inSend_ = false;
+goog.net.XhrIo.prototype.inOpen_ = false;
+goog.net.XhrIo.prototype.inAbort_ = false;
+goog.net.XhrIo.prototype.timeoutInterval_ = 0;
+goog.net.XhrIo.prototype.timeoutId_ = null;
+goog.net.XhrIo.prototype.responseType_ = goog.net.XhrIo.ResponseType.DEFAULT;
+goog.net.XhrIo.prototype.withCredentials_ = false;
+goog.net.XhrIo.prototype.getTimeoutInterval = function() {
+  return this.timeoutInterval_;
+};
+goog.net.XhrIo.prototype.setTimeoutInterval = function(ms) {
+  this.timeoutInterval_ = Math.max(0, ms);
+};
+goog.net.XhrIo.prototype.setResponseType = function(type) {
+  this.responseType_ = type;
+};
+goog.net.XhrIo.prototype.getResponseType = function() {
+  return this.responseType_;
+};
+goog.net.XhrIo.prototype.setWithCredentials = function(withCredentials) {
+  this.withCredentials_ = withCredentials;
+};
+goog.net.XhrIo.prototype.getWithCredentials = function() {
+  return this.withCredentials_;
+};
+goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content, opt_headers) {
+  if (this.xhr_) {
+    throw Error("[goog.net.XhrIo] Object is active with another request\x3d" + this.lastUri_ + "; newUri\x3d" + url);
+  }
+  var method = opt_method ? opt_method.toUpperCase() : "GET";
+  this.lastUri_ = url;
+  this.lastError_ = "";
+  this.lastErrorCode_ = goog.net.ErrorCode.NO_ERROR;
+  this.lastMethod_ = method;
+  this.errorDispatched_ = false;
+  this.active_ = true;
+  this.xhr_ = this.createXhr();
+  this.xhrOptions_ = this.xmlHttpFactory_ ? this.xmlHttpFactory_.getOptions() : goog.net.XmlHttp.getOptions();
+  this.xhr_.onreadystatechange = goog.bind(this.onReadyStateChange_, this);
+  try {
+    this.logger_.fine(this.formatMsg_("Opening Xhr"));
+    this.inOpen_ = true;
+    this.xhr_.open(method, url, true);
+    this.inOpen_ = false;
+  } catch (err) {
+    this.logger_.fine(this.formatMsg_("Error opening Xhr: " + err.message));
+    this.error_(goog.net.ErrorCode.EXCEPTION, err);
+    return;
+  }
+  var content = opt_content || "";
+  var headers = this.headers.clone();
+  if (opt_headers) {
+    goog.structs.forEach(opt_headers, function(value, key) {
+      headers.set(key, value);
+    });
+  }
+  var contentIsFormData = goog.global["FormData"] && content instanceof goog.global["FormData"];
+  if (method == "POST" && (!headers.containsKey(goog.net.XhrIo.CONTENT_TYPE_HEADER) && !contentIsFormData)) {
+    headers.set(goog.net.XhrIo.CONTENT_TYPE_HEADER, goog.net.XhrIo.FORM_CONTENT_TYPE);
+  }
+  goog.structs.forEach(headers, function(value, key) {
+    this.xhr_.setRequestHeader(key, value);
+  }, this);
+  if (this.responseType_) {
+    this.xhr_.responseType = this.responseType_;
+  }
+  if (goog.object.containsKey(this.xhr_, "withCredentials")) {
+    this.xhr_.withCredentials = this.withCredentials_;
+  }
+  try {
+    if (this.timeoutId_) {
+      goog.Timer.defaultTimerObject.clearTimeout(this.timeoutId_);
+      this.timeoutId_ = null;
+    }
+    if (this.timeoutInterval_ > 0) {
+      this.logger_.fine(this.formatMsg_("Will abort after " + this.timeoutInterval_ + "ms if incomplete"));
+      this.timeoutId_ = goog.Timer.defaultTimerObject.setTimeout(goog.bind(this.timeout_, this), this.timeoutInterval_);
+    }
+    this.logger_.fine(this.formatMsg_("Sending request"));
+    this.inSend_ = true;
+    this.xhr_.send(content);
+    this.inSend_ = false;
+  } catch (err) {
+    this.logger_.fine(this.formatMsg_("Send error: " + err.message));
+    this.error_(goog.net.ErrorCode.EXCEPTION, err);
+  }
+};
+goog.net.XhrIo.prototype.createXhr = function() {
+  return this.xmlHttpFactory_ ? this.xmlHttpFactory_.createInstance() : goog.net.XmlHttp();
+};
+goog.net.XhrIo.prototype.timeout_ = function() {
+  if (typeof goog == "undefined") {
+  } else {
+    if (this.xhr_) {
+      this.lastError_ = "Timed out after " + this.timeoutInterval_ + "ms, aborting";
+      this.lastErrorCode_ = goog.net.ErrorCode.TIMEOUT;
+      this.logger_.fine(this.formatMsg_(this.lastError_));
+      this.dispatchEvent(goog.net.EventType.TIMEOUT);
+      this.abort(goog.net.ErrorCode.TIMEOUT);
+    }
+  }
+};
+goog.net.XhrIo.prototype.error_ = function(errorCode, err) {
+  this.active_ = false;
+  if (this.xhr_) {
+    this.inAbort_ = true;
+    this.xhr_.abort();
+    this.inAbort_ = false;
+  }
+  this.lastError_ = err;
+  this.lastErrorCode_ = errorCode;
+  this.dispatchErrors_();
+  this.cleanUpXhr_();
+};
+goog.net.XhrIo.prototype.dispatchErrors_ = function() {
+  if (!this.errorDispatched_) {
+    this.errorDispatched_ = true;
+    this.dispatchEvent(goog.net.EventType.COMPLETE);
+    this.dispatchEvent(goog.net.EventType.ERROR);
+  }
+};
+goog.net.XhrIo.prototype.abort = function(opt_failureCode) {
+  if (this.xhr_ && this.active_) {
+    this.logger_.fine(this.formatMsg_("Aborting"));
+    this.active_ = false;
+    this.inAbort_ = true;
+    this.xhr_.abort();
+    this.inAbort_ = false;
+    this.lastErrorCode_ = opt_failureCode || goog.net.ErrorCode.ABORT;
+    this.dispatchEvent(goog.net.EventType.COMPLETE);
+    this.dispatchEvent(goog.net.EventType.ABORT);
+    this.cleanUpXhr_();
+  }
+};
+goog.net.XhrIo.prototype.disposeInternal = function() {
+  if (this.xhr_) {
+    if (this.active_) {
+      this.active_ = false;
+      this.inAbort_ = true;
+      this.xhr_.abort();
+      this.inAbort_ = false;
+    }
+    this.cleanUpXhr_(true);
+  }
+  goog.net.XhrIo.superClass_.disposeInternal.call(this);
+};
+goog.net.XhrIo.prototype.onReadyStateChange_ = function() {
+  if (!this.inOpen_ && (!this.inSend_ && !this.inAbort_)) {
+    this.onReadyStateChangeEntryPoint_();
+  } else {
+    this.onReadyStateChangeHelper_();
+  }
+};
+goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_ = function() {
+  this.onReadyStateChangeHelper_();
+};
+goog.net.XhrIo.prototype.onReadyStateChangeHelper_ = function() {
+  if (!this.active_) {
+    return;
+  }
+  if (typeof goog == "undefined") {
+  } else {
+    if (this.xhrOptions_[goog.net.XmlHttp.OptionType.LOCAL_REQUEST_ERROR] && (this.getReadyState() == goog.net.XmlHttp.ReadyState.COMPLETE && this.getStatus() == 2)) {
+      this.logger_.fine(this.formatMsg_("Local request error detected and ignored"));
+    } else {
+      if (this.inSend_ && this.getReadyState() == goog.net.XmlHttp.ReadyState.COMPLETE) {
+        goog.Timer.defaultTimerObject.setTimeout(goog.bind(this.onReadyStateChange_, this), 0);
+        return;
+      }
+      this.dispatchEvent(goog.net.EventType.READY_STATE_CHANGE);
+      if (this.isComplete()) {
+        this.logger_.fine(this.formatMsg_("Request complete"));
+        this.active_ = false;
+        try {
+          if (this.isSuccess()) {
+            this.dispatchEvent(goog.net.EventType.COMPLETE);
+            this.dispatchEvent(goog.net.EventType.SUCCESS);
+          } else {
+            this.lastErrorCode_ = goog.net.ErrorCode.HTTP_ERROR;
+            this.lastError_ = this.getStatusText() + " [" + this.getStatus() + "]";
+            this.dispatchErrors_();
+          }
+        } finally {
+          this.cleanUpXhr_();
+        }
+      }
+    }
+  }
+};
+goog.net.XhrIo.prototype.cleanUpXhr_ = function(opt_fromDispose) {
+  if (this.xhr_) {
+    var xhr = this.xhr_;
+    var clearedOnReadyStateChange = this.xhrOptions_[goog.net.XmlHttp.OptionType.USE_NULL_FUNCTION] ? goog.nullFunction : null;
+    this.xhr_ = null;
+    this.xhrOptions_ = null;
+    if (this.timeoutId_) {
+      goog.Timer.defaultTimerObject.clearTimeout(this.timeoutId_);
+      this.timeoutId_ = null;
+    }
+    if (!opt_fromDispose) {
+      this.dispatchEvent(goog.net.EventType.READY);
+    }
+    try {
+      xhr.onreadystatechange = clearedOnReadyStateChange;
+    } catch (e) {
+      this.logger_.severe("Problem encountered resetting onreadystatechange: " + e.message);
+    }
+  }
+};
+goog.net.XhrIo.prototype.isActive = function() {
+  return!!this.xhr_;
+};
+goog.net.XhrIo.prototype.isComplete = function() {
+  return this.getReadyState() == goog.net.XmlHttp.ReadyState.COMPLETE;
+};
+goog.net.XhrIo.prototype.isSuccess = function() {
+  var status = this.getStatus();
+  return goog.net.HttpStatus.isSuccess(status) || status === 0 && !this.isLastUriEffectiveSchemeHttp_();
+};
+goog.net.XhrIo.prototype.isLastUriEffectiveSchemeHttp_ = function() {
+  var scheme = goog.uri.utils.getEffectiveScheme(String(this.lastUri_));
+  return goog.net.XhrIo.HTTP_SCHEME_PATTERN.test(scheme);
+};
+goog.net.XhrIo.prototype.getReadyState = function() {
+  return this.xhr_ ? (this.xhr_.readyState) : goog.net.XmlHttp.ReadyState.UNINITIALIZED;
+};
+goog.net.XhrIo.prototype.getStatus = function() {
+  try {
+    return this.getReadyState() > goog.net.XmlHttp.ReadyState.LOADED ? this.xhr_.status : -1;
+  } catch (e) {
+    this.logger_.warning("Can not get status: " + e.message);
+    return-1;
+  }
+};
+goog.net.XhrIo.prototype.getStatusText = function() {
+  try {
+    return this.getReadyState() > goog.net.XmlHttp.ReadyState.LOADED ? this.xhr_.statusText : "";
+  } catch (e) {
+    this.logger_.fine("Can not get status: " + e.message);
+    return "";
+  }
+};
+goog.net.XhrIo.prototype.getLastUri = function() {
+  return String(this.lastUri_);
+};
+goog.net.XhrIo.prototype.getResponseText = function() {
+  try {
+    return this.xhr_ ? this.xhr_.responseText : "";
+  } catch (e) {
+    this.logger_.fine("Can not get responseText: " + e.message);
+    return "";
+  }
+};
+goog.net.XhrIo.prototype.getResponseBody = function() {
+  try {
+    if (this.xhr_ && "responseBody" in this.xhr_) {
+      return this.xhr_["responseBody"];
+    }
+  } catch (e) {
+    this.logger_.fine("Can not get responseBody: " + e.message);
+  }
+  return null;
+};
+goog.net.XhrIo.prototype.getResponseXml = function() {
+  try {
+    return this.xhr_ ? this.xhr_.responseXML : null;
+  } catch (e) {
+    this.logger_.fine("Can not get responseXML: " + e.message);
+    return null;
+  }
+};
+goog.net.XhrIo.prototype.getResponseJson = function(opt_xssiPrefix) {
+  if (!this.xhr_) {
+    return undefined;
+  }
+  var responseText = this.xhr_.responseText;
+  if (opt_xssiPrefix && responseText.indexOf(opt_xssiPrefix) == 0) {
+    responseText = responseText.substring(opt_xssiPrefix.length);
+  }
+  return goog.json.parse(responseText);
+};
+goog.net.XhrIo.prototype.getResponse = function() {
+  try {
+    if (!this.xhr_) {
+      return null;
+    }
+    if ("response" in this.xhr_) {
+      return this.xhr_.response;
+    }
+    switch(this.responseType_) {
+      case goog.net.XhrIo.ResponseType.DEFAULT:
+      ;
+      case goog.net.XhrIo.ResponseType.TEXT:
+        return this.xhr_.responseText;
+      case goog.net.XhrIo.ResponseType.ARRAY_BUFFER:
+        if ("mozResponseArrayBuffer" in this.xhr_) {
+          return this.xhr_.mozResponseArrayBuffer;
+        }
+      ;
+    }
+    this.logger_.severe("Response type " + this.responseType_ + " is not " + "supported on this browser");
+    return null;
+  } catch (e) {
+    this.logger_.fine("Can not get response: " + e.message);
+    return null;
+  }
+};
+goog.net.XhrIo.prototype.getResponseHeader = function(key) {
+  return this.xhr_ && this.isComplete() ? this.xhr_.getResponseHeader(key) : undefined;
+};
+goog.net.XhrIo.prototype.getAllResponseHeaders = function() {
+  return this.xhr_ && this.isComplete() ? this.xhr_.getAllResponseHeaders() : "";
+};
+goog.net.XhrIo.prototype.getLastErrorCode = function() {
+  return this.lastErrorCode_;
+};
+goog.net.XhrIo.prototype.getLastError = function() {
+  return goog.isString(this.lastError_) ? this.lastError_ : String(this.lastError_);
+};
+goog.net.XhrIo.prototype.formatMsg_ = function(msg) {
+  return msg + " [" + this.lastMethod_ + " " + this.lastUri_ + " " + this.getStatus() + "]";
+};
+goog.debug.entryPointRegistry.register(function(transformer) {
+  goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_ = transformer(goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_);
+});
+goog.provide("goog.structs.Queue");
+goog.require("goog.array");
+goog.structs.Queue = function() {
+  this.elements_ = [];
+};
+goog.structs.Queue.prototype.head_ = 0;
+goog.structs.Queue.prototype.tail_ = 0;
+goog.structs.Queue.prototype.enqueue = function(element) {
+  this.elements_[this.tail_++] = element;
+};
+goog.structs.Queue.prototype.dequeue = function() {
+  if (this.head_ == this.tail_) {
+    return undefined;
+  }
+  var result = this.elements_[this.head_];
+  delete this.elements_[this.head_];
+  this.head_++;
+  return result;
+};
+goog.structs.Queue.prototype.peek = function() {
+  if (this.head_ == this.tail_) {
+    return undefined;
+  }
+  return this.elements_[this.head_];
+};
+goog.structs.Queue.prototype.getCount = function() {
+  return this.tail_ - this.head_;
+};
+goog.structs.Queue.prototype.isEmpty = function() {
+  return this.tail_ - this.head_ == 0;
+};
+goog.structs.Queue.prototype.clear = function() {
+  this.elements_.length = 0;
+  this.head_ = 0;
+  this.tail_ = 0;
+};
+goog.structs.Queue.prototype.contains = function(obj) {
+  return goog.array.contains(this.elements_, obj);
+};
+goog.structs.Queue.prototype.remove = function(obj) {
+  var index = goog.array.indexOf(this.elements_, obj);
+  if (index < 0) {
+    return false;
+  }
+  if (index == this.head_) {
+    this.dequeue();
+  } else {
+    goog.array.removeAt(this.elements_, index);
+    this.tail_--;
+  }
+  return true;
+};
+goog.structs.Queue.prototype.getValues = function() {
+  return this.elements_.slice(this.head_, this.tail_);
+};
+goog.provide("goog.structs.Pool");
+goog.require("goog.Disposable");
+goog.require("goog.structs.Queue");
+goog.require("goog.structs.Set");
+goog.structs.Pool = function(opt_minCount, opt_maxCount) {
+  goog.Disposable.call(this);
+  this.minCount_ = opt_minCount || 0;
+  this.maxCount_ = opt_maxCount || 10;
+  if (this.minCount_ > this.maxCount_) {
+    throw Error(goog.structs.Pool.ERROR_MIN_MAX_);
+  }
+  this.freeQueue_ = new goog.structs.Queue;
+  this.inUseSet_ = new goog.structs.Set;
+  this.delay = 0;
+  this.lastAccess = null;
+  this.adjustForMinMax();
+  var magicProps = {canBeReused:0};
+};
+goog.inherits(goog.structs.Pool, goog.Disposable);
+goog.structs.Pool.ERROR_MIN_MAX_ = "[goog.structs.Pool] Min can not be greater than max";
+goog.structs.Pool.ERROR_DISPOSE_UNRELEASED_OBJS_ = "[goog.structs.Pool] Objects not released";
+goog.structs.Pool.prototype.setMinimumCount = function(min) {
+  if (min > this.maxCount_) {
+    throw Error(goog.structs.Pool.ERROR_MIN_MAX_);
+  }
+  this.minCount_ = min;
+  this.adjustForMinMax();
+};
+goog.structs.Pool.prototype.setMaximumCount = function(max) {
+  if (max < this.minCount_) {
+    throw Error(goog.structs.Pool.ERROR_MIN_MAX_);
+  }
+  this.maxCount_ = max;
+  this.adjustForMinMax();
+};
+goog.structs.Pool.prototype.setDelay = function(delay) {
+  this.delay = delay;
+};
+goog.structs.Pool.prototype.getObject = function() {
+  var time = goog.now();
+  if (goog.isDefAndNotNull(this.lastAccess) && time - this.lastAccess < this.delay) {
+    return undefined;
+  }
+  var obj = this.removeFreeObject_();
+  if (obj) {
+    this.lastAccess = time;
+    this.inUseSet_.add(obj);
+  }
+  return obj;
+};
+goog.structs.Pool.prototype.releaseObject = function(obj) {
+  if (this.inUseSet_.remove(obj)) {
+    this.addFreeObject(obj);
+    return true;
+  }
+  return false;
+};
+goog.structs.Pool.prototype.removeFreeObject_ = function() {
+  var obj;
+  while (this.getFreeCount() > 0) {
+    obj = (this.freeQueue_.dequeue());
+    if (!this.objectCanBeReused(obj)) {
+      this.adjustForMinMax();
+    } else {
+      break;
+    }
+  }
+  if (!obj && this.getCount() < this.maxCount_) {
+    obj = this.createObject();
+  }
+  return obj;
+};
+goog.structs.Pool.prototype.addFreeObject = function(obj) {
+  this.inUseSet_.remove(obj);
+  if (this.objectCanBeReused(obj) && this.getCount() < this.maxCount_) {
+    this.freeQueue_.enqueue(obj);
+  } else {
+    this.disposeObject(obj);
+  }
+};
+goog.structs.Pool.prototype.adjustForMinMax = function() {
+  var freeQueue = this.freeQueue_;
+  while (this.getCount() < this.minCount_) {
+    freeQueue.enqueue(this.createObject());
+  }
+  while (this.getCount() > this.maxCount_ && this.getFreeCount() > 0) {
+    this.disposeObject((freeQueue.dequeue()));
+  }
+};
+goog.structs.Pool.prototype.createObject = function() {
+  return{};
+};
+goog.structs.Pool.prototype.disposeObject = function(obj) {
+  if (typeof obj.dispose == "function") {
+    obj.dispose();
+  } else {
+    for (var i in obj) {
+      obj[i] = null;
+    }
+  }
+};
+goog.structs.Pool.prototype.objectCanBeReused = function(obj) {
+  if (typeof obj.canBeReused == "function") {
+    return obj.canBeReused();
+  }
+  return true;
+};
+goog.structs.Pool.prototype.contains = function(obj) {
+  return this.freeQueue_.contains(obj) || this.inUseSet_.contains(obj);
+};
+goog.structs.Pool.prototype.getCount = function() {
+  return this.freeQueue_.getCount() + this.inUseSet_.getCount();
+};
+goog.structs.Pool.prototype.getInUseCount = function() {
+  return this.inUseSet_.getCount();
+};
+goog.structs.Pool.prototype.getFreeCount = function() {
+  return this.freeQueue_.getCount();
+};
+goog.structs.Pool.prototype.isEmpty = function() {
+  return this.freeQueue_.isEmpty() && this.inUseSet_.isEmpty();
+};
+goog.structs.Pool.prototype.disposeInternal = function() {
+  goog.structs.Pool.superClass_.disposeInternal.call(this);
+  if (this.getInUseCount() > 0) {
+    throw Error(goog.structs.Pool.ERROR_DISPOSE_UNRELEASED_OBJS_);
+  }
+  delete this.inUseSet_;
+  var freeQueue = this.freeQueue_;
+  while (!freeQueue.isEmpty()) {
+    this.disposeObject((freeQueue.dequeue()));
+  }
+  delete this.freeQueue_;
+};
+goog.provide("goog.structs.Node");
+goog.structs.Node = function(key, value) {
+  this.key_ = key;
+  this.value_ = value;
+};
+goog.structs.Node.prototype.getKey = function() {
+  return this.key_;
+};
+goog.structs.Node.prototype.getValue = function() {
+  return this.value_;
+};
+goog.structs.Node.prototype.clone = function() {
+  return new goog.structs.Node(this.key_, this.value_);
+};
+goog.provide("goog.structs.Heap");
+goog.require("goog.array");
+goog.require("goog.object");
+goog.require("goog.structs.Node");
+goog.structs.Heap = function(opt_heap) {
+  this.nodes_ = [];
+  if (opt_heap) {
+    this.insertAll(opt_heap);
+  }
+};
+goog.structs.Heap.prototype.insert = function(key, value) {
+  var node = new goog.structs.Node(key, value);
+  var nodes = this.nodes_;
+  nodes.push(node);
+  this.moveUp_(nodes.length - 1);
+};
+goog.structs.Heap.prototype.insertAll = function(heap) {
+  var keys, values;
+  if (heap instanceof goog.structs.Heap) {
+    keys = heap.getKeys();
+    values = heap.getValues();
+    if (heap.getCount() <= 0) {
+      var nodes = this.nodes_;
+      for (var i = 0;i < keys.length;i++) {
+        nodes.push(new goog.structs.Node(keys[i], values[i]));
+      }
+      return;
+    }
+  } else {
+    keys = goog.object.getKeys(heap);
+    values = goog.object.getValues(heap);
+  }
+  for (var i = 0;i < keys.length;i++) {
+    this.insert(keys[i], values[i]);
+  }
+};
+goog.structs.Heap.prototype.remove = function() {
+  var nodes = this.nodes_;
+  var count = nodes.length;
+  var rootNode = nodes[0];
+  if (count <= 0) {
+    return undefined;
+  } else {
+    if (count == 1) {
+      goog.array.clear(nodes);
+    } else {
+      nodes[0] = nodes.pop();
+      this.moveDown_(0);
+    }
+  }
+  return rootNode.getValue();
+};
+goog.structs.Heap.prototype.peek = function() {
+  var nodes = this.nodes_;
+  if (nodes.length == 0) {
+    return undefined;
+  }
+  return nodes[0].getValue();
+};
+goog.structs.Heap.prototype.peekKey = function() {
+  return this.nodes_[0] && this.nodes_[0].getKey();
+};
+goog.structs.Heap.prototype.moveDown_ = function(index) {
+  var nodes = this.nodes_;
+  var count = nodes.length;
+  var node = nodes[index];
+  while (index < count >> 1) {
+    var leftChildIndex = this.getLeftChildIndex_(index);
+    var rightChildIndex = this.getRightChildIndex_(index);
+    var smallerChildIndex = rightChildIndex < count && nodes[rightChildIndex].getKey() < nodes[leftChildIndex].getKey() ? rightChildIndex : leftChildIndex;
+    if (nodes[smallerChildIndex].getKey() > node.getKey()) {
+      break;
+    }
+    nodes[index] = nodes[smallerChildIndex];
+    index = smallerChildIndex;
+  }
+  nodes[index] = node;
+};
+goog.structs.Heap.prototype.moveUp_ = function(index) {
+  var nodes = this.nodes_;
+  var node = nodes[index];
+  while (index > 0) {
+    var parentIndex = this.getParentIndex_(index);
+    if (nodes[parentIndex].getKey() > node.getKey()) {
+      nodes[index] = nodes[parentIndex];
+      index = parentIndex;
+    } else {
+      break;
+    }
+  }
+  nodes[index] = node;
+};
+goog.structs.Heap.prototype.getLeftChildIndex_ = function(index) {
+  return index * 2 + 1;
+};
+goog.structs.Heap.prototype.getRightChildIndex_ = function(index) {
+  return index * 2 + 2;
+};
+goog.structs.Heap.prototype.getParentIndex_ = function(index) {
+  return index - 1 >> 1;
+};
+goog.structs.Heap.prototype.getValues = function() {
+  var nodes = this.nodes_;
+  var rv = [];
+  var l = nodes.length;
+  for (var i = 0;i < l;i++) {
+    rv.push(nodes[i].getValue());
+  }
+  return rv;
+};
+goog.structs.Heap.prototype.getKeys = function() {
+  var nodes = this.nodes_;
+  var rv = [];
+  var l = nodes.length;
+  for (var i = 0;i < l;i++) {
+    rv.push(nodes[i].getKey());
+  }
+  return rv;
+};
+goog.structs.Heap.prototype.containsValue = function(val) {
+  return goog.array.some(this.nodes_, function(node) {
+    return node.getValue() == val;
+  });
+};
+goog.structs.Heap.prototype.containsKey = function(key) {
+  return goog.array.some(this.nodes_, function(node) {
+    return node.getKey() == key;
+  });
+};
+goog.structs.Heap.prototype.clone = function() {
+  return new goog.structs.Heap(this);
+};
+goog.structs.Heap.prototype.getCount = function() {
+  return this.nodes_.length;
+};
+goog.structs.Heap.prototype.isEmpty = function() {
+  return goog.array.isEmpty(this.nodes_);
+};
+goog.structs.Heap.prototype.clear = function() {
+  goog.array.clear(this.nodes_);
+};
+goog.provide("goog.structs.PriorityQueue");
+goog.require("goog.structs");
+goog.require("goog.structs.Heap");
+goog.structs.PriorityQueue = function() {
+  goog.structs.Heap.call(this);
+};
+goog.inherits(goog.structs.PriorityQueue, goog.structs.Heap);
+goog.structs.PriorityQueue.prototype.enqueue = function(priority, value) {
+  this.insert(priority, value);
+};
+goog.structs.PriorityQueue.prototype.dequeue = function() {
+  return this.remove();
+};
+goog.provide("goog.structs.PriorityPool");
+goog.require("goog.structs.Pool");
+goog.require("goog.structs.PriorityQueue");
+goog.structs.PriorityPool = function(opt_minCount, opt_maxCount) {
+  this.requestQueue_ = new goog.structs.PriorityQueue;
+  goog.structs.Pool.call(this, opt_minCount, opt_maxCount);
+};
+goog.inherits(goog.structs.PriorityPool, goog.structs.Pool);
+goog.structs.PriorityPool.prototype.delayTimeout_;
+goog.structs.PriorityPool.DEFAULT_PRIORITY_ = 100;
+goog.structs.PriorityPool.prototype.setDelay = function(delay) {
+  goog.base(this, "setDelay", delay);
+  if (!goog.isDefAndNotNull(this.lastAccess)) {
+    return;
+  }
+  goog.global.clearTimeout(this.delayTimeout_);
+  this.delayTimeout_ = goog.global.setTimeout(goog.bind(this.handleQueueRequests_, this), this.delay + this.lastAccess - goog.now());
+  this.handleQueueRequests_();
+};
+goog.structs.PriorityPool.prototype.getObject = function(opt_callback, opt_priority) {
+  if (!opt_callback) {
+    var result = goog.base(this, "getObject");
+    if (result && this.delay) {
+      this.delayTimeout_ = goog.global.setTimeout(goog.bind(this.handleQueueRequests_, this), this.delay);
+    }
+    return result;
+  }
+  var priority = goog.isDef(opt_priority) ? opt_priority : goog.structs.PriorityPool.DEFAULT_PRIORITY_;
+  this.requestQueue_.enqueue(priority, opt_callback);
+  this.handleQueueRequests_();
+  return undefined;
+};
+goog.structs.PriorityPool.prototype.handleQueueRequests_ = function() {
+  var requestQueue = this.requestQueue_;
+  while (requestQueue.getCount() > 0) {
+    var obj = this.getObject();
+    if (!obj) {
+      return;
+    } else {
+      var requestCallback = requestQueue.dequeue();
+      requestCallback.apply(this, [obj]);
+    }
+  }
+};
+goog.structs.PriorityPool.prototype.addFreeObject = function(obj) {
+  goog.structs.PriorityPool.superClass_.addFreeObject.call(this, obj);
+  this.handleQueueRequests_();
+};
+goog.structs.PriorityPool.prototype.adjustForMinMax = function() {
+  goog.structs.PriorityPool.superClass_.adjustForMinMax.call(this);
+  this.handleQueueRequests_();
+};
+goog.structs.PriorityPool.prototype.disposeInternal = function() {
+  goog.structs.PriorityPool.superClass_.disposeInternal.call(this);
+  goog.global.clearTimeout(this.delayTimeout_);
+  this.requestQueue_.clear();
+  this.requestQueue_ = null;
+};
+goog.provide("goog.net.XhrIoPool");
+goog.require("goog.net.XhrIo");
+goog.require("goog.structs");
+goog.require("goog.structs.PriorityPool");
+goog.net.XhrIoPool = function(opt_headers, opt_minCount, opt_maxCount) {
+  goog.structs.PriorityPool.call(this, opt_minCount, opt_maxCount);
+  this.headers_ = opt_headers;
+};
+goog.inherits(goog.net.XhrIoPool, goog.structs.PriorityPool);
+goog.net.XhrIoPool.prototype.createObject = function() {
+  var xhrIo = new goog.net.XhrIo;
+  var headers = this.headers_;
+  if (headers) {
+    goog.structs.forEach(headers, function(value, key) {
+      xhrIo.headers.set(key, value);
+    });
+  }
+  return xhrIo;
+};
+goog.net.XhrIoPool.prototype.objectCanBeReused = function(obj) {
+  var xhr = (obj);
+  return!xhr.isDisposed() && !xhr.isActive();
+};
+goog.provide("goog.net.XhrManager");
+goog.provide("goog.net.XhrManager.Event");
+goog.provide("goog.net.XhrManager.Request");
+goog.require("goog.Disposable");
+goog.require("goog.events");
+goog.require("goog.events.Event");
+goog.require("goog.events.EventHandler");
+goog.require("goog.events.EventTarget");
+goog.require("goog.net.EventType");
+goog.require("goog.net.XhrIo");
+goog.require("goog.net.XhrIoPool");
+goog.require("goog.structs.Map");
+goog.net.XhrManager = function(opt_maxRetries, opt_headers, opt_minCount, opt_maxCount, opt_timeoutInterval) {
+  goog.base(this);
+  this.maxRetries_ = goog.isDef(opt_maxRetries) ? opt_maxRetries : 1;
+  this.timeoutInterval_ = goog.isDef(opt_timeoutInterval) ? Math.max(0, opt_timeoutInterval) : 0;
+  this.xhrPool_ = new goog.net.XhrIoPool(opt_headers, opt_minCount, opt_maxCount);
+  this.requests_ = new goog.structs.Map;
+  this.eventHandler_ = new goog.events.EventHandler(this);
+};
+goog.inherits(goog.net.XhrManager, goog.events.EventTarget);
+goog.net.XhrManager.ERROR_ID_IN_USE_ = "[goog.net.XhrManager] ID in use";
+goog.net.XhrManager.XHR_EVENT_TYPES_ = [goog.net.EventType.READY, goog.net.EventType.COMPLETE, goog.net.EventType.SUCCESS, goog.net.EventType.ERROR, goog.net.EventType.ABORT, goog.net.EventType.TIMEOUT];
+goog.net.XhrManager.prototype.setTimeoutInterval = function(ms) {
+  this.timeoutInterval_ = Math.max(0, ms);
+};
+goog.net.XhrManager.prototype.getOutstandingCount = function() {
+  return this.requests_.getCount();
+};
+goog.net.XhrManager.prototype.getOutstandingRequestIds = function() {
+  return this.requests_.getKeys();
+};
+goog.net.XhrManager.prototype.send = function(id, url, opt_method, opt_content, opt_headers, opt_priority, opt_callback, opt_maxRetries, opt_responseType) {
+  var requests = this.requests_;
+  if (requests.get(id)) {
+    throw Error(goog.net.XhrManager.ERROR_ID_IN_USE_);
+  }
+  var request = new goog.net.XhrManager.Request(url, goog.bind(this.handleEvent_, this, id), opt_method, opt_content, opt_headers, opt_callback, goog.isDef(opt_maxRetries) ? opt_maxRetries : this.maxRetries_, opt_responseType);
+  this.requests_.set(id, request);
+  var callback = goog.bind(this.handleAvailableXhr_, this, id);
+  this.xhrPool_.getObject(callback, opt_priority);
+  return request;
+};
+goog.net.XhrManager.prototype.abort = function(id, opt_force) {
+  var request = this.requests_.get(id);
+  if (request) {
+    var xhrIo = request.xhrIo;
+    request.setAborted(true);
+    if (opt_force) {
+      if (xhrIo) {
+        this.removeXhrListener_(xhrIo, request.getXhrEventCallback());
+        goog.events.listenOnce(xhrIo, goog.net.EventType.READY, function() {
+          this.xhrPool_.releaseObject(xhrIo);
+        }, false, this);
+      }
+      this.requests_.remove(id);
+    }
+    if (xhrIo) {
+      xhrIo.abort();
+    }
+  }
+};
+goog.net.XhrManager.prototype.handleAvailableXhr_ = function(id, xhrIo) {
+  var request = this.requests_.get(id);
+  if (request && !request.xhrIo) {
+    this.addXhrListener_(xhrIo, request.getXhrEventCallback());
+    xhrIo.setTimeoutInterval(this.timeoutInterval_);
+    xhrIo.setResponseType(request.getResponseType());
+    request.xhrIo = request.xhrLite = xhrIo;
+    this.dispatchEvent(new goog.net.XhrManager.Event(goog.net.EventType.READY, this, id, xhrIo));
+    this.retry_(id, xhrIo);
+    if (request.getAborted()) {
+      xhrIo.abort();
+    }
+  } else {
+    this.xhrPool_.releaseObject(xhrIo);
+  }
+};
+goog.net.XhrManager.prototype.handleEvent_ = function(id, e) {
+  var xhrIo = (e.target);
+  switch(e.type) {
+    case goog.net.EventType.READY:
+      this.retry_(id, xhrIo);
+      break;
+    case goog.net.EventType.COMPLETE:
+      return this.handleComplete_(id, xhrIo, e);
+    case goog.net.EventType.SUCCESS:
+      this.handleSuccess_(id, xhrIo);
+      break;
+    case goog.net.EventType.TIMEOUT:
+    ;
+    case goog.net.EventType.ERROR:
+      this.handleError_(id, xhrIo);
+      break;
+    case goog.net.EventType.ABORT:
+      this.handleAbort_(id, xhrIo);
+      break;
+  }
+  return null;
+};
+goog.net.XhrManager.prototype.retry_ = function(id, xhrIo) {
+  var request = this.requests_.get(id);
+  if (request && (!request.getCompleted() && !request.hasReachedMaxRetries())) {
+    request.increaseAttemptCount();
+    xhrIo.send(request.getUrl(), request.getMethod(), request.getContent(), request.getHeaders());
+  } else {
+    if (request) {
+      this.removeXhrListener_(xhrIo, request.getXhrEventCallback());
+      this.requests_.remove(id);
+    }
+    this.xhrPool_.releaseObject(xhrIo);
+  }
+};
+goog.net.XhrManager.prototype.handleComplete_ = function(id, xhrIo, e) {
+  var request = this.requests_.get(id);
+  if (xhrIo.getLastErrorCode() == goog.net.ErrorCode.ABORT || (xhrIo.isSuccess() || request.hasReachedMaxRetries())) {
+    this.dispatchEvent(new goog.net.XhrManager.Event(goog.net.EventType.COMPLETE, this, id, xhrIo));
+    if (request) {
+      request.setCompleted(true);
+      if (request.getCompleteCallback()) {
+        return request.getCompleteCallback().call(xhrIo, e);
+      }
+    }
+  }
+  return null;
+};
+goog.net.XhrManager.prototype.handleAbort_ = function(id, xhrIo) {
+  this.dispatchEvent(new goog.net.XhrManager.Event(goog.net.EventType.ABORT, this, id, xhrIo));
+};
+goog.net.XhrManager.prototype.handleSuccess_ = function(id, xhrIo) {
+  this.dispatchEvent(new goog.net.XhrManager.Event(goog.net.EventType.SUCCESS, this, id, xhrIo));
+};
+goog.net.XhrManager.prototype.handleError_ = function(id, xhrIo) {
+  var request = this.requests_.get(id);
+  if (request.hasReachedMaxRetries()) {
+    this.dispatchEvent(new goog.net.XhrManager.Event(goog.net.EventType.ERROR, this, id, xhrIo));
+  }
+};
+goog.net.XhrManager.prototype.removeXhrListener_ = function(xhrIo, func, opt_types) {
+  var types = opt_types || goog.net.XhrManager.XHR_EVENT_TYPES_;
+  this.eventHandler_.unlisten(xhrIo, types, func);
+};
+goog.net.XhrManager.prototype.addXhrListener_ = function(xhrIo, func, opt_types) {
+  var types = opt_types || goog.net.XhrManager.XHR_EVENT_TYPES_;
+  this.eventHandler_.listen(xhrIo, types, func);
+};
+goog.net.XhrManager.prototype.disposeInternal = function() {
+  goog.net.XhrManager.superClass_.disposeInternal.call(this);
+  this.xhrPool_.dispose();
+  this.xhrPool_ = null;
+  this.eventHandler_.dispose();
+  this.eventHandler_ = null;
+  var requests = this.requests_;
+  goog.structs.forEach(requests, function(value, key) {
+    value.dispose();
+  });
+  requests.clear();
+  this.requests_ = null;
+};
+goog.net.XhrManager.Event = function(type, target, id, xhrIo) {
+  goog.events.Event.call(this, type, target);
+  this.id = id;
+  this.xhrIo = xhrIo;
+  this.xhrLite = (xhrIo);
+};
+goog.inherits(goog.net.XhrManager.Event, goog.events.Event);
+goog.net.XhrManager.Request = function(url, xhrEventCallback, opt_method, opt_content, opt_headers, opt_callback, opt_maxRetries, opt_responseType) {
+  goog.Disposable.call(this);
+  this.url_ = url;
+  this.method_ = opt_method || "GET";
+  this.content_ = opt_content;
+  this.headers_ = opt_headers || null;
+  this.maxRetries_ = goog.isDef(opt_maxRetries) ? opt_maxRetries : 1;
+  this.attemptCount_ = 0;
+  this.completed_ = false;
+  this.aborted_ = false;
+  this.xhrEventCallback_ = xhrEventCallback;
+  this.completeCallback_ = opt_callback;
+  this.responseType_ = opt_responseType || goog.net.XhrIo.ResponseType.DEFAULT;
+  this.xhrIo = null;
+};
+goog.inherits(goog.net.XhrManager.Request, goog.Disposable);
+goog.net.XhrManager.Request.prototype.getUrl = function() {
+  return this.url_;
+};
+goog.net.XhrManager.Request.prototype.getMethod = function() {
+  return this.method_;
+};
+goog.net.XhrManager.Request.prototype.getContent = function() {
+  return this.content_;
+};
+goog.net.XhrManager.Request.prototype.getHeaders = function() {
+  return this.headers_;
+};
+goog.net.XhrManager.Request.prototype.getMaxRetries = function() {
+  return this.maxRetries_;
+};
+goog.net.XhrManager.Request.prototype.getAttemptCount = function() {
+  return this.attemptCount_;
+};
+goog.net.XhrManager.Request.prototype.increaseAttemptCount = function() {
+  this.attemptCount_++;
+};
+goog.net.XhrManager.Request.prototype.hasReachedMaxRetries = function() {
+  return this.attemptCount_ > this.maxRetries_;
+};
+goog.net.XhrManager.Request.prototype.setCompleted = function(complete) {
+  this.completed_ = complete;
+};
+goog.net.XhrManager.Request.prototype.getCompleted = function() {
+  return this.completed_;
+};
+goog.net.XhrManager.Request.prototype.setAborted = function(aborted) {
+  this.aborted_ = aborted;
+};
+goog.net.XhrManager.Request.prototype.getAborted = function() {
+  return this.aborted_;
+};
+goog.net.XhrManager.Request.prototype.getXhrEventCallback = function() {
+  return this.xhrEventCallback_;
+};
+goog.net.XhrManager.Request.prototype.getCompleteCallback = function() {
+  return this.completeCallback_;
+};
+goog.net.XhrManager.Request.prototype.getResponseType = function() {
+  return this.responseType_;
+};
+goog.net.XhrManager.Request.prototype.disposeInternal = function() {
+  goog.net.XhrManager.Request.superClass_.disposeInternal.call(this);
+  delete this.xhrEventCallback_;
+  delete this.completeCallback_;
 };
 goog.provide("goog.Uri");
 goog.provide("goog.Uri.QueryData");
@@ -26411,6 +28447,2012 @@ goog.Uri.QueryData.prototype.extend = function(var_args) {
     }, this);
   }
 };
+goog.provide("clojure.string");
+goog.require("cljs.core");
+goog.require("goog.string.StringBuffer");
+goog.require("goog.string.StringBuffer");
+goog.require("goog.string");
+goog.require("goog.string");
+clojure.string.seq_reverse = function seq_reverse(coll) {
+  return cljs.core.reduce.call(null, cljs.core.conj, cljs.core.List.EMPTY, coll);
+};
+clojure.string.reverse = function reverse(s) {
+  return s.split("").reverse().join("");
+};
+clojure.string.replace = function replace(s, match, replacement) {
+  if (typeof match === "string") {
+    return s.replace(new RegExp(goog.string.regExpEscape(match), "g"), replacement);
+  } else {
+    if (cljs.core.truth_(match.hasOwnProperty("source"))) {
+      return s.replace(new RegExp(match.source, "g"), replacement);
+    } else {
+      if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+        throw[cljs.core.str("Invalid match arg: "), cljs.core.str(match)].join("");
+      } else {
+        return null;
+      }
+    }
+  }
+};
+clojure.string.replace_first = function replace_first(s, match, replacement) {
+  return s.replace(match, replacement);
+};
+clojure.string.join = function() {
+  var join = null;
+  var join__1 = function(coll) {
+    return cljs.core.apply.call(null, cljs.core.str, coll);
+  };
+  var join__2 = function(separator, coll) {
+    return cljs.core.apply.call(null, cljs.core.str, cljs.core.interpose.call(null, separator, coll));
+  };
+  join = function(separator, coll) {
+    switch(arguments.length) {
+      case 1:
+        return join__1.call(this, separator);
+      case 2:
+        return join__2.call(this, separator, coll);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  join.cljs$core$IFn$_invoke$arity$1 = join__1;
+  join.cljs$core$IFn$_invoke$arity$2 = join__2;
+  return join;
+}();
+clojure.string.upper_case = function upper_case(s) {
+  return s.toUpperCase();
+};
+clojure.string.lower_case = function lower_case(s) {
+  return s.toLowerCase();
+};
+clojure.string.capitalize = function capitalize(s) {
+  if (cljs.core.count.call(null, s) < 2) {
+    return clojure.string.upper_case.call(null, s);
+  } else {
+    return[cljs.core.str(clojure.string.upper_case.call(null, cljs.core.subs.call(null, s, 0, 1))), cljs.core.str(clojure.string.lower_case.call(null, cljs.core.subs.call(null, s, 1)))].join("");
+  }
+};
+clojure.string.pop_last_while_empty = function pop_last_while_empty(v) {
+  var v__$1 = v;
+  while (true) {
+    if (cljs.core._EQ_.call(null, "", cljs.core.peek.call(null, v__$1))) {
+      var G__5879 = cljs.core.pop.call(null, v__$1);
+      v__$1 = G__5879;
+      continue;
+    } else {
+      return v__$1;
+    }
+    break;
+  }
+};
+clojure.string.discard_trailing_if_needed = function discard_trailing_if_needed(limit, v) {
+  if (cljs.core._EQ_.call(null, 0, limit)) {
+    return clojure.string.pop_last_while_empty.call(null, v);
+  } else {
+    return v;
+  }
+};
+clojure.string.split_with_empty_regex = function split_with_empty_regex(s, limit) {
+  if (limit <= 0 || limit >= 2 + cljs.core.count.call(null, s)) {
+    return cljs.core.conj.call(null, cljs.core.vec.call(null, cljs.core.cons.call(null, "", cljs.core.map.call(null, cljs.core.str, cljs.core.seq.call(null, s)))), "");
+  } else {
+    var pred__5883 = cljs.core._EQ_;
+    var expr__5884 = limit;
+    if (cljs.core.truth_(pred__5883.call(null, 1, expr__5884))) {
+      return new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [s], null);
+    } else {
+      if (cljs.core.truth_(pred__5883.call(null, 2, expr__5884))) {
+        return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, ["", s], null);
+      } else {
+        var c = limit - 2;
+        return cljs.core.conj.call(null, cljs.core.vec.call(null, cljs.core.cons.call(null, "", cljs.core.subvec.call(null, cljs.core.vec.call(null, cljs.core.map.call(null, cljs.core.str, cljs.core.seq.call(null, s))), 0, c))), cljs.core.subs.call(null, s, c));
+      }
+    }
+  }
+};
+clojure.string.split = function() {
+  var split = null;
+  var split__2 = function(s, re) {
+    return split.call(null, s, re, 0);
+  };
+  var split__3 = function(s, re, limit) {
+    return clojure.string.discard_trailing_if_needed.call(null, limit, cljs.core._EQ_.call(null, [cljs.core.str(re)].join(""), "/(?:)/") ? clojure.string.split_with_empty_regex.call(null, s, limit) : limit < 1 ? cljs.core.vec.call(null, [cljs.core.str(s)].join("").split(re)) : function() {
+      var s__$1 = s;
+      var limit__$1 = limit;
+      var parts = cljs.core.PersistentVector.EMPTY;
+      while (true) {
+        if (cljs.core._EQ_.call(null, limit__$1, 1)) {
+          return cljs.core.conj.call(null, parts, s__$1);
+        } else {
+          var temp__4090__auto__ = cljs.core.re_find.call(null, re, s__$1);
+          if (cljs.core.truth_(temp__4090__auto__)) {
+            var m = temp__4090__auto__;
+            var index = s__$1.indexOf(m);
+            var G__5886 = s__$1.substring(index + cljs.core.count.call(null, m));
+            var G__5887 = limit__$1 - 1;
+            var G__5888 = cljs.core.conj.call(null, parts, s__$1.substring(0, index));
+            s__$1 = G__5886;
+            limit__$1 = G__5887;
+            parts = G__5888;
+            continue;
+          } else {
+            return cljs.core.conj.call(null, parts, s__$1);
+          }
+        }
+        break;
+      }
+    }());
+  };
+  split = function(s, re, limit) {
+    switch(arguments.length) {
+      case 2:
+        return split__2.call(this, s, re);
+      case 3:
+        return split__3.call(this, s, re, limit);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  split.cljs$core$IFn$_invoke$arity$2 = split__2;
+  split.cljs$core$IFn$_invoke$arity$3 = split__3;
+  return split;
+}();
+clojure.string.split_lines = function split_lines(s) {
+  return clojure.string.split.call(null, s, /\n|\r\n/);
+};
+clojure.string.trim = function trim(s) {
+  return goog.string.trim(s);
+};
+clojure.string.triml = function triml(s) {
+  return goog.string.trimLeft(s);
+};
+clojure.string.trimr = function trimr(s) {
+  return goog.string.trimRight(s);
+};
+clojure.string.trim_newline = function trim_newline(s) {
+  var index = s.length;
+  while (true) {
+    if (index === 0) {
+      return "";
+    } else {
+      var ch = cljs.core.get.call(null, s, index - 1);
+      if (cljs.core._EQ_.call(null, ch, "\n") || cljs.core._EQ_.call(null, ch, "\r")) {
+        var G__5889 = index - 1;
+        index = G__5889;
+        continue;
+      } else {
+        return s.substring(0, index);
+      }
+    }
+    break;
+  }
+};
+clojure.string.blank_QMARK_ = function blank_QMARK_(s) {
+  return goog.string.isEmptySafe(s);
+};
+clojure.string.escape = function escape__$1(s, cmap) {
+  var buffer = new goog.string.StringBuffer;
+  var length = s.length;
+  var index = 0;
+  while (true) {
+    if (cljs.core._EQ_.call(null, length, index)) {
+      return buffer.toString();
+    } else {
+      var ch = s.charAt(index);
+      var temp__4090__auto___5890 = cljs.core.get.call(null, cmap, ch);
+      if (cljs.core.truth_(temp__4090__auto___5890)) {
+        var replacement_5891 = temp__4090__auto___5890;
+        buffer.append([cljs.core.str(replacement_5891)].join(""));
+      } else {
+        buffer.append(ch);
+      }
+      var G__5892 = index + 1;
+      index = G__5892;
+      continue;
+    }
+    break;
+  }
+};
+goog.provide("cljs.reader");
+goog.require("cljs.core");
+goog.require("goog.string");
+goog.require("goog.string");
+cljs.reader.PushbackReader = function() {
+  var obj5777 = {};
+  return obj5777;
+}();
+cljs.reader.read_char = function read_char(reader) {
+  if (function() {
+    var and__3450__auto__ = reader;
+    if (and__3450__auto__) {
+      return reader.cljs$reader$PushbackReader$read_char$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return reader.cljs$reader$PushbackReader$read_char$arity$1(reader);
+  } else {
+    var x__4089__auto__ = reader == null ? null : reader;
+    return function() {
+      var or__3462__auto__ = cljs.reader.read_char[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = cljs.reader.read_char["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "PushbackReader.read-char", reader);
+        }
+      }
+    }().call(null, reader);
+  }
+};
+cljs.reader.unread = function unread(reader, ch) {
+  if (function() {
+    var and__3450__auto__ = reader;
+    if (and__3450__auto__) {
+      return reader.cljs$reader$PushbackReader$unread$arity$2;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return reader.cljs$reader$PushbackReader$unread$arity$2(reader, ch);
+  } else {
+    var x__4089__auto__ = reader == null ? null : reader;
+    return function() {
+      var or__3462__auto__ = cljs.reader.unread[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = cljs.reader.unread["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "PushbackReader.unread", reader);
+        }
+      }
+    }().call(null, reader, ch);
+  }
+};
+cljs.reader.StringPushbackReader = function(s, buffer, idx) {
+  this.s = s;
+  this.buffer = buffer;
+  this.idx = idx;
+};
+cljs.reader.StringPushbackReader.cljs$lang$type = true;
+cljs.reader.StringPushbackReader.cljs$lang$ctorStr = "cljs.reader/StringPushbackReader";
+cljs.reader.StringPushbackReader.cljs$lang$ctorPrWriter = function(this__4029__auto__, writer__4030__auto__, opt__4031__auto__) {
+  return cljs.core._write.call(null, writer__4030__auto__, "cljs.reader/StringPushbackReader");
+};
+cljs.reader.StringPushbackReader.prototype.cljs$reader$PushbackReader$ = true;
+cljs.reader.StringPushbackReader.prototype.cljs$reader$PushbackReader$read_char$arity$1 = function(reader) {
+  var self__ = this;
+  var reader__$1 = this;
+  if (self__.buffer.length === 0) {
+    self__.idx = self__.idx + 1;
+    return self__.s[self__.idx];
+  } else {
+    return self__.buffer.pop();
+  }
+};
+cljs.reader.StringPushbackReader.prototype.cljs$reader$PushbackReader$unread$arity$2 = function(reader, ch) {
+  var self__ = this;
+  var reader__$1 = this;
+  return self__.buffer.push(ch);
+};
+cljs.reader.__GT_StringPushbackReader = function __GT_StringPushbackReader(s, buffer, idx) {
+  return new cljs.reader.StringPushbackReader(s, buffer, idx);
+};
+cljs.reader.push_back_reader = function push_back_reader(s) {
+  return new cljs.reader.StringPushbackReader(s, [], -1);
+};
+cljs.reader.whitespace_QMARK_ = function whitespace_QMARK_(ch) {
+  var or__3462__auto__ = goog.string.isBreakingWhitespace(ch);
+  if (cljs.core.truth_(or__3462__auto__)) {
+    return or__3462__auto__;
+  } else {
+    return "," === ch;
+  }
+};
+cljs.reader.numeric_QMARK_ = function numeric_QMARK_(ch) {
+  return goog.string.isNumeric(ch);
+};
+cljs.reader.comment_prefix_QMARK_ = function comment_prefix_QMARK_(ch) {
+  return ";" === ch;
+};
+cljs.reader.number_literal_QMARK_ = function number_literal_QMARK_(reader, initch) {
+  return cljs.reader.numeric_QMARK_.call(null, initch) || ("+" === initch || "-" === initch) && cljs.reader.numeric_QMARK_.call(null, function() {
+    var next_ch = cljs.reader.read_char.call(null, reader);
+    cljs.reader.unread.call(null, reader, next_ch);
+    return next_ch;
+  }());
+};
+cljs.reader.reader_error = function() {
+  var reader_error__delegate = function(rdr, msg) {
+    throw new Error(cljs.core.apply.call(null, cljs.core.str, msg));
+  };
+  var reader_error = function(rdr, var_args) {
+    var msg = null;
+    if (arguments.length > 1) {
+      msg = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return reader_error__delegate.call(this, rdr, msg);
+  };
+  reader_error.cljs$lang$maxFixedArity = 1;
+  reader_error.cljs$lang$applyTo = function(arglist__5778) {
+    var rdr = cljs.core.first(arglist__5778);
+    var msg = cljs.core.rest(arglist__5778);
+    return reader_error__delegate(rdr, msg);
+  };
+  reader_error.cljs$core$IFn$_invoke$arity$variadic = reader_error__delegate;
+  return reader_error;
+}();
+cljs.reader.macro_terminating_QMARK_ = function macro_terminating_QMARK_(ch) {
+  var and__3450__auto__ = !(ch === "#");
+  if (and__3450__auto__) {
+    var and__3450__auto____$1 = !(ch === "'");
+    if (and__3450__auto____$1) {
+      var and__3450__auto____$2 = !(ch === ":");
+      if (and__3450__auto____$2) {
+        return cljs.reader.macros.call(null, ch);
+      } else {
+        return and__3450__auto____$2;
+      }
+    } else {
+      return and__3450__auto____$1;
+    }
+  } else {
+    return and__3450__auto__;
+  }
+};
+cljs.reader.read_token = function read_token(rdr, initch) {
+  var sb = new goog.string.StringBuffer(initch);
+  var ch = cljs.reader.read_char.call(null, rdr);
+  while (true) {
+    if (ch == null || (cljs.reader.whitespace_QMARK_.call(null, ch) || cljs.reader.macro_terminating_QMARK_.call(null, ch))) {
+      cljs.reader.unread.call(null, rdr, ch);
+      return sb.toString();
+    } else {
+      var G__5779 = function() {
+        sb.append(ch);
+        return sb;
+      }();
+      var G__5780 = cljs.reader.read_char.call(null, rdr);
+      sb = G__5779;
+      ch = G__5780;
+      continue;
+    }
+    break;
+  }
+};
+cljs.reader.skip_line = function skip_line(reader, _) {
+  while (true) {
+    var ch = cljs.reader.read_char.call(null, reader);
+    if (ch === "\n" || (ch === "\r" || ch == null)) {
+      return reader;
+    } else {
+      continue;
+    }
+    break;
+  }
+};
+cljs.reader.int_pattern = cljs.core.re_pattern.call(null, "([-+]?)(?:(0)|([1-9][0-9]*)|0[xX]([0-9A-Fa-f]+)|0([0-7]+)|([1-9][0-9]?)[rR]([0-9A-Za-z]+)|0[0-9]+)(N)?");
+cljs.reader.ratio_pattern = cljs.core.re_pattern.call(null, "([-+]?[0-9]+)/([0-9]+)");
+cljs.reader.float_pattern = cljs.core.re_pattern.call(null, "([-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?)(M)?");
+cljs.reader.symbol_pattern = cljs.core.re_pattern.call(null, "[:]?([^0-9/].*/)?([^0-9/][^/]*)");
+cljs.reader.re_find_STAR_ = function re_find_STAR_(re, s) {
+  var matches = re.exec(s);
+  if (matches == null) {
+    return null;
+  } else {
+    if (matches.length === 1) {
+      return matches[0];
+    } else {
+      return matches;
+    }
+  }
+};
+cljs.reader.match_int = function match_int(s) {
+  var groups = cljs.reader.re_find_STAR_.call(null, cljs.reader.int_pattern, s);
+  var group3 = groups[2];
+  if (!(group3 == null || group3.length < 1)) {
+    return 0;
+  } else {
+    var negate = "-" === groups[1] ? -1 : 1;
+    var a = cljs.core.truth_(groups[3]) ? [groups[3], 10] : cljs.core.truth_(groups[4]) ? [groups[4], 16] : cljs.core.truth_(groups[5]) ? [groups[5], 8] : cljs.core.truth_(groups[7]) ? [groups[7], parseInt(groups[7])] : new cljs.core.Keyword(null, "default", "default", 2558708147) ? [null, null] : null;
+    var n = a[0];
+    var radix = a[1];
+    if (n == null) {
+      return null;
+    } else {
+      return negate * parseInt(n, radix);
+    }
+  }
+};
+cljs.reader.match_ratio = function match_ratio(s) {
+  var groups = cljs.reader.re_find_STAR_.call(null, cljs.reader.ratio_pattern, s);
+  var numinator = groups[1];
+  var denominator = groups[2];
+  return parseInt(numinator, 10) / parseInt(denominator, 10);
+};
+cljs.reader.match_float = function match_float(s) {
+  return parseFloat(s);
+};
+cljs.reader.re_matches_STAR_ = function re_matches_STAR_(re, s) {
+  var matches = re.exec(s);
+  if (!(matches == null) && matches[0] === s) {
+    if (matches.length === 1) {
+      return matches[0];
+    } else {
+      return matches;
+    }
+  } else {
+    return null;
+  }
+};
+cljs.reader.match_number = function match_number(s) {
+  if (cljs.core.truth_(cljs.reader.re_matches_STAR_.call(null, cljs.reader.int_pattern, s))) {
+    return cljs.reader.match_int.call(null, s);
+  } else {
+    if (cljs.core.truth_(cljs.reader.re_matches_STAR_.call(null, cljs.reader.ratio_pattern, s))) {
+      return cljs.reader.match_ratio.call(null, s);
+    } else {
+      if (cljs.core.truth_(cljs.reader.re_matches_STAR_.call(null, cljs.reader.float_pattern, s))) {
+        return cljs.reader.match_float.call(null, s);
+      } else {
+        return null;
+      }
+    }
+  }
+};
+cljs.reader.escape_char_map = function escape_char_map(c) {
+  if (c === "t") {
+    return "\t";
+  } else {
+    if (c === "r") {
+      return "\r";
+    } else {
+      if (c === "n") {
+        return "\n";
+      } else {
+        if (c === "\\") {
+          return "\\";
+        } else {
+          if (c === '"') {
+            return'"';
+          } else {
+            if (c === "b") {
+              return "\b";
+            } else {
+              if (c === "f") {
+                return "\f";
+              } else {
+                if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+                  return null;
+                } else {
+                  return null;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+};
+cljs.reader.read_2_chars = function read_2_chars(reader) {
+  return(new goog.string.StringBuffer(cljs.reader.read_char.call(null, reader), cljs.reader.read_char.call(null, reader))).toString();
+};
+cljs.reader.read_4_chars = function read_4_chars(reader) {
+  return(new goog.string.StringBuffer(cljs.reader.read_char.call(null, reader), cljs.reader.read_char.call(null, reader), cljs.reader.read_char.call(null, reader), cljs.reader.read_char.call(null, reader))).toString();
+};
+cljs.reader.unicode_2_pattern = cljs.core.re_pattern.call(null, "[0-9A-Fa-f]{2}");
+cljs.reader.unicode_4_pattern = cljs.core.re_pattern.call(null, "[0-9A-Fa-f]{4}");
+cljs.reader.validate_unicode_escape = function validate_unicode_escape(unicode_pattern, reader, escape_char, unicode_str) {
+  if (cljs.core.truth_(cljs.core.re_matches.call(null, unicode_pattern, unicode_str))) {
+    return unicode_str;
+  } else {
+    return cljs.reader.reader_error.call(null, reader, "Unexpected unicode escape \\", escape_char, unicode_str);
+  }
+};
+cljs.reader.make_unicode_char = function make_unicode_char(code_str) {
+  var code = parseInt(code_str, 16);
+  return String.fromCharCode(code);
+};
+cljs.reader.escape_char = function escape_char(buffer, reader) {
+  var ch = cljs.reader.read_char.call(null, reader);
+  var mapresult = cljs.reader.escape_char_map.call(null, ch);
+  if (cljs.core.truth_(mapresult)) {
+    return mapresult;
+  } else {
+    if (ch === "x") {
+      return cljs.reader.make_unicode_char.call(null, cljs.reader.validate_unicode_escape.call(null, cljs.reader.unicode_2_pattern, reader, ch, cljs.reader.read_2_chars.call(null, reader)));
+    } else {
+      if (ch === "u") {
+        return cljs.reader.make_unicode_char.call(null, cljs.reader.validate_unicode_escape.call(null, cljs.reader.unicode_4_pattern, reader, ch, cljs.reader.read_4_chars.call(null, reader)));
+      } else {
+        if (cljs.reader.numeric_QMARK_.call(null, ch)) {
+          return String.fromCharCode(ch);
+        } else {
+          if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+            return cljs.reader.reader_error.call(null, reader, "Unexpected unicode escape \\", ch);
+          } else {
+            return null;
+          }
+        }
+      }
+    }
+  }
+};
+cljs.reader.read_past = function read_past(pred, rdr) {
+  var ch = cljs.reader.read_char.call(null, rdr);
+  while (true) {
+    if (cljs.core.truth_(pred.call(null, ch))) {
+      var G__5781 = cljs.reader.read_char.call(null, rdr);
+      ch = G__5781;
+      continue;
+    } else {
+      return ch;
+    }
+    break;
+  }
+};
+cljs.reader.read_delimited_list = function read_delimited_list(delim, rdr, recursive_QMARK_) {
+  var a = cljs.core.transient$.call(null, cljs.core.PersistentVector.EMPTY);
+  while (true) {
+    var ch = cljs.reader.read_past.call(null, cljs.reader.whitespace_QMARK_, rdr);
+    if (cljs.core.truth_(ch)) {
+    } else {
+      cljs.reader.reader_error.call(null, rdr, "EOF while reading");
+    }
+    if (delim === ch) {
+      return cljs.core.persistent_BANG_.call(null, a);
+    } else {
+      var temp__4090__auto__ = cljs.reader.macros.call(null, ch);
+      if (cljs.core.truth_(temp__4090__auto__)) {
+        var macrofn = temp__4090__auto__;
+        var mret = macrofn.call(null, rdr, ch);
+        var G__5782 = mret === rdr ? a : cljs.core.conj_BANG_.call(null, a, mret);
+        a = G__5782;
+        continue;
+      } else {
+        cljs.reader.unread.call(null, rdr, ch);
+        var o = cljs.reader.read.call(null, rdr, true, null, recursive_QMARK_);
+        var G__5783 = o === rdr ? a : cljs.core.conj_BANG_.call(null, a, o);
+        a = G__5783;
+        continue;
+      }
+    }
+    break;
+  }
+};
+cljs.reader.not_implemented = function not_implemented(rdr, ch) {
+  return cljs.reader.reader_error.call(null, rdr, "Reader for ", ch, " not implemented yet");
+};
+cljs.reader.read_dispatch = function read_dispatch(rdr, _) {
+  var ch = cljs.reader.read_char.call(null, rdr);
+  var dm = cljs.reader.dispatch_macros.call(null, ch);
+  if (cljs.core.truth_(dm)) {
+    return dm.call(null, rdr, _);
+  } else {
+    var temp__4090__auto__ = cljs.reader.maybe_read_tagged_type.call(null, rdr, ch);
+    if (cljs.core.truth_(temp__4090__auto__)) {
+      var obj = temp__4090__auto__;
+      return obj;
+    } else {
+      return cljs.reader.reader_error.call(null, rdr, "No dispatch macro for ", ch);
+    }
+  }
+};
+cljs.reader.read_unmatched_delimiter = function read_unmatched_delimiter(rdr, ch) {
+  return cljs.reader.reader_error.call(null, rdr, "Unmached delimiter ", ch);
+};
+cljs.reader.read_list = function read_list(rdr, _) {
+  return cljs.core.apply.call(null, cljs.core.list, cljs.reader.read_delimited_list.call(null, ")", rdr, true));
+};
+cljs.reader.read_comment = cljs.reader.skip_line;
+cljs.reader.read_vector = function read_vector(rdr, _) {
+  return cljs.reader.read_delimited_list.call(null, "]", rdr, true);
+};
+cljs.reader.read_map = function read_map(rdr, _) {
+  var l = cljs.reader.read_delimited_list.call(null, "}", rdr, true);
+  if (cljs.core.odd_QMARK_.call(null, cljs.core.count.call(null, l))) {
+    cljs.reader.reader_error.call(null, rdr, "Map literal must contain an even number of forms");
+  } else {
+  }
+  return cljs.core.apply.call(null, cljs.core.hash_map, l);
+};
+cljs.reader.read_number = function read_number(reader, initch) {
+  var buffer = new goog.string.StringBuffer(initch);
+  var ch = cljs.reader.read_char.call(null, reader);
+  while (true) {
+    if (cljs.core.truth_(function() {
+      var or__3462__auto__ = ch == null;
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = cljs.reader.whitespace_QMARK_.call(null, ch);
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          return cljs.reader.macros.call(null, ch);
+        }
+      }
+    }())) {
+      cljs.reader.unread.call(null, reader, ch);
+      var s = buffer.toString();
+      var or__3462__auto__ = cljs.reader.match_number.call(null, s);
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return cljs.reader.reader_error.call(null, reader, "Invalid number format [", s, "]");
+      }
+    } else {
+      var G__5784 = function() {
+        buffer.append(ch);
+        return buffer;
+      }();
+      var G__5785 = cljs.reader.read_char.call(null, reader);
+      buffer = G__5784;
+      ch = G__5785;
+      continue;
+    }
+    break;
+  }
+};
+cljs.reader.read_string_STAR_ = function read_string_STAR_(reader, _) {
+  var buffer = new goog.string.StringBuffer;
+  var ch = cljs.reader.read_char.call(null, reader);
+  while (true) {
+    if (ch == null) {
+      return cljs.reader.reader_error.call(null, reader, "EOF while reading");
+    } else {
+      if ("\\" === ch) {
+        var G__5786 = function() {
+          buffer.append(cljs.reader.escape_char.call(null, buffer, reader));
+          return buffer;
+        }();
+        var G__5787 = cljs.reader.read_char.call(null, reader);
+        buffer = G__5786;
+        ch = G__5787;
+        continue;
+      } else {
+        if ('"' === ch) {
+          return buffer.toString();
+        } else {
+          if (new cljs.core.Keyword(null, "default", "default", 2558708147)) {
+            var G__5788 = function() {
+              buffer.append(ch);
+              return buffer;
+            }();
+            var G__5789 = cljs.reader.read_char.call(null, reader);
+            buffer = G__5788;
+            ch = G__5789;
+            continue;
+          } else {
+            return null;
+          }
+        }
+      }
+    }
+    break;
+  }
+};
+cljs.reader.special_symbols = function special_symbols(t, not_found) {
+  if (t === "nil") {
+    return null;
+  } else {
+    if (t === "true") {
+      return true;
+    } else {
+      if (t === "false") {
+        return false;
+      } else {
+        if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+          return not_found;
+        } else {
+          return null;
+        }
+      }
+    }
+  }
+};
+cljs.reader.read_symbol = function read_symbol(reader, initch) {
+  var token = cljs.reader.read_token.call(null, reader, initch);
+  if (cljs.core.truth_(goog.string.contains(token, "/"))) {
+    return cljs.core.symbol.call(null, cljs.core.subs.call(null, token, 0, token.indexOf("/")), cljs.core.subs.call(null, token, token.indexOf("/") + 1, token.length));
+  } else {
+    return cljs.reader.special_symbols.call(null, token, cljs.core.symbol.call(null, token));
+  }
+};
+cljs.reader.read_keyword = function read_keyword(reader, initch) {
+  var token = cljs.reader.read_token.call(null, reader, cljs.reader.read_char.call(null, reader));
+  var a = cljs.reader.re_matches_STAR_.call(null, cljs.reader.symbol_pattern, token);
+  var token__$1 = a[0];
+  var ns = a[1];
+  var name = a[2];
+  if (!(void 0 === ns) && ns.substring(ns.length - 2, ns.length) === ":/" || (name[name.length - 1] === ":" || !(token__$1.indexOf("::", 1) === -1))) {
+    return cljs.reader.reader_error.call(null, reader, "Invalid token: ", token__$1);
+  } else {
+    if (!(ns == null) && ns.length > 0) {
+      return cljs.core.keyword.call(null, ns.substring(0, ns.indexOf("/")), name);
+    } else {
+      return cljs.core.keyword.call(null, token__$1);
+    }
+  }
+};
+cljs.reader.desugar_meta = function desugar_meta(f) {
+  if (f instanceof cljs.core.Symbol) {
+    return new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null, "tag", "tag", 1014018828), f], null);
+  } else {
+    if (typeof f === "string") {
+      return new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null, "tag", "tag", 1014018828), f], null);
+    } else {
+      if (f instanceof cljs.core.Keyword) {
+        return new cljs.core.PersistentArrayMap.fromArray([f, true], true, false);
+      } else {
+        if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+          return f;
+        } else {
+          return null;
+        }
+      }
+    }
+  }
+};
+cljs.reader.wrapping_reader = function wrapping_reader(sym) {
+  return function(rdr, _) {
+    return cljs.core._conj.call(null, cljs.core._conj.call(null, cljs.core.List.EMPTY, cljs.reader.read.call(null, rdr, true, null, true)), sym);
+  };
+};
+cljs.reader.throwing_reader = function throwing_reader(msg) {
+  return function(rdr, _) {
+    return cljs.reader.reader_error.call(null, rdr, msg);
+  };
+};
+cljs.reader.read_meta = function read_meta(rdr, _) {
+  var m = cljs.reader.desugar_meta.call(null, cljs.reader.read.call(null, rdr, true, null, true));
+  if (cljs.core.map_QMARK_.call(null, m)) {
+  } else {
+    cljs.reader.reader_error.call(null, rdr, "Metadata must be Symbol,Keyword,String or Map");
+  }
+  var o = cljs.reader.read.call(null, rdr, true, null, true);
+  if (function() {
+    var G__5791 = o;
+    if (G__5791) {
+      var bit__4112__auto__ = G__5791.cljs$lang$protocol_mask$partition0$ & 262144;
+      if (bit__4112__auto__ || G__5791.cljs$core$IWithMeta$) {
+        return true;
+      } else {
+        if (!G__5791.cljs$lang$protocol_mask$partition0$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, cljs.core.IWithMeta, G__5791);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, cljs.core.IWithMeta, G__5791);
+    }
+  }()) {
+    return cljs.core.with_meta.call(null, o, cljs.core.merge.call(null, cljs.core.meta.call(null, o), m));
+  } else {
+    return cljs.reader.reader_error.call(null, rdr, "Metadata can only be applied to IWithMetas");
+  }
+};
+cljs.reader.read_set = function read_set(rdr, _) {
+  return cljs.core.set.call(null, cljs.reader.read_delimited_list.call(null, "}", rdr, true));
+};
+cljs.reader.read_regex = function read_regex(rdr, ch) {
+  return cljs.core.re_pattern.call(null, cljs.reader.read_string_STAR_.call(null, rdr, ch));
+};
+cljs.reader.read_discard = function read_discard(rdr, _) {
+  cljs.reader.read.call(null, rdr, true, null, true);
+  return rdr;
+};
+cljs.reader.macros = function macros(c) {
+  if (c === '"') {
+    return cljs.reader.read_string_STAR_;
+  } else {
+    if (c === ":") {
+      return cljs.reader.read_keyword;
+    } else {
+      if (c === ";") {
+        return cljs.reader.read_comment;
+      } else {
+        if (c === "'") {
+          return cljs.reader.wrapping_reader.call(null, new cljs.core.Symbol(null, "quote", "quote", -1532577739, null));
+        } else {
+          if (c === "@") {
+            return cljs.reader.wrapping_reader.call(null, new cljs.core.Symbol(null, "deref", "deref", -1545057749, null));
+          } else {
+            if (c === "^") {
+              return cljs.reader.read_meta;
+            } else {
+              if (c === "`") {
+                return cljs.reader.not_implemented;
+              } else {
+                if (c === "~") {
+                  return cljs.reader.not_implemented;
+                } else {
+                  if (c === "(") {
+                    return cljs.reader.read_list;
+                  } else {
+                    if (c === ")") {
+                      return cljs.reader.read_unmatched_delimiter;
+                    } else {
+                      if (c === "[") {
+                        return cljs.reader.read_vector;
+                      } else {
+                        if (c === "]") {
+                          return cljs.reader.read_unmatched_delimiter;
+                        } else {
+                          if (c === "{") {
+                            return cljs.reader.read_map;
+                          } else {
+                            if (c === "}") {
+                              return cljs.reader.read_unmatched_delimiter;
+                            } else {
+                              if (c === "\\") {
+                                return cljs.reader.read_char;
+                              } else {
+                                if (c === "#") {
+                                  return cljs.reader.read_dispatch;
+                                } else {
+                                  if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+                                    return null;
+                                  } else {
+                                    return null;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+};
+cljs.reader.dispatch_macros = function dispatch_macros(s) {
+  if (s === "{") {
+    return cljs.reader.read_set;
+  } else {
+    if (s === "\x3c") {
+      return cljs.reader.throwing_reader.call(null, "Unreadable form");
+    } else {
+      if (s === '"') {
+        return cljs.reader.read_regex;
+      } else {
+        if (s === "!") {
+          return cljs.reader.read_comment;
+        } else {
+          if (s === "_") {
+            return cljs.reader.read_discard;
+          } else {
+            if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+              return null;
+            } else {
+              return null;
+            }
+          }
+        }
+      }
+    }
+  }
+};
+cljs.reader.read = function read(reader, eof_is_error, sentinel, is_recursive) {
+  while (true) {
+    var ch = cljs.reader.read_char.call(null, reader);
+    if (ch == null) {
+      if (cljs.core.truth_(eof_is_error)) {
+        return cljs.reader.reader_error.call(null, reader, "EOF while reading");
+      } else {
+        return sentinel;
+      }
+    } else {
+      if (cljs.reader.whitespace_QMARK_.call(null, ch)) {
+        var G__5792 = reader;
+        var G__5793 = eof_is_error;
+        var G__5794 = sentinel;
+        var G__5795 = is_recursive;
+        reader = G__5792;
+        eof_is_error = G__5793;
+        sentinel = G__5794;
+        is_recursive = G__5795;
+        continue;
+      } else {
+        if (cljs.reader.comment_prefix_QMARK_.call(null, ch)) {
+          var G__5796 = cljs.reader.read_comment.call(null, reader, ch);
+          var G__5797 = eof_is_error;
+          var G__5798 = sentinel;
+          var G__5799 = is_recursive;
+          reader = G__5796;
+          eof_is_error = G__5797;
+          sentinel = G__5798;
+          is_recursive = G__5799;
+          continue;
+        } else {
+          if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+            var f = cljs.reader.macros.call(null, ch);
+            var res = cljs.core.truth_(f) ? f.call(null, reader, ch) : cljs.reader.number_literal_QMARK_.call(null, reader, ch) ? cljs.reader.read_number.call(null, reader, ch) : new cljs.core.Keyword(null, "else", "else", 1017020587) ? cljs.reader.read_symbol.call(null, reader, ch) : null;
+            if (res === reader) {
+              var G__5800 = reader;
+              var G__5801 = eof_is_error;
+              var G__5802 = sentinel;
+              var G__5803 = is_recursive;
+              reader = G__5800;
+              eof_is_error = G__5801;
+              sentinel = G__5802;
+              is_recursive = G__5803;
+              continue;
+            } else {
+              return res;
+            }
+          } else {
+            return null;
+          }
+        }
+      }
+    }
+    break;
+  }
+};
+cljs.reader.read_string = function read_string(s) {
+  var r = cljs.reader.push_back_reader.call(null, s);
+  return cljs.reader.read.call(null, r, true, null, false);
+};
+cljs.reader.zero_fill_right_and_truncate = function zero_fill_right_and_truncate(s, width) {
+  if (cljs.core._EQ_.call(null, width, cljs.core.count.call(null, s))) {
+    return s;
+  } else {
+    if (width < cljs.core.count.call(null, s)) {
+      return cljs.core.subs.call(null, s, 0, width);
+    } else {
+      if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+        var b = new goog.string.StringBuffer(s);
+        while (true) {
+          if (b.getLength() < width) {
+            var G__5804 = b.append("0");
+            b = G__5804;
+            continue;
+          } else {
+            return b.toString();
+          }
+          break;
+        }
+      } else {
+        return null;
+      }
+    }
+  }
+};
+cljs.reader.divisible_QMARK_ = function divisible_QMARK_(num, div) {
+  return cljs.core.mod.call(null, num, div) === 0;
+};
+cljs.reader.indivisible_QMARK_ = function indivisible_QMARK_(num, div) {
+  return!cljs.reader.divisible_QMARK_.call(null, num, div);
+};
+cljs.reader.leap_year_QMARK_ = function leap_year_QMARK_(year) {
+  return cljs.reader.divisible_QMARK_.call(null, year, 4) && (cljs.reader.indivisible_QMARK_.call(null, year, 100) || cljs.reader.divisible_QMARK_.call(null, year, 400));
+};
+cljs.reader.days_in_month = function() {
+  var dim_norm = new cljs.core.PersistentVector(null, 13, 5, cljs.core.PersistentVector.EMPTY_NODE, [null, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], null);
+  var dim_leap = new cljs.core.PersistentVector(null, 13, 5, cljs.core.PersistentVector.EMPTY_NODE, [null, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], null);
+  return function(dim_norm, dim_leap) {
+    return function(month, leap_year_QMARK_) {
+      return cljs.core.get.call(null, cljs.core.truth_(leap_year_QMARK_) ? dim_leap : dim_norm, month);
+    };
+  }(dim_norm, dim_leap);
+}();
+cljs.reader.timestamp_regex = /(\d\d\d\d)(?:-(\d\d)(?:-(\d\d)(?:[T](\d\d)(?::(\d\d)(?::(\d\d)(?:[.](\d+))?)?)?)?)?)?(?:[Z]|([-+])(\d\d):(\d\d))?/;
+cljs.reader.parse_int = function parse_int(s) {
+  var n = parseInt(s, 10);
+  if (cljs.core.not.call(null, isNaN(n))) {
+    return n;
+  } else {
+    return null;
+  }
+};
+cljs.reader.check = function check(low, n, high, msg) {
+  if (low <= n && n <= high) {
+  } else {
+    cljs.reader.reader_error.call(null, null, [cljs.core.str(msg), cljs.core.str(" Failed:  "), cljs.core.str(low), cljs.core.str("\x3c\x3d"), cljs.core.str(n), cljs.core.str("\x3c\x3d"), cljs.core.str(high)].join(""));
+  }
+  return n;
+};
+cljs.reader.parse_and_validate_timestamp = function parse_and_validate_timestamp(s) {
+  var vec__5806 = cljs.core.re_matches.call(null, cljs.reader.timestamp_regex, s);
+  var _ = cljs.core.nth.call(null, vec__5806, 0, null);
+  var years = cljs.core.nth.call(null, vec__5806, 1, null);
+  var months = cljs.core.nth.call(null, vec__5806, 2, null);
+  var days = cljs.core.nth.call(null, vec__5806, 3, null);
+  var hours = cljs.core.nth.call(null, vec__5806, 4, null);
+  var minutes = cljs.core.nth.call(null, vec__5806, 5, null);
+  var seconds = cljs.core.nth.call(null, vec__5806, 6, null);
+  var fraction = cljs.core.nth.call(null, vec__5806, 7, null);
+  var offset_sign = cljs.core.nth.call(null, vec__5806, 8, null);
+  var offset_hours = cljs.core.nth.call(null, vec__5806, 9, null);
+  var offset_minutes = cljs.core.nth.call(null, vec__5806, 10, null);
+  var v = vec__5806;
+  if (cljs.core.not.call(null, v)) {
+    return cljs.reader.reader_error.call(null, null, [cljs.core.str("Unrecognized date/time syntax: "), cljs.core.str(s)].join(""));
+  } else {
+    var years__$1 = cljs.reader.parse_int.call(null, years);
+    var months__$1 = function() {
+      var or__3462__auto__ = cljs.reader.parse_int.call(null, months);
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return 1;
+      }
+    }();
+    var days__$1 = function() {
+      var or__3462__auto__ = cljs.reader.parse_int.call(null, days);
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return 1;
+      }
+    }();
+    var hours__$1 = function() {
+      var or__3462__auto__ = cljs.reader.parse_int.call(null, hours);
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return 0;
+      }
+    }();
+    var minutes__$1 = function() {
+      var or__3462__auto__ = cljs.reader.parse_int.call(null, minutes);
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return 0;
+      }
+    }();
+    var seconds__$1 = function() {
+      var or__3462__auto__ = cljs.reader.parse_int.call(null, seconds);
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return 0;
+      }
+    }();
+    var fraction__$1 = function() {
+      var or__3462__auto__ = cljs.reader.parse_int.call(null, cljs.reader.zero_fill_right_and_truncate.call(null, fraction, 3));
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return 0;
+      }
+    }();
+    var offset_sign__$1 = cljs.core._EQ_.call(null, offset_sign, "-") ? -1 : 1;
+    var offset_hours__$1 = function() {
+      var or__3462__auto__ = cljs.reader.parse_int.call(null, offset_hours);
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return 0;
+      }
+    }();
+    var offset_minutes__$1 = function() {
+      var or__3462__auto__ = cljs.reader.parse_int.call(null, offset_minutes);
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return 0;
+      }
+    }();
+    var offset = offset_sign__$1 * (offset_hours__$1 * 60 + offset_minutes__$1);
+    return new cljs.core.PersistentVector(null, 8, 5, cljs.core.PersistentVector.EMPTY_NODE, [years__$1, cljs.reader.check.call(null, 1, months__$1, 12, "timestamp month field must be in range 1..12"), cljs.reader.check.call(null, 1, days__$1, cljs.reader.days_in_month.call(null, months__$1, cljs.reader.leap_year_QMARK_.call(null, years__$1)), "timestamp day field must be in range 1..last day in month"), cljs.reader.check.call(null, 0, hours__$1, 23, "timestamp hour field must be in range 0..23"), 
+    cljs.reader.check.call(null, 0, minutes__$1, 59, "timestamp minute field must be in range 0..59"), cljs.reader.check.call(null, 0, seconds__$1, cljs.core._EQ_.call(null, minutes__$1, 59) ? 60 : 59, "timestamp second field must be in range 0..60"), cljs.reader.check.call(null, 0, fraction__$1, 999, "timestamp millisecond field must be in range 0..999"), offset], null);
+  }
+};
+cljs.reader.parse_timestamp = function parse_timestamp(ts) {
+  var temp__4090__auto__ = cljs.reader.parse_and_validate_timestamp.call(null, ts);
+  if (cljs.core.truth_(temp__4090__auto__)) {
+    var vec__5808 = temp__4090__auto__;
+    var years = cljs.core.nth.call(null, vec__5808, 0, null);
+    var months = cljs.core.nth.call(null, vec__5808, 1, null);
+    var days = cljs.core.nth.call(null, vec__5808, 2, null);
+    var hours = cljs.core.nth.call(null, vec__5808, 3, null);
+    var minutes = cljs.core.nth.call(null, vec__5808, 4, null);
+    var seconds = cljs.core.nth.call(null, vec__5808, 5, null);
+    var ms = cljs.core.nth.call(null, vec__5808, 6, null);
+    var offset = cljs.core.nth.call(null, vec__5808, 7, null);
+    return new Date(Date.UTC(years, months - 1, days, hours, minutes, seconds, ms) - offset * 60 * 1E3);
+  } else {
+    return cljs.reader.reader_error.call(null, null, [cljs.core.str("Unrecognized date/time syntax: "), cljs.core.str(ts)].join(""));
+  }
+};
+cljs.reader.read_date = function read_date(s) {
+  if (typeof s === "string") {
+    return cljs.reader.parse_timestamp.call(null, s);
+  } else {
+    return cljs.reader.reader_error.call(null, null, "Instance literal expects a string for its timestamp.");
+  }
+};
+cljs.reader.read_queue = function read_queue(elems) {
+  if (cljs.core.vector_QMARK_.call(null, elems)) {
+    return cljs.core.into.call(null, cljs.core.PersistentQueue.EMPTY, elems);
+  } else {
+    return cljs.reader.reader_error.call(null, null, "Queue literal expects a vector for its elements.");
+  }
+};
+cljs.reader.read_js = function read_js(form) {
+  if (cljs.core.vector_QMARK_.call(null, form)) {
+    var arr = [];
+    var seq__5821_5833 = cljs.core.seq.call(null, form);
+    var chunk__5822_5834 = null;
+    var count__5823_5835 = 0;
+    var i__5824_5836 = 0;
+    while (true) {
+      if (i__5824_5836 < count__5823_5835) {
+        var x_5837 = cljs.core._nth.call(null, chunk__5822_5834, i__5824_5836);
+        arr.push(x_5837);
+        var G__5838 = seq__5821_5833;
+        var G__5839 = chunk__5822_5834;
+        var G__5840 = count__5823_5835;
+        var G__5841 = i__5824_5836 + 1;
+        seq__5821_5833 = G__5838;
+        chunk__5822_5834 = G__5839;
+        count__5823_5835 = G__5840;
+        i__5824_5836 = G__5841;
+        continue;
+      } else {
+        var temp__4092__auto___5842 = cljs.core.seq.call(null, seq__5821_5833);
+        if (temp__4092__auto___5842) {
+          var seq__5821_5843__$1 = temp__4092__auto___5842;
+          if (cljs.core.chunked_seq_QMARK_.call(null, seq__5821_5843__$1)) {
+            var c__4210__auto___5844 = cljs.core.chunk_first.call(null, seq__5821_5843__$1);
+            var G__5845 = cljs.core.chunk_rest.call(null, seq__5821_5843__$1);
+            var G__5846 = c__4210__auto___5844;
+            var G__5847 = cljs.core.count.call(null, c__4210__auto___5844);
+            var G__5848 = 0;
+            seq__5821_5833 = G__5845;
+            chunk__5822_5834 = G__5846;
+            count__5823_5835 = G__5847;
+            i__5824_5836 = G__5848;
+            continue;
+          } else {
+            var x_5849 = cljs.core.first.call(null, seq__5821_5843__$1);
+            arr.push(x_5849);
+            var G__5850 = cljs.core.next.call(null, seq__5821_5843__$1);
+            var G__5851 = null;
+            var G__5852 = 0;
+            var G__5853 = 0;
+            seq__5821_5833 = G__5850;
+            chunk__5822_5834 = G__5851;
+            count__5823_5835 = G__5852;
+            i__5824_5836 = G__5853;
+            continue;
+          }
+        } else {
+        }
+      }
+      break;
+    }
+    return arr;
+  } else {
+    if (cljs.core.map_QMARK_.call(null, form)) {
+      var obj = function() {
+        var obj5826 = {};
+        return obj5826;
+      }();
+      var seq__5827_5854 = cljs.core.seq.call(null, form);
+      var chunk__5828_5855 = null;
+      var count__5829_5856 = 0;
+      var i__5830_5857 = 0;
+      while (true) {
+        if (i__5830_5857 < count__5829_5856) {
+          var vec__5831_5858 = cljs.core._nth.call(null, chunk__5828_5855, i__5830_5857);
+          var k_5859 = cljs.core.nth.call(null, vec__5831_5858, 0, null);
+          var v_5860 = cljs.core.nth.call(null, vec__5831_5858, 1, null);
+          obj[cljs.core.name.call(null, k_5859)] = v_5860;
+          var G__5861 = seq__5827_5854;
+          var G__5862 = chunk__5828_5855;
+          var G__5863 = count__5829_5856;
+          var G__5864 = i__5830_5857 + 1;
+          seq__5827_5854 = G__5861;
+          chunk__5828_5855 = G__5862;
+          count__5829_5856 = G__5863;
+          i__5830_5857 = G__5864;
+          continue;
+        } else {
+          var temp__4092__auto___5865 = cljs.core.seq.call(null, seq__5827_5854);
+          if (temp__4092__auto___5865) {
+            var seq__5827_5866__$1 = temp__4092__auto___5865;
+            if (cljs.core.chunked_seq_QMARK_.call(null, seq__5827_5866__$1)) {
+              var c__4210__auto___5867 = cljs.core.chunk_first.call(null, seq__5827_5866__$1);
+              var G__5868 = cljs.core.chunk_rest.call(null, seq__5827_5866__$1);
+              var G__5869 = c__4210__auto___5867;
+              var G__5870 = cljs.core.count.call(null, c__4210__auto___5867);
+              var G__5871 = 0;
+              seq__5827_5854 = G__5868;
+              chunk__5828_5855 = G__5869;
+              count__5829_5856 = G__5870;
+              i__5830_5857 = G__5871;
+              continue;
+            } else {
+              var vec__5832_5872 = cljs.core.first.call(null, seq__5827_5866__$1);
+              var k_5873 = cljs.core.nth.call(null, vec__5832_5872, 0, null);
+              var v_5874 = cljs.core.nth.call(null, vec__5832_5872, 1, null);
+              obj[cljs.core.name.call(null, k_5873)] = v_5874;
+              var G__5875 = cljs.core.next.call(null, seq__5827_5866__$1);
+              var G__5876 = null;
+              var G__5877 = 0;
+              var G__5878 = 0;
+              seq__5827_5854 = G__5875;
+              chunk__5828_5855 = G__5876;
+              count__5829_5856 = G__5877;
+              i__5830_5857 = G__5878;
+              continue;
+            }
+          } else {
+          }
+        }
+        break;
+      }
+      return obj;
+    } else {
+      if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+        return cljs.reader.reader_error.call(null, null, [cljs.core.str("JS literal expects a vector or map containing "), cljs.core.str("only string or unqualified keyword keys")].join(""));
+      } else {
+        return null;
+      }
+    }
+  }
+};
+cljs.reader.read_uuid = function read_uuid(uuid) {
+  if (typeof uuid === "string") {
+    return new cljs.core.UUID(uuid);
+  } else {
+    return cljs.reader.reader_error.call(null, null, "UUID literal expects a string as its representation.");
+  }
+};
+cljs.reader._STAR_tag_table_STAR_ = cljs.core.atom.call(null, new cljs.core.PersistentArrayMap(null, 4, ["inst", cljs.reader.read_date, "uuid", cljs.reader.read_uuid, "queue", cljs.reader.read_queue, "js", cljs.reader.read_js], null));
+cljs.reader._STAR_default_data_reader_fn_STAR_ = cljs.core.atom.call(null, null);
+cljs.reader.maybe_read_tagged_type = function maybe_read_tagged_type(rdr, initch) {
+  var tag = cljs.reader.read_symbol.call(null, rdr, initch);
+  var pfn = cljs.core.get.call(null, cljs.core.deref.call(null, cljs.reader._STAR_tag_table_STAR_), [cljs.core.str(tag)].join(""));
+  var dfn = cljs.core.deref.call(null, cljs.reader._STAR_default_data_reader_fn_STAR_);
+  if (cljs.core.truth_(pfn)) {
+    return pfn.call(null, cljs.reader.read.call(null, rdr, true, null, false));
+  } else {
+    if (cljs.core.truth_(dfn)) {
+      return dfn.call(null, tag, cljs.reader.read.call(null, rdr, true, null, false));
+    } else {
+      if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+        return cljs.reader.reader_error.call(null, rdr, "Could not find tag parser for ", [cljs.core.str(tag)].join(""), " in ", cljs.core.pr_str.call(null, cljs.core.keys.call(null, cljs.core.deref.call(null, cljs.reader._STAR_tag_table_STAR_))));
+      } else {
+        return null;
+      }
+    }
+  }
+};
+cljs.reader.register_tag_parser_BANG_ = function register_tag_parser_BANG_(tag, f) {
+  var tag__$1 = [cljs.core.str(tag)].join("");
+  var old_parser = cljs.core.get.call(null, cljs.core.deref.call(null, cljs.reader._STAR_tag_table_STAR_), tag__$1);
+  cljs.core.swap_BANG_.call(null, cljs.reader._STAR_tag_table_STAR_, cljs.core.assoc, tag__$1, f);
+  return old_parser;
+};
+cljs.reader.deregister_tag_parser_BANG_ = function deregister_tag_parser_BANG_(tag) {
+  var tag__$1 = [cljs.core.str(tag)].join("");
+  var old_parser = cljs.core.get.call(null, cljs.core.deref.call(null, cljs.reader._STAR_tag_table_STAR_), tag__$1);
+  cljs.core.swap_BANG_.call(null, cljs.reader._STAR_tag_table_STAR_, cljs.core.dissoc, tag__$1);
+  return old_parser;
+};
+cljs.reader.register_default_tag_parser_BANG_ = function register_default_tag_parser_BANG_(f) {
+  var old_parser = cljs.core.deref.call(null, cljs.reader._STAR_default_data_reader_fn_STAR_);
+  cljs.core.swap_BANG_.call(null, cljs.reader._STAR_default_data_reader_fn_STAR_, function(old_parser) {
+    return function(_) {
+      return f;
+    };
+  }(old_parser));
+  return old_parser;
+};
+cljs.reader.deregister_default_tag_parser_BANG_ = function deregister_default_tag_parser_BANG_() {
+  var old_parser = cljs.core.deref.call(null, cljs.reader._STAR_default_data_reader_fn_STAR_);
+  cljs.core.swap_BANG_.call(null, cljs.reader._STAR_default_data_reader_fn_STAR_, function(old_parser) {
+    return function(_) {
+      return null;
+    };
+  }(old_parser));
+  return old_parser;
+};
+goog.provide("ajax.core");
+goog.require("cljs.core");
+goog.require("goog.json.Serializer");
+goog.require("goog.net.XhrManager");
+goog.require("goog.Uri.QueryData");
+goog.require("goog.events");
+goog.require("goog.net.XhrManager");
+goog.require("cljs.reader");
+goog.require("goog.net.EventType");
+goog.require("goog.structs");
+goog.require("goog.Uri.QueryData");
+goog.require("clojure.string");
+goog.require("clojure.string");
+goog.require("goog.structs");
+goog.require("cljs.reader");
+goog.require("goog.Uri");
+goog.require("goog.net.XhrIo");
+goog.require("goog.net.XhrIo");
+goog.require("goog.events");
+goog.require("goog.Uri");
+ajax.core.AjaxImpl = function() {
+  var obj5710 = {};
+  return obj5710;
+}();
+ajax.core._js_ajax_request = function _js_ajax_request(this$, uri, method, body, headers, handler, opts) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.ajax$core$AjaxImpl$_js_ajax_request$arity$7;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.ajax$core$AjaxImpl$_js_ajax_request$arity$7(this$, uri, method, body, headers, handler, opts);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = ajax.core._js_ajax_request[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = ajax.core._js_ajax_request["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "AjaxImpl.-js-ajax-request", this$);
+        }
+      }
+    }().call(null, this$, uri, method, body, headers, handler, opts);
+  }
+};
+goog.net.XhrIo.prototype.ajax$core$AjaxImpl$ = true;
+goog.net.XhrIo.prototype.ajax$core$AjaxImpl$_js_ajax_request$arity$7 = function(this$, uri, method, body, headers, handler, p__5711) {
+  var map__5712 = p__5711;
+  var map__5712__$1 = cljs.core.seq_QMARK_.call(null, map__5712) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5712) : map__5712;
+  var timeout = cljs.core.get.call(null, map__5712__$1, new cljs.core.Keyword(null, "timeout", "timeout", 3994960083));
+  var this$__$1 = this;
+  var G__5713 = this$__$1;
+  goog.events.listen(G__5713, goog.net.EventType.COMPLETE, handler);
+  G__5713.send(uri, method, body, headers, timeout);
+  return G__5713;
+};
+goog.net.XhrManager.prototype.ajax$core$AjaxImpl$ = true;
+goog.net.XhrManager.prototype.ajax$core$AjaxImpl$_js_ajax_request$arity$7 = function(this$, uri, method, body, headers, handler, p__5714) {
+  var map__5715 = p__5714;
+  var map__5715__$1 = cljs.core.seq_QMARK_.call(null, map__5715) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5715) : map__5715;
+  var max_retries = cljs.core.get.call(null, map__5715__$1, new cljs.core.Keyword(null, "max-retries", "max-retries", 902021455));
+  var priority = cljs.core.get.call(null, map__5715__$1, new cljs.core.Keyword(null, "priority", "priority", 4143410454));
+  var timeout = cljs.core.get.call(null, map__5715__$1, new cljs.core.Keyword(null, "timeout", "timeout", 3994960083));
+  var id = cljs.core.get.call(null, map__5715__$1, new cljs.core.Keyword(null, "id", "id", 1013907597));
+  var this$__$1 = this;
+  return this$__$1.send(id, uri, method, body, headers, priority, handler, max_retries);
+};
+ajax.core.success_QMARK_ = function success_QMARK_(status) {
+  return cljs.core.some.call(null, cljs.core.PersistentHashSet.fromArray([status], true), new cljs.core.PersistentVector(null, 6, 5, cljs.core.PersistentVector.EMPTY_NODE, [200, 201, 202, 204, 205, 206], null));
+};
+ajax.core.read_edn = function read_edn(xhrio) {
+  return cljs.reader.read_string.call(null, xhrio.getResponseText());
+};
+ajax.core.edn_response_format = function edn_response_format() {
+  return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "read", "read", 1017400584), ajax.core.read_edn, new cljs.core.Keyword(null, "description", "description", 3584325486), "EDN"], null);
+};
+ajax.core.edn_request_format = function edn_request_format() {
+  return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "write", "write", 1127304017), cljs.core.pr_str, new cljs.core.Keyword(null, "content-type", "content-type", 1799574400), "application/edn"], null);
+};
+ajax.core.params_to_str = function params_to_str(params) {
+  if (cljs.core.truth_(params)) {
+    return goog.Uri.QueryData.createFromMap(new goog.structs.Map(cljs.core.clj__GT_js.call(null, params))).toString();
+  } else {
+    return null;
+  }
+};
+ajax.core.read_text = function read_text(xhrio) {
+  return xhrio.getResponseText();
+};
+ajax.core.url_request_format = function url_request_format() {
+  return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "write", "write", 1127304017), ajax.core.params_to_str, new cljs.core.Keyword(null, "content-type", "content-type", 1799574400), "application/x-www-form-urlencoded"], null);
+};
+ajax.core.raw_response_format = function raw_response_format() {
+  return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "read", "read", 1017400584), ajax.core.read_text, new cljs.core.Keyword(null, "description", "description", 3584325486), "raw text"], null);
+};
+ajax.core.write_json = function write_json(data) {
+  return(new goog.json.Serializer).serialize(cljs.core.clj__GT_js.call(null, data));
+};
+ajax.core.json_request_format = function json_request_format() {
+  return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "write", "write", 1127304017), ajax.core.write_json, new cljs.core.Keyword(null, "content-type", "content-type", 1799574400), "application/json"], null);
+};
+ajax.core.json_response_format = function json_response_format(p__5716) {
+  var map__5718 = p__5716;
+  var map__5718__$1 = cljs.core.seq_QMARK_.call(null, map__5718) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5718) : map__5718;
+  var keywords_QMARK_ = cljs.core.get.call(null, map__5718__$1, new cljs.core.Keyword(null, "keywords?", "keywords?", 4346628423));
+  var prefix = cljs.core.get.call(null, map__5718__$1, new cljs.core.Keyword(null, "prefix", "prefix", 4328760836));
+  return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "read", "read", 1017400584), function(map__5718, map__5718__$1, keywords_QMARK_, prefix) {
+    return function read_json(xhrio) {
+      var json = xhrio.getResponseJson(prefix);
+      return cljs.core.js__GT_clj.call(null, json, new cljs.core.Keyword(null, "keywordize-keys", "keywordize-keys", 4191781672), keywords_QMARK_);
+    };
+  }(map__5718, map__5718__$1, keywords_QMARK_, prefix), new cljs.core.Keyword(null, "description", "description", 3584325486), [cljs.core.str("JSON"), cljs.core.str(cljs.core.truth_(prefix) ? [cljs.core.str(" prefix '"), cljs.core.str(prefix), cljs.core.str("'")].join("") : null), cljs.core.str(cljs.core.truth_(keywords_QMARK_) ? " keywordize" : null)].join("")], null);
+};
+ajax.core.get_default_format = function get_default_format(xhrio) {
+  var ct = xhrio.getResponseHeader("Content-Type");
+  var format = cljs.core.truth_(function() {
+    var and__3450__auto__ = ct;
+    if (cljs.core.truth_(and__3450__auto__)) {
+      return ct.indexOf("json") >= 0;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) ? ajax.core.json_response_format.call(null, cljs.core.PersistentArrayMap.EMPTY) : ajax.core.edn_response_format.call(null);
+  return cljs.core.update_in.call(null, format, new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null, "description", "description", 3584325486)], null), function(ct, format) {
+    return function(p1__5719_SHARP_) {
+      return[cljs.core.str(p1__5719_SHARP_), cljs.core.str(" (default)")].join("");
+    };
+  }(ct, format));
+};
+ajax.core.use_content_type = function use_content_type(format) {
+  return cljs.core.dissoc.call(null, format, new cljs.core.Keyword(null, "write", "write", 1127304017));
+};
+ajax.core.codec = function codec(request_format, p__5720) {
+  var map__5722 = p__5720;
+  var map__5722__$1 = cljs.core.seq_QMARK_.call(null, map__5722) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5722) : map__5722;
+  var response_format = map__5722__$1;
+  var description = cljs.core.get.call(null, map__5722__$1, new cljs.core.Keyword(null, "description", "description", 3584325486));
+  var read = cljs.core.get.call(null, map__5722__$1, new cljs.core.Keyword(null, "read", "read", 1017400584));
+  return cljs.core.assoc.call(null, request_format, new cljs.core.Keyword(null, "read", "read", 1017400584), read, new cljs.core.Keyword(null, "description", "description", 3584325486), description);
+};
+ajax.core.get_format = function get_format(format) {
+  if (cljs.core.map_QMARK_.call(null, format)) {
+    return format;
+  } else {
+    if (cljs.core.ifn_QMARK_.call(null, format)) {
+      return ajax.core.codec.call(null, ajax.core.url_request_format.call(null), new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "read", "read", 1017400584), format, new cljs.core.Keyword(null, "description", "description", 3584325486), "custom"], null));
+    } else {
+      if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+        throw new Error([cljs.core.str("unrecognized format: "), cljs.core.str(format)].join(""));
+      } else {
+        return null;
+      }
+    }
+  }
+};
+ajax.core.exception_response = function exception_response(e, status, p__5723, xhrio) {
+  var map__5725 = p__5723;
+  var map__5725__$1 = cljs.core.seq_QMARK_.call(null, map__5725) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5725) : map__5725;
+  var description = cljs.core.get.call(null, map__5725__$1, new cljs.core.Keyword(null, "description", "description", 3584325486));
+  var response = new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "status", "status", 4416389988), status, new cljs.core.Keyword(null, "response", "response", 673580979), null], null);
+  var status_text = [cljs.core.str(e.message), cljs.core.str("  Format should have been "), cljs.core.str(description)].join("");
+  var parse_error = cljs.core.assoc.call(null, response, new cljs.core.Keyword(null, "status-text", "status-text", 4371493274), status_text, new cljs.core.Keyword(null, "is-parse-error", "is-parse-error", 4116943293), true, new cljs.core.Keyword(null, "original-text", "original-text", 2831108891), xhrio.getResponseText());
+  if (cljs.core.truth_(ajax.core.success_QMARK_.call(null, status))) {
+    return parse_error;
+  } else {
+    return cljs.core.assoc.call(null, response, new cljs.core.Keyword(null, "status-text", "status-text", 4371493274), xhrio.getStatusText(), new cljs.core.Keyword(null, "parse-error", "parse-error", 3528843744), parse_error);
+  }
+};
+ajax.core.interpret_response = function interpret_response(format, response, get_default_format) {
+  try {
+    var xhrio = response.target;
+    var status = xhrio.getStatus();
+    var format__$1 = cljs.core.truth_((new cljs.core.Keyword(null, "read", "read", 1017400584)).cljs$core$IFn$_invoke$arity$1(format)) ? format : get_default_format.call(null, xhrio);
+    var parse = (new cljs.core.Keyword(null, "read", "read", 1017400584)).cljs$core$IFn$_invoke$arity$1(format__$1);
+    try {
+      var response__$1 = parse.call(null, xhrio);
+      if (cljs.core.truth_(ajax.core.success_QMARK_.call(null, status))) {
+        return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [true, response__$1], null);
+      } else {
+        return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [false, new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null, "status", "status", 4416389988), status, new cljs.core.Keyword(null, "status-text", "status-text", 4371493274), xhrio.getStatusText(), new cljs.core.Keyword(null, "response", "response", 673580979), response__$1], null)], null);
+      }
+    } catch (e5729) {
+      if (e5729 instanceof Object) {
+        var e = e5729;
+        return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [false, ajax.core.exception_response.call(null, e, status, format__$1, xhrio)], null);
+      } else {
+        if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+          throw e5729;
+        } else {
+          return null;
+        }
+      }
+    }
+  } catch (e5728) {
+    if (e5728 instanceof Object) {
+      var e = e5728;
+      return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [false, new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null, "status", "status", 4416389988), 0, new cljs.core.Keyword(null, "status-text", "status-text", 4371493274), e.message, new cljs.core.Keyword(null, "response", "response", 673580979), null], null)], null);
+    } else {
+      if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+        throw e5728;
+      } else {
+        return null;
+      }
+    }
+  }
+};
+ajax.core.no_format = function no_format(xhrio) {
+  throw new Error("No response format was supplied.");
+};
+ajax.core.uri_with_params = function uri_with_params(uri, params) {
+  if (cljs.core.truth_(params)) {
+    return[cljs.core.str(uri), cljs.core.str("?"), cljs.core.str(ajax.core.params_to_str.call(null, params))].join("");
+  } else {
+    return uri;
+  }
+};
+ajax.core.process_inputs = function process_inputs(uri, method, p__5730, p__5731) {
+  var map__5735 = p__5730;
+  var map__5735__$1 = cljs.core.seq_QMARK_.call(null, map__5735) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5735) : map__5735;
+  var format = map__5735__$1;
+  var content_type = cljs.core.get.call(null, map__5735__$1, new cljs.core.Keyword(null, "content-type", "content-type", 1799574400));
+  var write = cljs.core.get.call(null, map__5735__$1, new cljs.core.Keyword(null, "write", "write", 1127304017));
+  var map__5736 = p__5731;
+  var map__5736__$1 = cljs.core.seq_QMARK_.call(null, map__5736) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5736) : map__5736;
+  var headers = cljs.core.get.call(null, map__5736__$1, new cljs.core.Keyword(null, "headers", "headers", 1809212152));
+  var params = cljs.core.get.call(null, map__5736__$1, new cljs.core.Keyword(null, "params", "params", 4313443576));
+  if (cljs.core._EQ_.call(null, method, "GET")) {
+    return new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [ajax.core.uri_with_params.call(null, uri, params), null, headers], null);
+  } else {
+    var map__5737 = format;
+    var map__5737__$1 = cljs.core.seq_QMARK_.call(null, map__5737) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5737) : map__5737;
+    var content_type__$1 = cljs.core.get.call(null, map__5737__$1, new cljs.core.Keyword(null, "content-type", "content-type", 1799574400));
+    var write__$1 = cljs.core.get.call(null, map__5737__$1, new cljs.core.Keyword(null, "write", "write", 1127304017));
+    var body = write__$1.call(null, params);
+    var content_type__$2 = cljs.core.truth_(content_type__$1) ? new cljs.core.PersistentArrayMap(null, 1, ["Content-Type", content_type__$1], null) : null;
+    var headers__$1 = cljs.core.merge.call(null, function() {
+      var or__3462__auto__ = headers;
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return cljs.core.PersistentArrayMap.EMPTY;
+      }
+    }(), content_type__$2);
+    return new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [uri, body, headers__$1], null);
+  }
+};
+ajax.core.normalize_method = function normalize_method(method) {
+  if (method instanceof cljs.core.Keyword) {
+    return clojure.string.upper_case.call(null, cljs.core.name.call(null, method));
+  } else {
+    return method;
+  }
+};
+ajax.core.base_handler = function base_handler(format, p__5738) {
+  var map__5740 = p__5738;
+  var map__5740__$1 = cljs.core.seq_QMARK_.call(null, map__5740) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5740) : map__5740;
+  var get_default_format = cljs.core.get.call(null, map__5740__$1, new cljs.core.Keyword(null, "get-default-format", "get-default-format", 1021569996));
+  var handler = cljs.core.get.call(null, map__5740__$1, new cljs.core.Keyword(null, "handler", "handler", 1706707644));
+  return function(map__5740, map__5740__$1, get_default_format, handler) {
+    return function(xhrio) {
+      return handler.call(null, ajax.core.interpret_response.call(null, format, xhrio, function() {
+        var or__3462__auto__ = get_default_format;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return ajax.core.no_format;
+        }
+      }()));
+    };
+  }(map__5740, map__5740__$1, get_default_format, handler);
+};
+ajax.core.ajax_request = function() {
+  var ajax_request = null;
+  var ajax_request__3 = function(uri, method, opts) {
+    return ajax_request.call(null, uri, method, opts, new goog.net.XhrIo);
+  };
+  var ajax_request__4 = function(uri, method, p__5741, js_ajax) {
+    var map__5744 = p__5741;
+    var map__5744__$1 = cljs.core.seq_QMARK_.call(null, map__5744) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5744) : map__5744;
+    var opts = map__5744__$1;
+    var format = cljs.core.get.call(null, map__5744__$1, new cljs.core.Keyword(null, "format", "format", 4040092521));
+    var format__$1 = ajax.core.get_format.call(null, format);
+    var method__$1 = ajax.core.normalize_method.call(null, method);
+    var vec__5745 = ajax.core.process_inputs.call(null, uri, method__$1, format__$1, opts);
+    var uri__$1 = cljs.core.nth.call(null, vec__5745, 0, null);
+    var body = cljs.core.nth.call(null, vec__5745, 1, null);
+    var headers = cljs.core.nth.call(null, vec__5745, 2, null);
+    var handler = ajax.core.base_handler.call(null, format__$1, opts);
+    return ajax.core._js_ajax_request.call(null, js_ajax, uri__$1, method__$1, body, cljs.core.clj__GT_js.call(null, headers), handler, opts);
+  };
+  ajax_request = function(uri, method, p__5741, js_ajax) {
+    switch(arguments.length) {
+      case 3:
+        return ajax_request__3.call(this, uri, method, p__5741);
+      case 4:
+        return ajax_request__4.call(this, uri, method, p__5741, js_ajax);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  ajax_request.cljs$core$IFn$_invoke$arity$3 = ajax_request__3;
+  ajax_request.cljs$core$IFn$_invoke$arity$4 = ajax_request__4;
+  return ajax_request;
+}();
+ajax.core.json_format = function json_format(format_params) {
+  return ajax.core.codec.call(null, ajax.core.json_request_format.call(null), ajax.core.json_response_format.call(null, format_params));
+};
+ajax.core.edn_format = function edn_format() {
+  return ajax.core.codec.call(null, ajax.core.edn_request_format.call(null), ajax.core.edn_response_format.call(null));
+};
+ajax.core.raw_format = function raw_format() {
+  return ajax.core.codec.call(null, ajax.core.url_request_format.call(null), ajax.core.raw_response_format.call(null));
+};
+ajax.core.keyword_request_format = function keyword_request_format(format, format_params) {
+  var G__5747 = format;
+  if (cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "url", "url", 1014020321), G__5747)) {
+    return ajax.core.url_request_format.call(null);
+  } else {
+    if (cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "raw", "raw", 1014016922), G__5747)) {
+      return ajax.core.url_request_format.call(null);
+    } else {
+      if (cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "edn", "edn", 1014004513), G__5747)) {
+        return ajax.core.edn_request_format.call(null);
+      } else {
+        if (cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "json", "json", 1017176154), G__5747)) {
+          return ajax.core.json_request_format.call(null);
+        } else {
+          if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+            throw new Error([cljs.core.str("unrecognized request format: "), cljs.core.str(format)].join(""));
+          } else {
+            return null;
+          }
+        }
+      }
+    }
+  }
+};
+ajax.core.keyword_response_format = function keyword_response_format(format, format_params) {
+  var G__5749 = format;
+  if (cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "raw", "raw", 1014016922), G__5749)) {
+    return ajax.core.raw_response_format.call(null);
+  } else {
+    if (cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "edn", "edn", 1014004513), G__5749)) {
+      return ajax.core.edn_response_format.call(null);
+    } else {
+      if (cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "json", "json", 1017176154), G__5749)) {
+        return ajax.core.json_response_format.call(null, format_params);
+      } else {
+        if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+          return null;
+        } else {
+          return null;
+        }
+      }
+    }
+  }
+};
+ajax.core.transform_handler = function transform_handler(p__5750) {
+  var map__5755 = p__5750;
+  var map__5755__$1 = cljs.core.seq_QMARK_.call(null, map__5755) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5755) : map__5755;
+  var finally$ = cljs.core.get.call(null, map__5755__$1, new cljs.core.Keyword(null, "finally", "finally", 4455611637));
+  var error_handler = cljs.core.get.call(null, map__5755__$1, new cljs.core.Keyword(null, "error-handler", "error-handler", 1866823671));
+  var handler = cljs.core.get.call(null, map__5755__$1, new cljs.core.Keyword(null, "handler", "handler", 1706707644));
+  return function(map__5755, map__5755__$1, finally$, error_handler, handler) {
+    return function easy_handler(p__5756) {
+      var vec__5758 = p__5756;
+      var ok = cljs.core.nth.call(null, vec__5758, 0, null);
+      var result = cljs.core.nth.call(null, vec__5758, 1, null);
+      var temp__4090__auto___5759 = cljs.core.truth_(ok) ? handler : error_handler;
+      if (cljs.core.truth_(temp__4090__auto___5759)) {
+        var h_5760 = temp__4090__auto___5759;
+        h_5760.call(null, result);
+      } else {
+      }
+      if (cljs.core.fn_QMARK_.call(null, finally$)) {
+        return finally$.call(null);
+      } else {
+        return null;
+      }
+    };
+  }(map__5755, map__5755__$1, finally$, error_handler, handler);
+};
+ajax.core.transform_format = function transform_format(p__5761) {
+  var map__5763 = p__5761;
+  var map__5763__$1 = cljs.core.seq_QMARK_.call(null, map__5763) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5763) : map__5763;
+  var opts = map__5763__$1;
+  var response_format = cljs.core.get.call(null, map__5763__$1, new cljs.core.Keyword(null, "response-format", "response-format", 4250805877));
+  var format = cljs.core.get.call(null, map__5763__$1, new cljs.core.Keyword(null, "format", "format", 4040092521));
+  var rf = ajax.core.keyword_response_format.call(null, response_format, opts);
+  if (format == null) {
+    return ajax.core.codec.call(null, ajax.core.edn_request_format.call(null), rf);
+  } else {
+    if (format instanceof cljs.core.Keyword) {
+      return ajax.core.codec.call(null, ajax.core.keyword_request_format.call(null, format, opts), rf);
+    } else {
+      if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+        return format;
+      } else {
+        return null;
+      }
+    }
+  }
+};
+ajax.core.transform_opts = function transform_opts(opts) {
+  return cljs.core.assoc.call(null, opts, new cljs.core.Keyword(null, "handler", "handler", 1706707644), ajax.core.transform_handler.call(null, opts), new cljs.core.Keyword(null, "format", "format", 4040092521), ajax.core.transform_format.call(null, opts), new cljs.core.Keyword(null, "get-default-format", "get-default-format", 1021569996), ajax.core.get_default_format);
+};
+ajax.core.GET = function() {
+  var GET__delegate = function(uri, p__5764) {
+    var vec__5766 = p__5764;
+    var opts = cljs.core.nth.call(null, vec__5766, 0, null);
+    return ajax.core.ajax_request.call(null, uri, "GET", ajax.core.transform_opts.call(null, opts));
+  };
+  var GET = function(uri, var_args) {
+    var p__5764 = null;
+    if (arguments.length > 1) {
+      p__5764 = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return GET__delegate.call(this, uri, p__5764);
+  };
+  GET.cljs$lang$maxFixedArity = 1;
+  GET.cljs$lang$applyTo = function(arglist__5767) {
+    var uri = cljs.core.first(arglist__5767);
+    var p__5764 = cljs.core.rest(arglist__5767);
+    return GET__delegate(uri, p__5764);
+  };
+  GET.cljs$core$IFn$_invoke$arity$variadic = GET__delegate;
+  return GET;
+}();
+ajax.core.PUT = function() {
+  var PUT__delegate = function(uri, p__5768) {
+    var vec__5770 = p__5768;
+    var opts = cljs.core.nth.call(null, vec__5770, 0, null);
+    return ajax.core.ajax_request.call(null, uri, "PUT", ajax.core.transform_opts.call(null, opts));
+  };
+  var PUT = function(uri, var_args) {
+    var p__5768 = null;
+    if (arguments.length > 1) {
+      p__5768 = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return PUT__delegate.call(this, uri, p__5768);
+  };
+  PUT.cljs$lang$maxFixedArity = 1;
+  PUT.cljs$lang$applyTo = function(arglist__5771) {
+    var uri = cljs.core.first(arglist__5771);
+    var p__5768 = cljs.core.rest(arglist__5771);
+    return PUT__delegate(uri, p__5768);
+  };
+  PUT.cljs$core$IFn$_invoke$arity$variadic = PUT__delegate;
+  return PUT;
+}();
+ajax.core.POST = function() {
+  var POST__delegate = function(uri, p__5772) {
+    var vec__5774 = p__5772;
+    var opts = cljs.core.nth.call(null, vec__5774, 0, null);
+    return ajax.core.ajax_request.call(null, uri, "POST", ajax.core.transform_opts.call(null, opts));
+  };
+  var POST = function(uri, var_args) {
+    var p__5772 = null;
+    if (arguments.length > 1) {
+      p__5772 = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return POST__delegate.call(this, uri, p__5772);
+  };
+  POST.cljs$lang$maxFixedArity = 1;
+  POST.cljs$lang$applyTo = function(arglist__5775) {
+    var uri = cljs.core.first(arglist__5775);
+    var p__5772 = cljs.core.rest(arglist__5775);
+    return POST__delegate(uri, p__5772);
+  };
+  POST.cljs$core$IFn$_invoke$arity$variadic = POST__delegate;
+  return POST;
+}();
+goog.provide("seeduml.model");
+goog.require("cljs.core");
+seeduml.model.app = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
+seeduml.model.update = function update(path, value) {
+  return cljs.core.swap_BANG_.call(null, seeduml.model.app, cljs.core.assoc_in, path, value);
+};
+seeduml.model.fetch = function fetch(path) {
+  return cljs.core.get_in.call(null, cljs.core.deref.call(null, seeduml.model.app), path);
+};
+seeduml.model.get_pad_id = function get_pad_id() {
+  console.log("TODO: move to the application state");
+  return document.location.pathname.split("/")[1];
+};
+goog.provide("seeduml.store");
+goog.require("cljs.core");
+goog.require("ajax.core");
+goog.require("seeduml.model");
+goog.require("seeduml.model");
+goog.require("ajax.core");
+seeduml.store.update_plantuml = function update_plantuml(code) {
+  var id = seeduml.model.get_pad_id.call(null);
+  return ajax.core.POST.call(null, [cljs.core.str("/"), cljs.core.str(id)].join(""), new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "params", "params", 4313443576), new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null, "plantuml", "plantuml", 2883469819), code], null), new cljs.core.Keyword(null, "format", "format", 4040092521), new cljs.core.Keyword(null, "raw", "raw", 1014016922)], null));
+};
+goog.provide("seeduml.editor");
+goog.require("cljs.core");
+goog.require("seeduml.store");
+goog.require("seeduml.store");
+goog.require("seeduml.model");
+goog.require("seeduml.model");
+seeduml.editor.version_code = function version_code(editor) {
+  var code = editor.getValue();
+  seeduml.store.update_plantuml.call(null, code);
+  return seeduml.model.update.call(null, new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null, "editor", "editor", 4001043679), new cljs.core.Keyword(null, "code", "code", 1016963423)], null), code);
+};
+seeduml.editor.set_timer = function set_timer(editor) {
+  return editor["timer"] = setTimeout(function() {
+    return seeduml.editor.version_code.call(null, editor);
+  }, 300);
+};
+seeduml.editor.clear_timer = function clear_timer(editor) {
+  return clearTimeout(editor.timer);
+};
+seeduml.editor.reset_watch = function reset_watch(editor) {
+  return function() {
+    seeduml.editor.clear_timer.call(null, editor);
+    return seeduml.editor.set_timer.call(null, editor);
+  };
+};
+seeduml.editor.init = function init(elem) {
+  var config = {"lineNumbers":true, "mode":"plantuml", "value":"@startuml\nBob -\x3e Alice : hello\n@enduml"};
+  var editor = CodeMirror.fromTextArea(elem, config);
+  editor.setSize("auto", "80%");
+  return editor.on("change", seeduml.editor.reset_watch.call(null, editor));
+};
+goog.provide("clojure.browser.event");
+goog.require("cljs.core");
+goog.require("goog.events.EventType");
+goog.require("goog.events.EventType");
+goog.require("goog.events.EventTarget");
+goog.require("goog.events.EventTarget");
+goog.require("goog.events");
+goog.require("goog.events");
+clojure.browser.event.EventType = function() {
+  var obj5932 = {};
+  return obj5932;
+}();
+clojure.browser.event.event_types = function event_types(this$) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.clojure$browser$event$EventType$event_types$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.clojure$browser$event$EventType$event_types$arity$1(this$);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = clojure.browser.event.event_types[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = clojure.browser.event.event_types["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "EventType.event-types", this$);
+        }
+      }
+    }().call(null, this$);
+  }
+};
+Element.prototype.clojure$browser$event$EventType$ = true;
+Element.prototype.clojure$browser$event$EventType$event_types$arity$1 = function(this$) {
+  var this$__$1 = this;
+  return cljs.core.into.call(null, cljs.core.PersistentArrayMap.EMPTY, cljs.core.map.call(null, function(this$__$1) {
+    return function(p__5933) {
+      var vec__5934 = p__5933;
+      var k = cljs.core.nth.call(null, vec__5934, 0, null);
+      var v = cljs.core.nth.call(null, vec__5934, 1, null);
+      return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.keyword.call(null, k.toLowerCase()), v], null);
+    };
+  }(this$__$1), cljs.core.merge.call(null, cljs.core.js__GT_clj.call(null, goog.events.EventType))));
+};
+goog.events.EventTarget.prototype.clojure$browser$event$EventType$ = true;
+goog.events.EventTarget.prototype.clojure$browser$event$EventType$event_types$arity$1 = function(this$) {
+  var this$__$1 = this;
+  return cljs.core.into.call(null, cljs.core.PersistentArrayMap.EMPTY, cljs.core.map.call(null, function(this$__$1) {
+    return function(p__5935) {
+      var vec__5936 = p__5935;
+      var k = cljs.core.nth.call(null, vec__5936, 0, null);
+      var v = cljs.core.nth.call(null, vec__5936, 1, null);
+      return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.keyword.call(null, k.toLowerCase()), v], null);
+    };
+  }(this$__$1), cljs.core.merge.call(null, cljs.core.js__GT_clj.call(null, goog.events.EventType))));
+};
+clojure.browser.event.listen = function() {
+  var listen = null;
+  var listen__3 = function(src, type, fn) {
+    return listen.call(null, src, type, fn, false);
+  };
+  var listen__4 = function(src, type, fn, capture_QMARK_) {
+    return goog.events.listen(src, cljs.core.get.call(null, clojure.browser.event.event_types.call(null, src), type, type), fn, capture_QMARK_);
+  };
+  listen = function(src, type, fn, capture_QMARK_) {
+    switch(arguments.length) {
+      case 3:
+        return listen__3.call(this, src, type, fn);
+      case 4:
+        return listen__4.call(this, src, type, fn, capture_QMARK_);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  listen.cljs$core$IFn$_invoke$arity$3 = listen__3;
+  listen.cljs$core$IFn$_invoke$arity$4 = listen__4;
+  return listen;
+}();
+clojure.browser.event.listen_once = function() {
+  var listen_once = null;
+  var listen_once__3 = function(src, type, fn) {
+    return listen_once.call(null, src, type, fn, false);
+  };
+  var listen_once__4 = function(src, type, fn, capture_QMARK_) {
+    return goog.events.listenOnce(src, cljs.core.get.call(null, clojure.browser.event.event_types.call(null, src), type, type), fn, capture_QMARK_);
+  };
+  listen_once = function(src, type, fn, capture_QMARK_) {
+    switch(arguments.length) {
+      case 3:
+        return listen_once__3.call(this, src, type, fn);
+      case 4:
+        return listen_once__4.call(this, src, type, fn, capture_QMARK_);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  listen_once.cljs$core$IFn$_invoke$arity$3 = listen_once__3;
+  listen_once.cljs$core$IFn$_invoke$arity$4 = listen_once__4;
+  return listen_once;
+}();
+clojure.browser.event.unlisten = function() {
+  var unlisten = null;
+  var unlisten__3 = function(src, type, fn) {
+    return unlisten.call(null, src, type, fn, false);
+  };
+  var unlisten__4 = function(src, type, fn, capture_QMARK_) {
+    return goog.events.unlisten(src, cljs.core.get.call(null, clojure.browser.event.event_types.call(null, src), type, type), fn, capture_QMARK_);
+  };
+  unlisten = function(src, type, fn, capture_QMARK_) {
+    switch(arguments.length) {
+      case 3:
+        return unlisten__3.call(this, src, type, fn);
+      case 4:
+        return unlisten__4.call(this, src, type, fn, capture_QMARK_);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  unlisten.cljs$core$IFn$_invoke$arity$3 = unlisten__3;
+  unlisten.cljs$core$IFn$_invoke$arity$4 = unlisten__4;
+  return unlisten;
+}();
+clojure.browser.event.unlisten_by_key = function unlisten_by_key(key) {
+  return goog.events.unlistenByKey(key);
+};
+clojure.browser.event.dispatch_event = function dispatch_event(src, event) {
+  return goog.events.dispatchEvent(src, event);
+};
+clojure.browser.event.expose = function expose(e) {
+  return goog.events.expose(e);
+};
+clojure.browser.event.fire_listeners = function fire_listeners(obj, type, capture, event) {
+  return null;
+};
+clojure.browser.event.total_listener_count = function total_listener_count() {
+  return goog.events.getTotalListenerCount();
+};
+clojure.browser.event.get_listener = function get_listener(src, type, listener, opt_capt, opt_handler) {
+  return null;
+};
+clojure.browser.event.all_listeners = function all_listeners(obj, type, capture) {
+  return null;
+};
+clojure.browser.event.unique_event_id = function unique_event_id(event_type) {
+  return null;
+};
+clojure.browser.event.has_listener = function has_listener(obj, opt_type, opt_capture) {
+  return null;
+};
+clojure.browser.event.remove_all = function remove_all(opt_obj, opt_type, opt_capt) {
+  return null;
+};
 /*
  Portions of this code are from MochiKit, received by
  The Closure Authors under the MIT license. All other code is Copyright
@@ -26627,93 +30669,6 @@ goog.async.Deferred.CancelledError = function(deferred) {
 goog.inherits(goog.async.Deferred.CancelledError, goog.debug.Error);
 goog.async.Deferred.CancelledError.prototype.message = "Deferred was cancelled";
 goog.async.Deferred.CancelledError.prototype.name = "CancelledError";
-goog.provide("goog.Timer");
-goog.require("goog.events.EventTarget");
-goog.Timer = function(opt_interval, opt_timerObject) {
-  goog.events.EventTarget.call(this);
-  this.interval_ = opt_interval || 1;
-  this.timerObject_ = opt_timerObject || goog.Timer.defaultTimerObject;
-  this.boundTick_ = goog.bind(this.tick_, this);
-  this.last_ = goog.now();
-};
-goog.inherits(goog.Timer, goog.events.EventTarget);
-goog.Timer.MAX_TIMEOUT_ = 2147483647;
-goog.Timer.prototype.enabled = false;
-goog.Timer.defaultTimerObject = goog.global;
-goog.Timer.intervalScale = 0.8;
-goog.Timer.prototype.timer_ = null;
-goog.Timer.prototype.getInterval = function() {
-  return this.interval_;
-};
-goog.Timer.prototype.setInterval = function(interval) {
-  this.interval_ = interval;
-  if (this.timer_ && this.enabled) {
-    this.stop();
-    this.start();
-  } else {
-    if (this.timer_) {
-      this.stop();
-    }
-  }
-};
-goog.Timer.prototype.tick_ = function() {
-  if (this.enabled) {
-    var elapsed = goog.now() - this.last_;
-    if (elapsed > 0 && elapsed < this.interval_ * goog.Timer.intervalScale) {
-      this.timer_ = this.timerObject_.setTimeout(this.boundTick_, this.interval_ - elapsed);
-      return;
-    }
-    this.dispatchTick();
-    if (this.enabled) {
-      this.timer_ = this.timerObject_.setTimeout(this.boundTick_, this.interval_);
-      this.last_ = goog.now();
-    }
-  }
-};
-goog.Timer.prototype.dispatchTick = function() {
-  this.dispatchEvent(goog.Timer.TICK);
-};
-goog.Timer.prototype.start = function() {
-  this.enabled = true;
-  if (!this.timer_) {
-    this.timer_ = this.timerObject_.setTimeout(this.boundTick_, this.interval_);
-    this.last_ = goog.now();
-  }
-};
-goog.Timer.prototype.stop = function() {
-  this.enabled = false;
-  if (this.timer_) {
-    this.timerObject_.clearTimeout(this.timer_);
-    this.timer_ = null;
-  }
-};
-goog.Timer.prototype.disposeInternal = function() {
-  goog.Timer.superClass_.disposeInternal.call(this);
-  this.stop();
-  delete this.timerObject_;
-};
-goog.Timer.TICK = "tick";
-goog.Timer.callOnce = function(listener, opt_delay, opt_handler) {
-  if (goog.isFunction(listener)) {
-    if (opt_handler) {
-      listener = goog.bind(listener, opt_handler);
-    }
-  } else {
-    if (listener && typeof listener.handleEvent == "function") {
-      listener = goog.bind(listener.handleEvent, listener);
-    } else {
-      throw Error("Invalid listener argument");
-    }
-  }
-  if (opt_delay > goog.Timer.MAX_TIMEOUT_) {
-    return-1;
-  } else {
-    return goog.Timer.defaultTimerObject.setTimeout(listener, opt_delay || 0);
-  }
-};
-goog.Timer.clear = function(timerId) {
-  goog.Timer.defaultTimerObject.clearTimeout(timerId);
-};
 goog.provide("goog.Delay");
 goog.provide("goog.async.Delay");
 goog.require("goog.Disposable");
@@ -28044,936 +31999,6 @@ goog.dom.DomHelper.prototype.isNodeList = goog.dom.isNodeList;
 goog.dom.DomHelper.prototype.getAncestorByTagNameAndClass = goog.dom.getAncestorByTagNameAndClass;
 goog.dom.DomHelper.prototype.getAncestorByClass = goog.dom.getAncestorByClass;
 goog.dom.DomHelper.prototype.getAncestor = goog.dom.getAncestor;
-goog.provide("goog.events.EventHandler");
-goog.require("goog.Disposable");
-goog.require("goog.array");
-goog.require("goog.events");
-goog.require("goog.events.EventWrapper");
-goog.events.EventHandler = function(opt_handler) {
-  goog.Disposable.call(this);
-  this.handler_ = opt_handler;
-  this.keys_ = [];
-};
-goog.inherits(goog.events.EventHandler, goog.Disposable);
-goog.events.EventHandler.typeArray_ = [];
-goog.events.EventHandler.prototype.listen = function(src, type, opt_fn, opt_capture, opt_handler) {
-  if (!goog.isArray(type)) {
-    goog.events.EventHandler.typeArray_[0] = (type);
-    type = goog.events.EventHandler.typeArray_;
-  }
-  for (var i = 0;i < type.length;i++) {
-    var key = (goog.events.listen(src, type[i], opt_fn || this, opt_capture || false, opt_handler || (this.handler_ || this)));
-    this.keys_.push(key);
-  }
-  return this;
-};
-goog.events.EventHandler.prototype.listenOnce = function(src, type, opt_fn, opt_capture, opt_handler) {
-  if (goog.isArray(type)) {
-    for (var i = 0;i < type.length;i++) {
-      this.listenOnce(src, type[i], opt_fn, opt_capture, opt_handler);
-    }
-  } else {
-    var key = (goog.events.listenOnce(src, type, opt_fn || this, opt_capture, opt_handler || (this.handler_ || this)));
-    this.keys_.push(key);
-  }
-  return this;
-};
-goog.events.EventHandler.prototype.listenWithWrapper = function(src, wrapper, listener, opt_capt, opt_handler) {
-  wrapper.listen(src, listener, opt_capt, opt_handler || (this.handler_ || this), this);
-  return this;
-};
-goog.events.EventHandler.prototype.getListenerCount = function() {
-  return this.keys_.length;
-};
-goog.events.EventHandler.prototype.unlisten = function(src, type, opt_fn, opt_capture, opt_handler) {
-  if (goog.isArray(type)) {
-    for (var i = 0;i < type.length;i++) {
-      this.unlisten(src, type[i], opt_fn, opt_capture, opt_handler);
-    }
-  } else {
-    var listener = goog.events.getListener(src, type, opt_fn || this, opt_capture, opt_handler || (this.handler_ || this));
-    if (listener) {
-      var key = listener.key;
-      goog.events.unlistenByKey(key);
-      goog.array.remove(this.keys_, key);
-    }
-  }
-  return this;
-};
-goog.events.EventHandler.prototype.unlistenWithWrapper = function(src, wrapper, listener, opt_capt, opt_handler) {
-  wrapper.unlisten(src, listener, opt_capt, opt_handler || (this.handler_ || this), this);
-  return this;
-};
-goog.events.EventHandler.prototype.removeAll = function() {
-  goog.array.forEach(this.keys_, goog.events.unlistenByKey);
-  this.keys_.length = 0;
-};
-goog.events.EventHandler.prototype.disposeInternal = function() {
-  goog.events.EventHandler.superClass_.disposeInternal.call(this);
-  this.removeAll();
-};
-goog.events.EventHandler.prototype.handleEvent = function(e) {
-  throw Error("EventHandler.handleEvent not implemented");
-};
-goog.provide("goog.json");
-goog.provide("goog.json.Serializer");
-goog.json.isValid_ = function(s) {
-  if (/^\s*$/.test(s)) {
-    return false;
-  }
-  var backslashesRe = /\\["\\\/bfnrtu]/g;
-  var simpleValuesRe = /"[^"\\\n\r\u2028\u2029\x00-\x08\x0a-\x1f]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g;
-  var openBracketsRe = /(?:^|:|,)(?:[\s\u2028\u2029]*\[)+/g;
-  var remainderRe = /^[\],:{}\s\u2028\u2029]*$/;
-  return remainderRe.test(s.replace(backslashesRe, "@").replace(simpleValuesRe, "]").replace(openBracketsRe, ""));
-};
-goog.json.parse = function(s) {
-  var o = String(s);
-  if (goog.json.isValid_(o)) {
-    try {
-      return(eval("(" + o + ")"));
-    } catch (ex) {
-    }
-  }
-  throw Error("Invalid JSON string: " + o);
-};
-goog.json.unsafeParse = function(s) {
-  return(eval("(" + s + ")"));
-};
-goog.json.Replacer;
-goog.json.Reviver;
-goog.json.serialize = function(object, opt_replacer) {
-  return(new goog.json.Serializer(opt_replacer)).serialize(object);
-};
-goog.json.Serializer = function(opt_replacer) {
-  this.replacer_ = opt_replacer;
-};
-goog.json.Serializer.prototype.serialize = function(object) {
-  var sb = [];
-  this.serialize_(object, sb);
-  return sb.join("");
-};
-goog.json.Serializer.prototype.serialize_ = function(object, sb) {
-  switch(typeof object) {
-    case "string":
-      this.serializeString_((object), sb);
-      break;
-    case "number":
-      this.serializeNumber_((object), sb);
-      break;
-    case "boolean":
-      sb.push(object);
-      break;
-    case "undefined":
-      sb.push("null");
-      break;
-    case "object":
-      if (object == null) {
-        sb.push("null");
-        break;
-      }
-      if (goog.isArray(object)) {
-        this.serializeArray((object), sb);
-        break;
-      }
-      this.serializeObject_((object), sb);
-      break;
-    case "function":
-      break;
-    default:
-      throw Error("Unknown type: " + typeof object);;
-  }
-};
-goog.json.Serializer.charToJsonCharCache_ = {'"':'\\"', "\\":"\\\\", "/":"\\/", "\b":"\\b", "\f":"\\f", "\n":"\\n", "\r":"\\r", "\t":"\\t", "\x0B":"\\u000b"};
-goog.json.Serializer.charsToReplace_ = /\uffff/.test("\uffff") ? /[\\\"\x00-\x1f\x7f-\uffff]/g : /[\\\"\x00-\x1f\x7f-\xff]/g;
-goog.json.Serializer.prototype.serializeString_ = function(s, sb) {
-  sb.push('"', s.replace(goog.json.Serializer.charsToReplace_, function(c) {
-    if (c in goog.json.Serializer.charToJsonCharCache_) {
-      return goog.json.Serializer.charToJsonCharCache_[c];
-    }
-    var cc = c.charCodeAt(0);
-    var rv = "\\u";
-    if (cc < 16) {
-      rv += "000";
-    } else {
-      if (cc < 256) {
-        rv += "00";
-      } else {
-        if (cc < 4096) {
-          rv += "0";
-        }
-      }
-    }
-    return goog.json.Serializer.charToJsonCharCache_[c] = rv + cc.toString(16);
-  }), '"');
-};
-goog.json.Serializer.prototype.serializeNumber_ = function(n, sb) {
-  sb.push(isFinite(n) && !isNaN(n) ? n : "null");
-};
-goog.json.Serializer.prototype.serializeArray = function(arr, sb) {
-  var l = arr.length;
-  sb.push("[");
-  var sep = "";
-  for (var i = 0;i < l;i++) {
-    sb.push(sep);
-    var value = arr[i];
-    this.serialize_(this.replacer_ ? this.replacer_.call(arr, String(i), value) : value, sb);
-    sep = ",";
-  }
-  sb.push("]");
-};
-goog.json.Serializer.prototype.serializeObject_ = function(obj, sb) {
-  sb.push("{");
-  var sep = "";
-  for (var key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      var value = obj[key];
-      if (typeof value != "function") {
-        sb.push(sep);
-        this.serializeString_(key, sb);
-        sb.push(":");
-        this.serialize_(this.replacer_ ? this.replacer_.call(obj, key, value) : value, sb);
-        sep = ",";
-      }
-    }
-  }
-  sb.push("}");
-};
-goog.provide("goog.structs.Collection");
-goog.structs.Collection = function() {
-};
-goog.structs.Collection.prototype.add;
-goog.structs.Collection.prototype.remove;
-goog.structs.Collection.prototype.contains;
-goog.structs.Collection.prototype.getCount;
-goog.provide("goog.structs.Set");
-goog.require("goog.structs");
-goog.require("goog.structs.Collection");
-goog.require("goog.structs.Map");
-goog.structs.Set = function(opt_values) {
-  this.map_ = new goog.structs.Map;
-  if (opt_values) {
-    this.addAll(opt_values);
-  }
-};
-goog.structs.Set.getKey_ = function(val) {
-  var type = typeof val;
-  if (type == "object" && val || type == "function") {
-    return "o" + goog.getUid((val));
-  } else {
-    return type.substr(0, 1) + val;
-  }
-};
-goog.structs.Set.prototype.getCount = function() {
-  return this.map_.getCount();
-};
-goog.structs.Set.prototype.add = function(element) {
-  this.map_.set(goog.structs.Set.getKey_(element), element);
-};
-goog.structs.Set.prototype.addAll = function(col) {
-  var values = goog.structs.getValues(col);
-  var l = values.length;
-  for (var i = 0;i < l;i++) {
-    this.add(values[i]);
-  }
-};
-goog.structs.Set.prototype.removeAll = function(col) {
-  var values = goog.structs.getValues(col);
-  var l = values.length;
-  for (var i = 0;i < l;i++) {
-    this.remove(values[i]);
-  }
-};
-goog.structs.Set.prototype.remove = function(element) {
-  return this.map_.remove(goog.structs.Set.getKey_(element));
-};
-goog.structs.Set.prototype.clear = function() {
-  this.map_.clear();
-};
-goog.structs.Set.prototype.isEmpty = function() {
-  return this.map_.isEmpty();
-};
-goog.structs.Set.prototype.contains = function(element) {
-  return this.map_.containsKey(goog.structs.Set.getKey_(element));
-};
-goog.structs.Set.prototype.containsAll = function(col) {
-  return goog.structs.every(col, this.contains, this);
-};
-goog.structs.Set.prototype.intersection = function(col) {
-  var result = new goog.structs.Set;
-  var values = goog.structs.getValues(col);
-  for (var i = 0;i < values.length;i++) {
-    var value = values[i];
-    if (this.contains(value)) {
-      result.add(value);
-    }
-  }
-  return result;
-};
-goog.structs.Set.prototype.difference = function(col) {
-  var result = this.clone();
-  result.removeAll(col);
-  return result;
-};
-goog.structs.Set.prototype.getValues = function() {
-  return this.map_.getValues();
-};
-goog.structs.Set.prototype.clone = function() {
-  return new goog.structs.Set(this);
-};
-goog.structs.Set.prototype.equals = function(col) {
-  return this.getCount() == goog.structs.getCount(col) && this.isSubsetOf(col);
-};
-goog.structs.Set.prototype.isSubsetOf = function(col) {
-  var colCount = goog.structs.getCount(col);
-  if (this.getCount() > colCount) {
-    return false;
-  }
-  if (!(col instanceof goog.structs.Set) && colCount > 5) {
-    col = new goog.structs.Set(col);
-  }
-  return goog.structs.every(this, function(value) {
-    return goog.structs.contains(col, value);
-  });
-};
-goog.structs.Set.prototype.__iterator__ = function(opt_keys) {
-  return this.map_.__iterator__(false);
-};
-goog.provide("goog.debug");
-goog.require("goog.array");
-goog.require("goog.string");
-goog.require("goog.structs.Set");
-goog.require("goog.userAgent");
-goog.debug.catchErrors = function(logFunc, opt_cancel, opt_target) {
-  var target = opt_target || goog.global;
-  var oldErrorHandler = target.onerror;
-  var retVal = !!opt_cancel;
-  if (goog.userAgent.WEBKIT && !goog.userAgent.isVersion("535.3")) {
-    retVal = !retVal;
-  }
-  target.onerror = function(message, url, line) {
-    if (oldErrorHandler) {
-      oldErrorHandler(message, url, line);
-    }
-    logFunc({message:message, fileName:url, line:line});
-    return retVal;
-  };
-};
-goog.debug.expose = function(obj, opt_showFn) {
-  if (typeof obj == "undefined") {
-    return "undefined";
-  }
-  if (obj == null) {
-    return "NULL";
-  }
-  var str = [];
-  for (var x in obj) {
-    if (!opt_showFn && goog.isFunction(obj[x])) {
-      continue;
-    }
-    var s = x + " \x3d ";
-    try {
-      s += obj[x];
-    } catch (e) {
-      s += "*** " + e + " ***";
-    }
-    str.push(s);
-  }
-  return str.join("\n");
-};
-goog.debug.deepExpose = function(obj, opt_showFn) {
-  var previous = new goog.structs.Set;
-  var str = [];
-  var helper = function(obj, space) {
-    var nestspace = space + "  ";
-    var indentMultiline = function(str) {
-      return str.replace(/\n/g, "\n" + space);
-    };
-    try {
-      if (!goog.isDef(obj)) {
-        str.push("undefined");
-      } else {
-        if (goog.isNull(obj)) {
-          str.push("NULL");
-        } else {
-          if (goog.isString(obj)) {
-            str.push('"' + indentMultiline(obj) + '"');
-          } else {
-            if (goog.isFunction(obj)) {
-              str.push(indentMultiline(String(obj)));
-            } else {
-              if (goog.isObject(obj)) {
-                if (previous.contains(obj)) {
-                  str.push("*** reference loop detected ***");
-                } else {
-                  previous.add(obj);
-                  str.push("{");
-                  for (var x in obj) {
-                    if (!opt_showFn && goog.isFunction(obj[x])) {
-                      continue;
-                    }
-                    str.push("\n");
-                    str.push(nestspace);
-                    str.push(x + " \x3d ");
-                    helper(obj[x], nestspace);
-                  }
-                  str.push("\n" + space + "}");
-                }
-              } else {
-                str.push(obj);
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      str.push("*** " + e + " ***");
-    }
-  };
-  helper(obj, "");
-  return str.join("");
-};
-goog.debug.exposeArray = function(arr) {
-  var str = [];
-  for (var i = 0;i < arr.length;i++) {
-    if (goog.isArray(arr[i])) {
-      str.push(goog.debug.exposeArray(arr[i]));
-    } else {
-      str.push(arr[i]);
-    }
-  }
-  return "[ " + str.join(", ") + " ]";
-};
-goog.debug.exposeException = function(err, opt_fn) {
-  try {
-    var e = goog.debug.normalizeErrorObject(err);
-    var error = "Message: " + goog.string.htmlEscape(e.message) + '\nUrl: \x3ca href\x3d"view-source:' + e.fileName + '" target\x3d"_new"\x3e' + e.fileName + "\x3c/a\x3e\nLine: " + e.lineNumber + "\n\nBrowser stack:\n" + goog.string.htmlEscape(e.stack + "-\x3e ") + "[end]\n\nJS stack traversal:\n" + goog.string.htmlEscape(goog.debug.getStacktrace(opt_fn) + "-\x3e ");
-    return error;
-  } catch (e2) {
-    return "Exception trying to expose exception! You win, we lose. " + e2;
-  }
-};
-goog.debug.normalizeErrorObject = function(err) {
-  var href = goog.getObjectByName("window.location.href");
-  if (goog.isString(err)) {
-    return{"message":err, "name":"Unknown error", "lineNumber":"Not available", "fileName":href, "stack":"Not available"};
-  }
-  var lineNumber, fileName;
-  var threwError = false;
-  try {
-    lineNumber = err.lineNumber || (err.line || "Not available");
-  } catch (e) {
-    lineNumber = "Not available";
-    threwError = true;
-  }
-  try {
-    fileName = err.fileName || (err.filename || (err.sourceURL || (goog.global["$googDebugFname"] || href)));
-  } catch (e) {
-    fileName = "Not available";
-    threwError = true;
-  }
-  if (threwError || (!err.lineNumber || (!err.fileName || !err.stack))) {
-    return{"message":err.message, "name":err.name, "lineNumber":lineNumber, "fileName":fileName, "stack":err.stack || "Not available"};
-  }
-  return err;
-};
-goog.debug.enhanceError = function(err, opt_message) {
-  var error = typeof err == "string" ? Error(err) : err;
-  if (!error.stack) {
-    error.stack = goog.debug.getStacktrace(arguments.callee.caller);
-  }
-  if (opt_message) {
-    var x = 0;
-    while (error["message" + x]) {
-      ++x;
-    }
-    error["message" + x] = String(opt_message);
-  }
-  return error;
-};
-goog.debug.getStacktraceSimple = function(opt_depth) {
-  var sb = [];
-  var fn = arguments.callee.caller;
-  var depth = 0;
-  while (fn && (!opt_depth || depth < opt_depth)) {
-    sb.push(goog.debug.getFunctionName(fn));
-    sb.push("()\n");
-    try {
-      fn = fn.caller;
-    } catch (e) {
-      sb.push("[exception trying to get caller]\n");
-      break;
-    }
-    depth++;
-    if (depth >= goog.debug.MAX_STACK_DEPTH) {
-      sb.push("[...long stack...]");
-      break;
-    }
-  }
-  if (opt_depth && depth >= opt_depth) {
-    sb.push("[...reached max depth limit...]");
-  } else {
-    sb.push("[end]");
-  }
-  return sb.join("");
-};
-goog.debug.MAX_STACK_DEPTH = 50;
-goog.debug.getStacktrace = function(opt_fn) {
-  return goog.debug.getStacktraceHelper_(opt_fn || arguments.callee.caller, []);
-};
-goog.debug.getStacktraceHelper_ = function(fn, visited) {
-  var sb = [];
-  if (goog.array.contains(visited, fn)) {
-    sb.push("[...circular reference...]");
-  } else {
-    if (fn && visited.length < goog.debug.MAX_STACK_DEPTH) {
-      sb.push(goog.debug.getFunctionName(fn) + "(");
-      var args = fn.arguments;
-      for (var i = 0;i < args.length;i++) {
-        if (i > 0) {
-          sb.push(", ");
-        }
-        var argDesc;
-        var arg = args[i];
-        switch(typeof arg) {
-          case "object":
-            argDesc = arg ? "object" : "null";
-            break;
-          case "string":
-            argDesc = arg;
-            break;
-          case "number":
-            argDesc = String(arg);
-            break;
-          case "boolean":
-            argDesc = arg ? "true" : "false";
-            break;
-          case "function":
-            argDesc = goog.debug.getFunctionName(arg);
-            argDesc = argDesc ? argDesc : "[fn]";
-            break;
-          case "undefined":
-          ;
-          default:
-            argDesc = typeof arg;
-            break;
-        }
-        if (argDesc.length > 40) {
-          argDesc = argDesc.substr(0, 40) + "...";
-        }
-        sb.push(argDesc);
-      }
-      visited.push(fn);
-      sb.push(")\n");
-      try {
-        sb.push(goog.debug.getStacktraceHelper_(fn.caller, visited));
-      } catch (e) {
-        sb.push("[exception trying to get caller]\n");
-      }
-    } else {
-      if (fn) {
-        sb.push("[...long stack...]");
-      } else {
-        sb.push("[end]");
-      }
-    }
-  }
-  return sb.join("");
-};
-goog.debug.setFunctionResolver = function(resolver) {
-  goog.debug.fnNameResolver_ = resolver;
-};
-goog.debug.getFunctionName = function(fn) {
-  if (goog.debug.fnNameCache_[fn]) {
-    return goog.debug.fnNameCache_[fn];
-  }
-  if (goog.debug.fnNameResolver_) {
-    var name = goog.debug.fnNameResolver_(fn);
-    if (name) {
-      goog.debug.fnNameCache_[fn] = name;
-      return name;
-    }
-  }
-  var functionSource = String(fn);
-  if (!goog.debug.fnNameCache_[functionSource]) {
-    var matches = /function ([^\(]+)/.exec(functionSource);
-    if (matches) {
-      var method = matches[1];
-      goog.debug.fnNameCache_[functionSource] = method;
-    } else {
-      goog.debug.fnNameCache_[functionSource] = "[Anonymous]";
-    }
-  }
-  return goog.debug.fnNameCache_[functionSource];
-};
-goog.debug.makeWhitespaceVisible = function(string) {
-  return string.replace(/ /g, "[_]").replace(/\f/g, "[f]").replace(/\n/g, "[n]\n").replace(/\r/g, "[r]").replace(/\t/g, "[t]");
-};
-goog.debug.fnNameCache_ = {};
-goog.debug.fnNameResolver_;
-goog.provide("goog.debug.LogRecord");
-goog.debug.LogRecord = function(level, msg, loggerName, opt_time, opt_sequenceNumber) {
-  this.reset(level, msg, loggerName, opt_time, opt_sequenceNumber);
-};
-goog.debug.LogRecord.prototype.time_;
-goog.debug.LogRecord.prototype.level_;
-goog.debug.LogRecord.prototype.msg_;
-goog.debug.LogRecord.prototype.loggerName_;
-goog.debug.LogRecord.prototype.sequenceNumber_ = 0;
-goog.debug.LogRecord.prototype.exception_ = null;
-goog.debug.LogRecord.prototype.exceptionText_ = null;
-goog.debug.LogRecord.ENABLE_SEQUENCE_NUMBERS = true;
-goog.debug.LogRecord.nextSequenceNumber_ = 0;
-goog.debug.LogRecord.prototype.reset = function(level, msg, loggerName, opt_time, opt_sequenceNumber) {
-  if (goog.debug.LogRecord.ENABLE_SEQUENCE_NUMBERS) {
-    this.sequenceNumber_ = typeof opt_sequenceNumber == "number" ? opt_sequenceNumber : goog.debug.LogRecord.nextSequenceNumber_++;
-  }
-  this.time_ = opt_time || goog.now();
-  this.level_ = level;
-  this.msg_ = msg;
-  this.loggerName_ = loggerName;
-  delete this.exception_;
-  delete this.exceptionText_;
-};
-goog.debug.LogRecord.prototype.getLoggerName = function() {
-  return this.loggerName_;
-};
-goog.debug.LogRecord.prototype.getException = function() {
-  return this.exception_;
-};
-goog.debug.LogRecord.prototype.setException = function(exception) {
-  this.exception_ = exception;
-};
-goog.debug.LogRecord.prototype.getExceptionText = function() {
-  return this.exceptionText_;
-};
-goog.debug.LogRecord.prototype.setExceptionText = function(text) {
-  this.exceptionText_ = text;
-};
-goog.debug.LogRecord.prototype.setLoggerName = function(loggerName) {
-  this.loggerName_ = loggerName;
-};
-goog.debug.LogRecord.prototype.getLevel = function() {
-  return this.level_;
-};
-goog.debug.LogRecord.prototype.setLevel = function(level) {
-  this.level_ = level;
-};
-goog.debug.LogRecord.prototype.getMessage = function() {
-  return this.msg_;
-};
-goog.debug.LogRecord.prototype.setMessage = function(msg) {
-  this.msg_ = msg;
-};
-goog.debug.LogRecord.prototype.getMillis = function() {
-  return this.time_;
-};
-goog.debug.LogRecord.prototype.setMillis = function(time) {
-  this.time_ = time;
-};
-goog.debug.LogRecord.prototype.getSequenceNumber = function() {
-  return this.sequenceNumber_;
-};
-goog.provide("goog.debug.LogBuffer");
-goog.require("goog.asserts");
-goog.require("goog.debug.LogRecord");
-goog.debug.LogBuffer = function() {
-  goog.asserts.assert(goog.debug.LogBuffer.isBufferingEnabled(), "Cannot use goog.debug.LogBuffer without defining " + "goog.debug.LogBuffer.CAPACITY.");
-  this.clear();
-};
-goog.debug.LogBuffer.getInstance = function() {
-  if (!goog.debug.LogBuffer.instance_) {
-    goog.debug.LogBuffer.instance_ = new goog.debug.LogBuffer;
-  }
-  return goog.debug.LogBuffer.instance_;
-};
-goog.debug.LogBuffer.CAPACITY = 0;
-goog.debug.LogBuffer.prototype.buffer_;
-goog.debug.LogBuffer.prototype.curIndex_;
-goog.debug.LogBuffer.prototype.isFull_;
-goog.debug.LogBuffer.prototype.addRecord = function(level, msg, loggerName) {
-  var curIndex = (this.curIndex_ + 1) % goog.debug.LogBuffer.CAPACITY;
-  this.curIndex_ = curIndex;
-  if (this.isFull_) {
-    var ret = this.buffer_[curIndex];
-    ret.reset(level, msg, loggerName);
-    return ret;
-  }
-  this.isFull_ = curIndex == goog.debug.LogBuffer.CAPACITY - 1;
-  return this.buffer_[curIndex] = new goog.debug.LogRecord(level, msg, loggerName);
-};
-goog.debug.LogBuffer.isBufferingEnabled = function() {
-  return goog.debug.LogBuffer.CAPACITY > 0;
-};
-goog.debug.LogBuffer.prototype.clear = function() {
-  this.buffer_ = new Array(goog.debug.LogBuffer.CAPACITY);
-  this.curIndex_ = -1;
-  this.isFull_ = false;
-};
-goog.debug.LogBuffer.prototype.forEachRecord = function(func) {
-  var buffer = this.buffer_;
-  if (!buffer[0]) {
-    return;
-  }
-  var curIndex = this.curIndex_;
-  var i = this.isFull_ ? curIndex : -1;
-  do {
-    i = (i + 1) % goog.debug.LogBuffer.CAPACITY;
-    func((buffer[i]));
-  } while (i != curIndex);
-};
-goog.provide("goog.debug.LogManager");
-goog.provide("goog.debug.Logger");
-goog.provide("goog.debug.Logger.Level");
-goog.require("goog.array");
-goog.require("goog.asserts");
-goog.require("goog.debug");
-goog.require("goog.debug.LogBuffer");
-goog.require("goog.debug.LogRecord");
-goog.debug.Logger = function(name) {
-  this.name_ = name;
-};
-goog.debug.Logger.prototype.parent_ = null;
-goog.debug.Logger.prototype.level_ = null;
-goog.debug.Logger.prototype.children_ = null;
-goog.debug.Logger.prototype.handlers_ = null;
-goog.debug.Logger.ENABLE_HIERARCHY = true;
-if (!goog.debug.Logger.ENABLE_HIERARCHY) {
-  goog.debug.Logger.rootHandlers_ = [];
-  goog.debug.Logger.rootLevel_;
-}
-goog.debug.Logger.Level = function(name, value) {
-  this.name = name;
-  this.value = value;
-};
-goog.debug.Logger.Level.prototype.toString = function() {
-  return this.name;
-};
-goog.debug.Logger.Level.OFF = new goog.debug.Logger.Level("OFF", Infinity);
-goog.debug.Logger.Level.SHOUT = new goog.debug.Logger.Level("SHOUT", 1200);
-goog.debug.Logger.Level.SEVERE = new goog.debug.Logger.Level("SEVERE", 1E3);
-goog.debug.Logger.Level.WARNING = new goog.debug.Logger.Level("WARNING", 900);
-goog.debug.Logger.Level.INFO = new goog.debug.Logger.Level("INFO", 800);
-goog.debug.Logger.Level.CONFIG = new goog.debug.Logger.Level("CONFIG", 700);
-goog.debug.Logger.Level.FINE = new goog.debug.Logger.Level("FINE", 500);
-goog.debug.Logger.Level.FINER = new goog.debug.Logger.Level("FINER", 400);
-goog.debug.Logger.Level.FINEST = new goog.debug.Logger.Level("FINEST", 300);
-goog.debug.Logger.Level.ALL = new goog.debug.Logger.Level("ALL", 0);
-goog.debug.Logger.Level.PREDEFINED_LEVELS = [goog.debug.Logger.Level.OFF, goog.debug.Logger.Level.SHOUT, goog.debug.Logger.Level.SEVERE, goog.debug.Logger.Level.WARNING, goog.debug.Logger.Level.INFO, goog.debug.Logger.Level.CONFIG, goog.debug.Logger.Level.FINE, goog.debug.Logger.Level.FINER, goog.debug.Logger.Level.FINEST, goog.debug.Logger.Level.ALL];
-goog.debug.Logger.Level.predefinedLevelsCache_ = null;
-goog.debug.Logger.Level.createPredefinedLevelsCache_ = function() {
-  goog.debug.Logger.Level.predefinedLevelsCache_ = {};
-  for (var i = 0, level;level = goog.debug.Logger.Level.PREDEFINED_LEVELS[i];i++) {
-    goog.debug.Logger.Level.predefinedLevelsCache_[level.value] = level;
-    goog.debug.Logger.Level.predefinedLevelsCache_[level.name] = level;
-  }
-};
-goog.debug.Logger.Level.getPredefinedLevel = function(name) {
-  if (!goog.debug.Logger.Level.predefinedLevelsCache_) {
-    goog.debug.Logger.Level.createPredefinedLevelsCache_();
-  }
-  return goog.debug.Logger.Level.predefinedLevelsCache_[name] || null;
-};
-goog.debug.Logger.Level.getPredefinedLevelByValue = function(value) {
-  if (!goog.debug.Logger.Level.predefinedLevelsCache_) {
-    goog.debug.Logger.Level.createPredefinedLevelsCache_();
-  }
-  if (value in goog.debug.Logger.Level.predefinedLevelsCache_) {
-    return goog.debug.Logger.Level.predefinedLevelsCache_[value];
-  }
-  for (var i = 0;i < goog.debug.Logger.Level.PREDEFINED_LEVELS.length;++i) {
-    var level = goog.debug.Logger.Level.PREDEFINED_LEVELS[i];
-    if (level.value <= value) {
-      return level;
-    }
-  }
-  return null;
-};
-goog.debug.Logger.getLogger = function(name) {
-  return goog.debug.LogManager.getLogger(name);
-};
-goog.debug.Logger.logToProfilers = function(msg) {
-  if (goog.global["console"]) {
-    if (goog.global["console"]["timeStamp"]) {
-      goog.global["console"]["timeStamp"](msg);
-    } else {
-      if (goog.global["console"]["markTimeline"]) {
-        goog.global["console"]["markTimeline"](msg);
-      }
-    }
-  }
-  if (goog.global["msWriteProfilerMark"]) {
-    goog.global["msWriteProfilerMark"](msg);
-  }
-};
-goog.debug.Logger.prototype.getName = function() {
-  return this.name_;
-};
-goog.debug.Logger.prototype.addHandler = function(handler) {
-  if (goog.debug.Logger.ENABLE_HIERARCHY) {
-    if (!this.handlers_) {
-      this.handlers_ = [];
-    }
-    this.handlers_.push(handler);
-  } else {
-    goog.asserts.assert(!this.name_, "Cannot call addHandler on a non-root logger when " + "goog.debug.Logger.ENABLE_HIERARCHY is false.");
-    goog.debug.Logger.rootHandlers_.push(handler);
-  }
-};
-goog.debug.Logger.prototype.removeHandler = function(handler) {
-  var handlers = goog.debug.Logger.ENABLE_HIERARCHY ? this.handlers_ : goog.debug.Logger.rootHandlers_;
-  return!!handlers && goog.array.remove(handlers, handler);
-};
-goog.debug.Logger.prototype.getParent = function() {
-  return this.parent_;
-};
-goog.debug.Logger.prototype.getChildren = function() {
-  if (!this.children_) {
-    this.children_ = {};
-  }
-  return this.children_;
-};
-goog.debug.Logger.prototype.setLevel = function(level) {
-  if (goog.debug.Logger.ENABLE_HIERARCHY) {
-    this.level_ = level;
-  } else {
-    goog.asserts.assert(!this.name_, "Cannot call setLevel() on a non-root logger when " + "goog.debug.Logger.ENABLE_HIERARCHY is false.");
-    goog.debug.Logger.rootLevel_ = level;
-  }
-};
-goog.debug.Logger.prototype.getLevel = function() {
-  return this.level_;
-};
-goog.debug.Logger.prototype.getEffectiveLevel = function() {
-  if (!goog.debug.Logger.ENABLE_HIERARCHY) {
-    return goog.debug.Logger.rootLevel_;
-  }
-  if (this.level_) {
-    return this.level_;
-  }
-  if (this.parent_) {
-    return this.parent_.getEffectiveLevel();
-  }
-  goog.asserts.fail("Root logger has no level set.");
-  return null;
-};
-goog.debug.Logger.prototype.isLoggable = function(level) {
-  return level.value >= this.getEffectiveLevel().value;
-};
-goog.debug.Logger.prototype.log = function(level, msg, opt_exception) {
-  if (this.isLoggable(level)) {
-    this.doLogRecord_(this.getLogRecord(level, msg, opt_exception));
-  }
-};
-goog.debug.Logger.prototype.getLogRecord = function(level, msg, opt_exception) {
-  if (goog.debug.LogBuffer.isBufferingEnabled()) {
-    var logRecord = goog.debug.LogBuffer.getInstance().addRecord(level, msg, this.name_)
-  } else {
-    logRecord = new goog.debug.LogRecord(level, String(msg), this.name_);
-  }
-  if (opt_exception) {
-    logRecord.setException(opt_exception);
-    logRecord.setExceptionText(goog.debug.exposeException(opt_exception, arguments.callee.caller));
-  }
-  return logRecord;
-};
-goog.debug.Logger.prototype.shout = function(msg, opt_exception) {
-  this.log(goog.debug.Logger.Level.SHOUT, msg, opt_exception);
-};
-goog.debug.Logger.prototype.severe = function(msg, opt_exception) {
-  this.log(goog.debug.Logger.Level.SEVERE, msg, opt_exception);
-};
-goog.debug.Logger.prototype.warning = function(msg, opt_exception) {
-  this.log(goog.debug.Logger.Level.WARNING, msg, opt_exception);
-};
-goog.debug.Logger.prototype.info = function(msg, opt_exception) {
-  this.log(goog.debug.Logger.Level.INFO, msg, opt_exception);
-};
-goog.debug.Logger.prototype.config = function(msg, opt_exception) {
-  this.log(goog.debug.Logger.Level.CONFIG, msg, opt_exception);
-};
-goog.debug.Logger.prototype.fine = function(msg, opt_exception) {
-  this.log(goog.debug.Logger.Level.FINE, msg, opt_exception);
-};
-goog.debug.Logger.prototype.finer = function(msg, opt_exception) {
-  this.log(goog.debug.Logger.Level.FINER, msg, opt_exception);
-};
-goog.debug.Logger.prototype.finest = function(msg, opt_exception) {
-  this.log(goog.debug.Logger.Level.FINEST, msg, opt_exception);
-};
-goog.debug.Logger.prototype.logRecord = function(logRecord) {
-  if (this.isLoggable(logRecord.getLevel())) {
-    this.doLogRecord_(logRecord);
-  }
-};
-goog.debug.Logger.prototype.doLogRecord_ = function(logRecord) {
-  goog.debug.Logger.logToProfilers("log:" + logRecord.getMessage());
-  if (goog.debug.Logger.ENABLE_HIERARCHY) {
-    var target = this;
-    while (target) {
-      target.callPublish_(logRecord);
-      target = target.getParent();
-    }
-  } else {
-    for (var i = 0, handler;handler = goog.debug.Logger.rootHandlers_[i++];) {
-      handler(logRecord);
-    }
-  }
-};
-goog.debug.Logger.prototype.callPublish_ = function(logRecord) {
-  if (this.handlers_) {
-    for (var i = 0, handler;handler = this.handlers_[i];i++) {
-      handler(logRecord);
-    }
-  }
-};
-goog.debug.Logger.prototype.setParent_ = function(parent) {
-  this.parent_ = parent;
-};
-goog.debug.Logger.prototype.addChild_ = function(name, logger) {
-  this.getChildren()[name] = logger;
-};
-goog.debug.LogManager = {};
-goog.debug.LogManager.loggers_ = {};
-goog.debug.LogManager.rootLogger_ = null;
-goog.debug.LogManager.initialize = function() {
-  if (!goog.debug.LogManager.rootLogger_) {
-    goog.debug.LogManager.rootLogger_ = new goog.debug.Logger("");
-    goog.debug.LogManager.loggers_[""] = goog.debug.LogManager.rootLogger_;
-    goog.debug.LogManager.rootLogger_.setLevel(goog.debug.Logger.Level.CONFIG);
-  }
-};
-goog.debug.LogManager.getLoggers = function() {
-  return goog.debug.LogManager.loggers_;
-};
-goog.debug.LogManager.getRoot = function() {
-  goog.debug.LogManager.initialize();
-  return(goog.debug.LogManager.rootLogger_);
-};
-goog.debug.LogManager.getLogger = function(name) {
-  goog.debug.LogManager.initialize();
-  var ret = goog.debug.LogManager.loggers_[name];
-  return ret || goog.debug.LogManager.createLogger_(name);
-};
-goog.debug.LogManager.createFunctionForCatchErrors = function(opt_logger) {
-  return function(info) {
-    var logger = opt_logger || goog.debug.LogManager.getRoot();
-    logger.severe("Error: " + info.message + " (" + info.fileName + " @ Line: " + info.line + ")");
-  };
-};
-goog.debug.LogManager.createLogger_ = function(name) {
-  var logger = new goog.debug.Logger(name);
-  if (goog.debug.Logger.ENABLE_HIERARCHY) {
-    var lastDotIndex = name.lastIndexOf(".");
-    var parentName = name.substr(0, lastDotIndex);
-    var leafName = name.substr(lastDotIndex + 1);
-    var parentLogger = goog.debug.LogManager.getLogger(parentName);
-    parentLogger.addChild_(leafName, logger);
-    logger.setParent_(parentLogger);
-  }
-  goog.debug.LogManager.loggers_[name] = logger;
-  return logger;
-};
 goog.provide("goog.messaging.MessageChannel");
 goog.messaging.MessageChannel = function() {
 };
@@ -30439,536 +33464,6 @@ goog.net.xpc.CrossPageChannel.disposeAll_ = function() {
     goog.dispose(goog.net.xpc.channels[name]);
   }
 };
-goog.provide("goog.net.EventType");
-goog.net.EventType = {COMPLETE:"complete", SUCCESS:"success", ERROR:"error", ABORT:"abort", READY:"ready", READY_STATE_CHANGE:"readystatechange", TIMEOUT:"timeout", INCREMENTAL_DATA:"incrementaldata", PROGRESS:"progress"};
-goog.provide("goog.net.ErrorCode");
-goog.net.ErrorCode = {NO_ERROR:0, ACCESS_DENIED:1, FILE_NOT_FOUND:2, FF_SILENT_ERROR:3, CUSTOM_ERROR:4, EXCEPTION:5, HTTP_ERROR:6, ABORT:7, TIMEOUT:8, OFFLINE:9};
-goog.net.ErrorCode.getDebugMessage = function(errorCode) {
-  switch(errorCode) {
-    case goog.net.ErrorCode.NO_ERROR:
-      return "No Error";
-    case goog.net.ErrorCode.ACCESS_DENIED:
-      return "Access denied to content document";
-    case goog.net.ErrorCode.FILE_NOT_FOUND:
-      return "File not found";
-    case goog.net.ErrorCode.FF_SILENT_ERROR:
-      return "Firefox silently errored";
-    case goog.net.ErrorCode.CUSTOM_ERROR:
-      return "Application custom error";
-    case goog.net.ErrorCode.EXCEPTION:
-      return "An exception occurred";
-    case goog.net.ErrorCode.HTTP_ERROR:
-      return "Http response at 400 or 500 level";
-    case goog.net.ErrorCode.ABORT:
-      return "Request was aborted";
-    case goog.net.ErrorCode.TIMEOUT:
-      return "Request timed out";
-    case goog.net.ErrorCode.OFFLINE:
-      return "The resource is not available offline";
-    default:
-      return "Unrecognized error code";
-  }
-};
-goog.provide("goog.net.HttpStatus");
-goog.net.HttpStatus = {CONTINUE:100, SWITCHING_PROTOCOLS:101, OK:200, CREATED:201, ACCEPTED:202, NON_AUTHORITATIVE_INFORMATION:203, NO_CONTENT:204, RESET_CONTENT:205, PARTIAL_CONTENT:206, MULTIPLE_CHOICES:300, MOVED_PERMANENTLY:301, FOUND:302, SEE_OTHER:303, NOT_MODIFIED:304, USE_PROXY:305, TEMPORARY_REDIRECT:307, BAD_REQUEST:400, UNAUTHORIZED:401, PAYMENT_REQUIRED:402, FORBIDDEN:403, NOT_FOUND:404, METHOD_NOT_ALLOWED:405, NOT_ACCEPTABLE:406, PROXY_AUTHENTICATION_REQUIRED:407, REQUEST_TIMEOUT:408, 
-CONFLICT:409, GONE:410, LENGTH_REQUIRED:411, PRECONDITION_FAILED:412, REQUEST_ENTITY_TOO_LARGE:413, REQUEST_URI_TOO_LONG:414, UNSUPPORTED_MEDIA_TYPE:415, REQUEST_RANGE_NOT_SATISFIABLE:416, EXPECTATION_FAILED:417, INTERNAL_SERVER_ERROR:500, NOT_IMPLEMENTED:501, BAD_GATEWAY:502, SERVICE_UNAVAILABLE:503, GATEWAY_TIMEOUT:504, HTTP_VERSION_NOT_SUPPORTED:505, QUIRK_IE_NO_CONTENT:1223};
-goog.net.HttpStatus.isSuccess = function(status) {
-  switch(status) {
-    case goog.net.HttpStatus.OK:
-    ;
-    case goog.net.HttpStatus.CREATED:
-    ;
-    case goog.net.HttpStatus.ACCEPTED:
-    ;
-    case goog.net.HttpStatus.NO_CONTENT:
-    ;
-    case goog.net.HttpStatus.PARTIAL_CONTENT:
-    ;
-    case goog.net.HttpStatus.NOT_MODIFIED:
-    ;
-    case goog.net.HttpStatus.QUIRK_IE_NO_CONTENT:
-      return true;
-    default:
-      return false;
-  }
-};
-goog.provide("goog.net.XmlHttpFactory");
-goog.net.XmlHttpFactory = function() {
-};
-goog.net.XmlHttpFactory.prototype.cachedOptions_ = null;
-goog.net.XmlHttpFactory.prototype.createInstance = goog.abstractMethod;
-goog.net.XmlHttpFactory.prototype.getOptions = function() {
-  return this.cachedOptions_ || (this.cachedOptions_ = this.internalGetOptions());
-};
-goog.net.XmlHttpFactory.prototype.internalGetOptions = goog.abstractMethod;
-goog.provide("goog.net.WrapperXmlHttpFactory");
-goog.require("goog.net.XmlHttpFactory");
-goog.net.WrapperXmlHttpFactory = function(xhrFactory, optionsFactory) {
-  goog.net.XmlHttpFactory.call(this);
-  this.xhrFactory_ = xhrFactory;
-  this.optionsFactory_ = optionsFactory;
-};
-goog.inherits(goog.net.WrapperXmlHttpFactory, goog.net.XmlHttpFactory);
-goog.net.WrapperXmlHttpFactory.prototype.createInstance = function() {
-  return this.xhrFactory_();
-};
-goog.net.WrapperXmlHttpFactory.prototype.getOptions = function() {
-  return this.optionsFactory_();
-};
-goog.provide("goog.net.DefaultXmlHttpFactory");
-goog.provide("goog.net.XmlHttp");
-goog.provide("goog.net.XmlHttp.OptionType");
-goog.provide("goog.net.XmlHttp.ReadyState");
-goog.require("goog.net.WrapperXmlHttpFactory");
-goog.require("goog.net.XmlHttpFactory");
-goog.net.XmlHttp = function() {
-  return goog.net.XmlHttp.factory_.createInstance();
-};
-goog.net.XmlHttp.ASSUME_NATIVE_XHR = false;
-goog.net.XmlHttp.getOptions = function() {
-  return goog.net.XmlHttp.factory_.getOptions();
-};
-goog.net.XmlHttp.OptionType = {USE_NULL_FUNCTION:0, LOCAL_REQUEST_ERROR:1};
-goog.net.XmlHttp.ReadyState = {UNINITIALIZED:0, LOADING:1, LOADED:2, INTERACTIVE:3, COMPLETE:4};
-goog.net.XmlHttp.factory_;
-goog.net.XmlHttp.setFactory = function(factory, optionsFactory) {
-  goog.net.XmlHttp.setGlobalFactory(new goog.net.WrapperXmlHttpFactory((factory), (optionsFactory)));
-};
-goog.net.XmlHttp.setGlobalFactory = function(factory) {
-  goog.net.XmlHttp.factory_ = factory;
-};
-goog.net.DefaultXmlHttpFactory = function() {
-  goog.net.XmlHttpFactory.call(this);
-};
-goog.inherits(goog.net.DefaultXmlHttpFactory, goog.net.XmlHttpFactory);
-goog.net.DefaultXmlHttpFactory.prototype.createInstance = function() {
-  var progId = this.getProgId_();
-  if (progId) {
-    return new ActiveXObject(progId);
-  } else {
-    return new XMLHttpRequest;
-  }
-};
-goog.net.DefaultXmlHttpFactory.prototype.internalGetOptions = function() {
-  var progId = this.getProgId_();
-  var options = {};
-  if (progId) {
-    options[goog.net.XmlHttp.OptionType.USE_NULL_FUNCTION] = true;
-    options[goog.net.XmlHttp.OptionType.LOCAL_REQUEST_ERROR] = true;
-  }
-  return options;
-};
-goog.net.DefaultXmlHttpFactory.prototype.ieProgId_;
-goog.net.DefaultXmlHttpFactory.prototype.getProgId_ = function() {
-  if (goog.net.XmlHttp.ASSUME_NATIVE_XHR) {
-    return "";
-  }
-  if (!this.ieProgId_ && (typeof XMLHttpRequest == "undefined" && typeof ActiveXObject != "undefined")) {
-    var ACTIVE_X_IDENTS = ["MSXML2.XMLHTTP.6.0", "MSXML2.XMLHTTP.3.0", "MSXML2.XMLHTTP", "Microsoft.XMLHTTP"];
-    for (var i = 0;i < ACTIVE_X_IDENTS.length;i++) {
-      var candidate = ACTIVE_X_IDENTS[i];
-      try {
-        new ActiveXObject(candidate);
-        this.ieProgId_ = candidate;
-        return candidate;
-      } catch (e) {
-      }
-    }
-    throw Error("Could not create ActiveXObject. ActiveX might be disabled," + " or MSXML might not be installed");
-  }
-  return(this.ieProgId_);
-};
-goog.net.XmlHttp.setGlobalFactory(new goog.net.DefaultXmlHttpFactory);
-goog.provide("goog.net.XhrIo");
-goog.provide("goog.net.XhrIo.ResponseType");
-goog.require("goog.Timer");
-goog.require("goog.array");
-goog.require("goog.debug.Logger");
-goog.require("goog.debug.entryPointRegistry");
-goog.require("goog.events");
-goog.require("goog.events.EventTarget");
-goog.require("goog.json");
-goog.require("goog.net.ErrorCode");
-goog.require("goog.net.EventType");
-goog.require("goog.net.HttpStatus");
-goog.require("goog.net.XmlHttp");
-goog.require("goog.object");
-goog.require("goog.structs");
-goog.require("goog.structs.Map");
-goog.require("goog.uri.utils");
-goog.net.XhrIo = function(opt_xmlHttpFactory) {
-  goog.events.EventTarget.call(this);
-  this.headers = new goog.structs.Map;
-  this.xmlHttpFactory_ = opt_xmlHttpFactory || null;
-};
-goog.inherits(goog.net.XhrIo, goog.events.EventTarget);
-goog.net.XhrIo.ResponseType = {DEFAULT:"", TEXT:"text", DOCUMENT:"document", BLOB:"blob", ARRAY_BUFFER:"arraybuffer"};
-goog.net.XhrIo.prototype.logger_ = goog.debug.Logger.getLogger("goog.net.XhrIo");
-goog.net.XhrIo.CONTENT_TYPE_HEADER = "Content-Type";
-goog.net.XhrIo.HTTP_SCHEME_PATTERN = /^https?$/i;
-goog.net.XhrIo.FORM_CONTENT_TYPE = "application/x-www-form-urlencoded;charset\x3dutf-8";
-goog.net.XhrIo.sendInstances_ = [];
-goog.net.XhrIo.send = function(url, opt_callback, opt_method, opt_content, opt_headers, opt_timeoutInterval, opt_withCredentials) {
-  var x = new goog.net.XhrIo;
-  goog.net.XhrIo.sendInstances_.push(x);
-  if (opt_callback) {
-    goog.events.listen(x, goog.net.EventType.COMPLETE, opt_callback);
-  }
-  goog.events.listen(x, goog.net.EventType.READY, goog.partial(goog.net.XhrIo.cleanupSend_, x));
-  if (opt_timeoutInterval) {
-    x.setTimeoutInterval(opt_timeoutInterval);
-  }
-  if (opt_withCredentials) {
-    x.setWithCredentials(opt_withCredentials);
-  }
-  x.send(url, opt_method, opt_content, opt_headers);
-};
-goog.net.XhrIo.cleanup = function() {
-  var instances = goog.net.XhrIo.sendInstances_;
-  while (instances.length) {
-    instances.pop().dispose();
-  }
-};
-goog.net.XhrIo.protectEntryPoints = function(errorHandler) {
-  goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_ = errorHandler.protectEntryPoint(goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_);
-};
-goog.net.XhrIo.cleanupSend_ = function(XhrIo) {
-  XhrIo.dispose();
-  goog.array.remove(goog.net.XhrIo.sendInstances_, XhrIo);
-};
-goog.net.XhrIo.prototype.active_ = false;
-goog.net.XhrIo.prototype.xhr_ = null;
-goog.net.XhrIo.prototype.xhrOptions_ = null;
-goog.net.XhrIo.prototype.lastUri_ = "";
-goog.net.XhrIo.prototype.lastMethod_ = "";
-goog.net.XhrIo.prototype.lastErrorCode_ = goog.net.ErrorCode.NO_ERROR;
-goog.net.XhrIo.prototype.lastError_ = "";
-goog.net.XhrIo.prototype.errorDispatched_ = false;
-goog.net.XhrIo.prototype.inSend_ = false;
-goog.net.XhrIo.prototype.inOpen_ = false;
-goog.net.XhrIo.prototype.inAbort_ = false;
-goog.net.XhrIo.prototype.timeoutInterval_ = 0;
-goog.net.XhrIo.prototype.timeoutId_ = null;
-goog.net.XhrIo.prototype.responseType_ = goog.net.XhrIo.ResponseType.DEFAULT;
-goog.net.XhrIo.prototype.withCredentials_ = false;
-goog.net.XhrIo.prototype.getTimeoutInterval = function() {
-  return this.timeoutInterval_;
-};
-goog.net.XhrIo.prototype.setTimeoutInterval = function(ms) {
-  this.timeoutInterval_ = Math.max(0, ms);
-};
-goog.net.XhrIo.prototype.setResponseType = function(type) {
-  this.responseType_ = type;
-};
-goog.net.XhrIo.prototype.getResponseType = function() {
-  return this.responseType_;
-};
-goog.net.XhrIo.prototype.setWithCredentials = function(withCredentials) {
-  this.withCredentials_ = withCredentials;
-};
-goog.net.XhrIo.prototype.getWithCredentials = function() {
-  return this.withCredentials_;
-};
-goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content, opt_headers) {
-  if (this.xhr_) {
-    throw Error("[goog.net.XhrIo] Object is active with another request\x3d" + this.lastUri_ + "; newUri\x3d" + url);
-  }
-  var method = opt_method ? opt_method.toUpperCase() : "GET";
-  this.lastUri_ = url;
-  this.lastError_ = "";
-  this.lastErrorCode_ = goog.net.ErrorCode.NO_ERROR;
-  this.lastMethod_ = method;
-  this.errorDispatched_ = false;
-  this.active_ = true;
-  this.xhr_ = this.createXhr();
-  this.xhrOptions_ = this.xmlHttpFactory_ ? this.xmlHttpFactory_.getOptions() : goog.net.XmlHttp.getOptions();
-  this.xhr_.onreadystatechange = goog.bind(this.onReadyStateChange_, this);
-  try {
-    this.logger_.fine(this.formatMsg_("Opening Xhr"));
-    this.inOpen_ = true;
-    this.xhr_.open(method, url, true);
-    this.inOpen_ = false;
-  } catch (err) {
-    this.logger_.fine(this.formatMsg_("Error opening Xhr: " + err.message));
-    this.error_(goog.net.ErrorCode.EXCEPTION, err);
-    return;
-  }
-  var content = opt_content || "";
-  var headers = this.headers.clone();
-  if (opt_headers) {
-    goog.structs.forEach(opt_headers, function(value, key) {
-      headers.set(key, value);
-    });
-  }
-  var contentIsFormData = goog.global["FormData"] && content instanceof goog.global["FormData"];
-  if (method == "POST" && (!headers.containsKey(goog.net.XhrIo.CONTENT_TYPE_HEADER) && !contentIsFormData)) {
-    headers.set(goog.net.XhrIo.CONTENT_TYPE_HEADER, goog.net.XhrIo.FORM_CONTENT_TYPE);
-  }
-  goog.structs.forEach(headers, function(value, key) {
-    this.xhr_.setRequestHeader(key, value);
-  }, this);
-  if (this.responseType_) {
-    this.xhr_.responseType = this.responseType_;
-  }
-  if (goog.object.containsKey(this.xhr_, "withCredentials")) {
-    this.xhr_.withCredentials = this.withCredentials_;
-  }
-  try {
-    if (this.timeoutId_) {
-      goog.Timer.defaultTimerObject.clearTimeout(this.timeoutId_);
-      this.timeoutId_ = null;
-    }
-    if (this.timeoutInterval_ > 0) {
-      this.logger_.fine(this.formatMsg_("Will abort after " + this.timeoutInterval_ + "ms if incomplete"));
-      this.timeoutId_ = goog.Timer.defaultTimerObject.setTimeout(goog.bind(this.timeout_, this), this.timeoutInterval_);
-    }
-    this.logger_.fine(this.formatMsg_("Sending request"));
-    this.inSend_ = true;
-    this.xhr_.send(content);
-    this.inSend_ = false;
-  } catch (err) {
-    this.logger_.fine(this.formatMsg_("Send error: " + err.message));
-    this.error_(goog.net.ErrorCode.EXCEPTION, err);
-  }
-};
-goog.net.XhrIo.prototype.createXhr = function() {
-  return this.xmlHttpFactory_ ? this.xmlHttpFactory_.createInstance() : goog.net.XmlHttp();
-};
-goog.net.XhrIo.prototype.timeout_ = function() {
-  if (typeof goog == "undefined") {
-  } else {
-    if (this.xhr_) {
-      this.lastError_ = "Timed out after " + this.timeoutInterval_ + "ms, aborting";
-      this.lastErrorCode_ = goog.net.ErrorCode.TIMEOUT;
-      this.logger_.fine(this.formatMsg_(this.lastError_));
-      this.dispatchEvent(goog.net.EventType.TIMEOUT);
-      this.abort(goog.net.ErrorCode.TIMEOUT);
-    }
-  }
-};
-goog.net.XhrIo.prototype.error_ = function(errorCode, err) {
-  this.active_ = false;
-  if (this.xhr_) {
-    this.inAbort_ = true;
-    this.xhr_.abort();
-    this.inAbort_ = false;
-  }
-  this.lastError_ = err;
-  this.lastErrorCode_ = errorCode;
-  this.dispatchErrors_();
-  this.cleanUpXhr_();
-};
-goog.net.XhrIo.prototype.dispatchErrors_ = function() {
-  if (!this.errorDispatched_) {
-    this.errorDispatched_ = true;
-    this.dispatchEvent(goog.net.EventType.COMPLETE);
-    this.dispatchEvent(goog.net.EventType.ERROR);
-  }
-};
-goog.net.XhrIo.prototype.abort = function(opt_failureCode) {
-  if (this.xhr_ && this.active_) {
-    this.logger_.fine(this.formatMsg_("Aborting"));
-    this.active_ = false;
-    this.inAbort_ = true;
-    this.xhr_.abort();
-    this.inAbort_ = false;
-    this.lastErrorCode_ = opt_failureCode || goog.net.ErrorCode.ABORT;
-    this.dispatchEvent(goog.net.EventType.COMPLETE);
-    this.dispatchEvent(goog.net.EventType.ABORT);
-    this.cleanUpXhr_();
-  }
-};
-goog.net.XhrIo.prototype.disposeInternal = function() {
-  if (this.xhr_) {
-    if (this.active_) {
-      this.active_ = false;
-      this.inAbort_ = true;
-      this.xhr_.abort();
-      this.inAbort_ = false;
-    }
-    this.cleanUpXhr_(true);
-  }
-  goog.net.XhrIo.superClass_.disposeInternal.call(this);
-};
-goog.net.XhrIo.prototype.onReadyStateChange_ = function() {
-  if (!this.inOpen_ && (!this.inSend_ && !this.inAbort_)) {
-    this.onReadyStateChangeEntryPoint_();
-  } else {
-    this.onReadyStateChangeHelper_();
-  }
-};
-goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_ = function() {
-  this.onReadyStateChangeHelper_();
-};
-goog.net.XhrIo.prototype.onReadyStateChangeHelper_ = function() {
-  if (!this.active_) {
-    return;
-  }
-  if (typeof goog == "undefined") {
-  } else {
-    if (this.xhrOptions_[goog.net.XmlHttp.OptionType.LOCAL_REQUEST_ERROR] && (this.getReadyState() == goog.net.XmlHttp.ReadyState.COMPLETE && this.getStatus() == 2)) {
-      this.logger_.fine(this.formatMsg_("Local request error detected and ignored"));
-    } else {
-      if (this.inSend_ && this.getReadyState() == goog.net.XmlHttp.ReadyState.COMPLETE) {
-        goog.Timer.defaultTimerObject.setTimeout(goog.bind(this.onReadyStateChange_, this), 0);
-        return;
-      }
-      this.dispatchEvent(goog.net.EventType.READY_STATE_CHANGE);
-      if (this.isComplete()) {
-        this.logger_.fine(this.formatMsg_("Request complete"));
-        this.active_ = false;
-        try {
-          if (this.isSuccess()) {
-            this.dispatchEvent(goog.net.EventType.COMPLETE);
-            this.dispatchEvent(goog.net.EventType.SUCCESS);
-          } else {
-            this.lastErrorCode_ = goog.net.ErrorCode.HTTP_ERROR;
-            this.lastError_ = this.getStatusText() + " [" + this.getStatus() + "]";
-            this.dispatchErrors_();
-          }
-        } finally {
-          this.cleanUpXhr_();
-        }
-      }
-    }
-  }
-};
-goog.net.XhrIo.prototype.cleanUpXhr_ = function(opt_fromDispose) {
-  if (this.xhr_) {
-    var xhr = this.xhr_;
-    var clearedOnReadyStateChange = this.xhrOptions_[goog.net.XmlHttp.OptionType.USE_NULL_FUNCTION] ? goog.nullFunction : null;
-    this.xhr_ = null;
-    this.xhrOptions_ = null;
-    if (this.timeoutId_) {
-      goog.Timer.defaultTimerObject.clearTimeout(this.timeoutId_);
-      this.timeoutId_ = null;
-    }
-    if (!opt_fromDispose) {
-      this.dispatchEvent(goog.net.EventType.READY);
-    }
-    try {
-      xhr.onreadystatechange = clearedOnReadyStateChange;
-    } catch (e) {
-      this.logger_.severe("Problem encountered resetting onreadystatechange: " + e.message);
-    }
-  }
-};
-goog.net.XhrIo.prototype.isActive = function() {
-  return!!this.xhr_;
-};
-goog.net.XhrIo.prototype.isComplete = function() {
-  return this.getReadyState() == goog.net.XmlHttp.ReadyState.COMPLETE;
-};
-goog.net.XhrIo.prototype.isSuccess = function() {
-  var status = this.getStatus();
-  return goog.net.HttpStatus.isSuccess(status) || status === 0 && !this.isLastUriEffectiveSchemeHttp_();
-};
-goog.net.XhrIo.prototype.isLastUriEffectiveSchemeHttp_ = function() {
-  var scheme = goog.uri.utils.getEffectiveScheme(String(this.lastUri_));
-  return goog.net.XhrIo.HTTP_SCHEME_PATTERN.test(scheme);
-};
-goog.net.XhrIo.prototype.getReadyState = function() {
-  return this.xhr_ ? (this.xhr_.readyState) : goog.net.XmlHttp.ReadyState.UNINITIALIZED;
-};
-goog.net.XhrIo.prototype.getStatus = function() {
-  try {
-    return this.getReadyState() > goog.net.XmlHttp.ReadyState.LOADED ? this.xhr_.status : -1;
-  } catch (e) {
-    this.logger_.warning("Can not get status: " + e.message);
-    return-1;
-  }
-};
-goog.net.XhrIo.prototype.getStatusText = function() {
-  try {
-    return this.getReadyState() > goog.net.XmlHttp.ReadyState.LOADED ? this.xhr_.statusText : "";
-  } catch (e) {
-    this.logger_.fine("Can not get status: " + e.message);
-    return "";
-  }
-};
-goog.net.XhrIo.prototype.getLastUri = function() {
-  return String(this.lastUri_);
-};
-goog.net.XhrIo.prototype.getResponseText = function() {
-  try {
-    return this.xhr_ ? this.xhr_.responseText : "";
-  } catch (e) {
-    this.logger_.fine("Can not get responseText: " + e.message);
-    return "";
-  }
-};
-goog.net.XhrIo.prototype.getResponseBody = function() {
-  try {
-    if (this.xhr_ && "responseBody" in this.xhr_) {
-      return this.xhr_["responseBody"];
-    }
-  } catch (e) {
-    this.logger_.fine("Can not get responseBody: " + e.message);
-  }
-  return null;
-};
-goog.net.XhrIo.prototype.getResponseXml = function() {
-  try {
-    return this.xhr_ ? this.xhr_.responseXML : null;
-  } catch (e) {
-    this.logger_.fine("Can not get responseXML: " + e.message);
-    return null;
-  }
-};
-goog.net.XhrIo.prototype.getResponseJson = function(opt_xssiPrefix) {
-  if (!this.xhr_) {
-    return undefined;
-  }
-  var responseText = this.xhr_.responseText;
-  if (opt_xssiPrefix && responseText.indexOf(opt_xssiPrefix) == 0) {
-    responseText = responseText.substring(opt_xssiPrefix.length);
-  }
-  return goog.json.parse(responseText);
-};
-goog.net.XhrIo.prototype.getResponse = function() {
-  try {
-    if (!this.xhr_) {
-      return null;
-    }
-    if ("response" in this.xhr_) {
-      return this.xhr_.response;
-    }
-    switch(this.responseType_) {
-      case goog.net.XhrIo.ResponseType.DEFAULT:
-      ;
-      case goog.net.XhrIo.ResponseType.TEXT:
-        return this.xhr_.responseText;
-      case goog.net.XhrIo.ResponseType.ARRAY_BUFFER:
-        if ("mozResponseArrayBuffer" in this.xhr_) {
-          return this.xhr_.mozResponseArrayBuffer;
-        }
-      ;
-    }
-    this.logger_.severe("Response type " + this.responseType_ + " is not " + "supported on this browser");
-    return null;
-  } catch (e) {
-    this.logger_.fine("Can not get response: " + e.message);
-    return null;
-  }
-};
-goog.net.XhrIo.prototype.getResponseHeader = function(key) {
-  return this.xhr_ && this.isComplete() ? this.xhr_.getResponseHeader(key) : undefined;
-};
-goog.net.XhrIo.prototype.getAllResponseHeaders = function() {
-  return this.xhr_ && this.isComplete() ? this.xhr_.getAllResponseHeaders() : "";
-};
-goog.net.XhrIo.prototype.getLastErrorCode = function() {
-  return this.lastErrorCode_;
-};
-goog.net.XhrIo.prototype.getLastError = function() {
-  return goog.isString(this.lastError_) ? this.lastError_ : String(this.lastError_);
-};
-goog.net.XhrIo.prototype.formatMsg_ = function(msg) {
-  return msg + " [" + this.lastMethod_ + " " + this.lastUri_ + " " + this.getStatus() + "]";
-};
-goog.debug.entryPointRegistry.register(function(transformer) {
-  goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_ = transformer(goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_);
-});
 goog.provide("clojure.browser.net");
 goog.require("cljs.core");
 goog.require("goog.net.XhrIo");
@@ -31621,3 +34116,5050 @@ goog.require("clojure.browser.repl");
 clojure.browser.repl.connect.call(null, "http://localhost:9000/repl");
 var textArea_5940 = document.getElementById("plantuml");
 seeduml.editor.init.call(null, textArea_5940);
+goog.provide("goog.ui.IdGenerator");
+goog.ui.IdGenerator = function() {
+};
+goog.addSingletonGetter(goog.ui.IdGenerator);
+goog.ui.IdGenerator.prototype.nextId_ = 0;
+goog.ui.IdGenerator.prototype.getNextUniqueId = function() {
+  return ":" + (this.nextId_++).toString(36);
+};
+goog.ui.IdGenerator.instance = goog.ui.IdGenerator.getInstance();
+goog.provide("om.dom");
+goog.require("cljs.core");
+om.dom.a = function() {
+  var a__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.a.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var a = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return a__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  a.cljs$lang$maxFixedArity = 1;
+  a.cljs$lang$applyTo = function(arglist__5751) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5751);
+    var children__5422__auto__ = cljs.core.rest(arglist__5751);
+    return a__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  a.cljs$core$IFn$_invoke$arity$variadic = a__delegate;
+  return a;
+}();
+om.dom.abbr = function() {
+  var abbr__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.abbr.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var abbr = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return abbr__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  abbr.cljs$lang$maxFixedArity = 1;
+  abbr.cljs$lang$applyTo = function(arglist__5752) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5752);
+    var children__5422__auto__ = cljs.core.rest(arglist__5752);
+    return abbr__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  abbr.cljs$core$IFn$_invoke$arity$variadic = abbr__delegate;
+  return abbr;
+}();
+om.dom.address = function() {
+  var address__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.address.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var address = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return address__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  address.cljs$lang$maxFixedArity = 1;
+  address.cljs$lang$applyTo = function(arglist__5753) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5753);
+    var children__5422__auto__ = cljs.core.rest(arglist__5753);
+    return address__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  address.cljs$core$IFn$_invoke$arity$variadic = address__delegate;
+  return address;
+}();
+om.dom.area = function() {
+  var area__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.area.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var area = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return area__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  area.cljs$lang$maxFixedArity = 1;
+  area.cljs$lang$applyTo = function(arglist__5754) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5754);
+    var children__5422__auto__ = cljs.core.rest(arglist__5754);
+    return area__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  area.cljs$core$IFn$_invoke$arity$variadic = area__delegate;
+  return area;
+}();
+om.dom.article = function() {
+  var article__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.article.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var article = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return article__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  article.cljs$lang$maxFixedArity = 1;
+  article.cljs$lang$applyTo = function(arglist__5755) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5755);
+    var children__5422__auto__ = cljs.core.rest(arglist__5755);
+    return article__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  article.cljs$core$IFn$_invoke$arity$variadic = article__delegate;
+  return article;
+}();
+om.dom.aside = function() {
+  var aside__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.aside.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var aside = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return aside__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  aside.cljs$lang$maxFixedArity = 1;
+  aside.cljs$lang$applyTo = function(arglist__5756) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5756);
+    var children__5422__auto__ = cljs.core.rest(arglist__5756);
+    return aside__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  aside.cljs$core$IFn$_invoke$arity$variadic = aside__delegate;
+  return aside;
+}();
+om.dom.audio = function() {
+  var audio__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.audio.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var audio = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return audio__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  audio.cljs$lang$maxFixedArity = 1;
+  audio.cljs$lang$applyTo = function(arglist__5757) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5757);
+    var children__5422__auto__ = cljs.core.rest(arglist__5757);
+    return audio__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  audio.cljs$core$IFn$_invoke$arity$variadic = audio__delegate;
+  return audio;
+}();
+om.dom.b = function() {
+  var b__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.b.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var b = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return b__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  b.cljs$lang$maxFixedArity = 1;
+  b.cljs$lang$applyTo = function(arglist__5758) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5758);
+    var children__5422__auto__ = cljs.core.rest(arglist__5758);
+    return b__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  b.cljs$core$IFn$_invoke$arity$variadic = b__delegate;
+  return b;
+}();
+om.dom.base = function() {
+  var base__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.base.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var base = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return base__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  base.cljs$lang$maxFixedArity = 1;
+  base.cljs$lang$applyTo = function(arglist__5759) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5759);
+    var children__5422__auto__ = cljs.core.rest(arglist__5759);
+    return base__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  base.cljs$core$IFn$_invoke$arity$variadic = base__delegate;
+  return base;
+}();
+om.dom.bdi = function() {
+  var bdi__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.bdi.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var bdi = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return bdi__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  bdi.cljs$lang$maxFixedArity = 1;
+  bdi.cljs$lang$applyTo = function(arglist__5760) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5760);
+    var children__5422__auto__ = cljs.core.rest(arglist__5760);
+    return bdi__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  bdi.cljs$core$IFn$_invoke$arity$variadic = bdi__delegate;
+  return bdi;
+}();
+om.dom.bdo = function() {
+  var bdo__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.bdo.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var bdo = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return bdo__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  bdo.cljs$lang$maxFixedArity = 1;
+  bdo.cljs$lang$applyTo = function(arglist__5761) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5761);
+    var children__5422__auto__ = cljs.core.rest(arglist__5761);
+    return bdo__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  bdo.cljs$core$IFn$_invoke$arity$variadic = bdo__delegate;
+  return bdo;
+}();
+om.dom.big = function() {
+  var big__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.big.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var big = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return big__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  big.cljs$lang$maxFixedArity = 1;
+  big.cljs$lang$applyTo = function(arglist__5762) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5762);
+    var children__5422__auto__ = cljs.core.rest(arglist__5762);
+    return big__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  big.cljs$core$IFn$_invoke$arity$variadic = big__delegate;
+  return big;
+}();
+om.dom.blockquote = function() {
+  var blockquote__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.blockquote.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var blockquote = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return blockquote__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  blockquote.cljs$lang$maxFixedArity = 1;
+  blockquote.cljs$lang$applyTo = function(arglist__5763) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5763);
+    var children__5422__auto__ = cljs.core.rest(arglist__5763);
+    return blockquote__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  blockquote.cljs$core$IFn$_invoke$arity$variadic = blockquote__delegate;
+  return blockquote;
+}();
+om.dom.body = function() {
+  var body__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.body.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var body = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return body__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  body.cljs$lang$maxFixedArity = 1;
+  body.cljs$lang$applyTo = function(arglist__5764) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5764);
+    var children__5422__auto__ = cljs.core.rest(arglist__5764);
+    return body__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  body.cljs$core$IFn$_invoke$arity$variadic = body__delegate;
+  return body;
+}();
+om.dom.br = function() {
+  var br__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.br.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var br = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return br__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  br.cljs$lang$maxFixedArity = 1;
+  br.cljs$lang$applyTo = function(arglist__5765) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5765);
+    var children__5422__auto__ = cljs.core.rest(arglist__5765);
+    return br__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  br.cljs$core$IFn$_invoke$arity$variadic = br__delegate;
+  return br;
+}();
+om.dom.button = function() {
+  var button__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.button.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var button = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return button__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  button.cljs$lang$maxFixedArity = 1;
+  button.cljs$lang$applyTo = function(arglist__5766) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5766);
+    var children__5422__auto__ = cljs.core.rest(arglist__5766);
+    return button__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  button.cljs$core$IFn$_invoke$arity$variadic = button__delegate;
+  return button;
+}();
+om.dom.canvas = function() {
+  var canvas__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.canvas.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var canvas = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return canvas__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  canvas.cljs$lang$maxFixedArity = 1;
+  canvas.cljs$lang$applyTo = function(arglist__5767) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5767);
+    var children__5422__auto__ = cljs.core.rest(arglist__5767);
+    return canvas__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  canvas.cljs$core$IFn$_invoke$arity$variadic = canvas__delegate;
+  return canvas;
+}();
+om.dom.caption = function() {
+  var caption__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.caption.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var caption = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return caption__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  caption.cljs$lang$maxFixedArity = 1;
+  caption.cljs$lang$applyTo = function(arglist__5768) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5768);
+    var children__5422__auto__ = cljs.core.rest(arglist__5768);
+    return caption__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  caption.cljs$core$IFn$_invoke$arity$variadic = caption__delegate;
+  return caption;
+}();
+om.dom.cite = function() {
+  var cite__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.cite.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var cite = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return cite__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  cite.cljs$lang$maxFixedArity = 1;
+  cite.cljs$lang$applyTo = function(arglist__5769) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5769);
+    var children__5422__auto__ = cljs.core.rest(arglist__5769);
+    return cite__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  cite.cljs$core$IFn$_invoke$arity$variadic = cite__delegate;
+  return cite;
+}();
+om.dom.code = function() {
+  var code__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.code.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var code = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return code__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  code.cljs$lang$maxFixedArity = 1;
+  code.cljs$lang$applyTo = function(arglist__5770) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5770);
+    var children__5422__auto__ = cljs.core.rest(arglist__5770);
+    return code__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  code.cljs$core$IFn$_invoke$arity$variadic = code__delegate;
+  return code;
+}();
+om.dom.col = function() {
+  var col__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.col.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var col = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return col__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  col.cljs$lang$maxFixedArity = 1;
+  col.cljs$lang$applyTo = function(arglist__5771) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5771);
+    var children__5422__auto__ = cljs.core.rest(arglist__5771);
+    return col__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  col.cljs$core$IFn$_invoke$arity$variadic = col__delegate;
+  return col;
+}();
+om.dom.colgroup = function() {
+  var colgroup__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.colgroup.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var colgroup = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return colgroup__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  colgroup.cljs$lang$maxFixedArity = 1;
+  colgroup.cljs$lang$applyTo = function(arglist__5772) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5772);
+    var children__5422__auto__ = cljs.core.rest(arglist__5772);
+    return colgroup__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  colgroup.cljs$core$IFn$_invoke$arity$variadic = colgroup__delegate;
+  return colgroup;
+}();
+om.dom.data = function() {
+  var data__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.data.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var data = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return data__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  data.cljs$lang$maxFixedArity = 1;
+  data.cljs$lang$applyTo = function(arglist__5773) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5773);
+    var children__5422__auto__ = cljs.core.rest(arglist__5773);
+    return data__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  data.cljs$core$IFn$_invoke$arity$variadic = data__delegate;
+  return data;
+}();
+om.dom.datalist = function() {
+  var datalist__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.datalist.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var datalist = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return datalist__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  datalist.cljs$lang$maxFixedArity = 1;
+  datalist.cljs$lang$applyTo = function(arglist__5774) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5774);
+    var children__5422__auto__ = cljs.core.rest(arglist__5774);
+    return datalist__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  datalist.cljs$core$IFn$_invoke$arity$variadic = datalist__delegate;
+  return datalist;
+}();
+om.dom.dd = function() {
+  var dd__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.dd.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var dd = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return dd__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  dd.cljs$lang$maxFixedArity = 1;
+  dd.cljs$lang$applyTo = function(arglist__5775) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5775);
+    var children__5422__auto__ = cljs.core.rest(arglist__5775);
+    return dd__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  dd.cljs$core$IFn$_invoke$arity$variadic = dd__delegate;
+  return dd;
+}();
+om.dom.del = function() {
+  var del__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.del.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var del = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return del__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  del.cljs$lang$maxFixedArity = 1;
+  del.cljs$lang$applyTo = function(arglist__5776) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5776);
+    var children__5422__auto__ = cljs.core.rest(arglist__5776);
+    return del__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  del.cljs$core$IFn$_invoke$arity$variadic = del__delegate;
+  return del;
+}();
+om.dom.dfn = function() {
+  var dfn__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.dfn.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var dfn = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return dfn__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  dfn.cljs$lang$maxFixedArity = 1;
+  dfn.cljs$lang$applyTo = function(arglist__5777) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5777);
+    var children__5422__auto__ = cljs.core.rest(arglist__5777);
+    return dfn__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  dfn.cljs$core$IFn$_invoke$arity$variadic = dfn__delegate;
+  return dfn;
+}();
+om.dom.div = function() {
+  var div__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.div.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var div = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return div__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  div.cljs$lang$maxFixedArity = 1;
+  div.cljs$lang$applyTo = function(arglist__5778) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5778);
+    var children__5422__auto__ = cljs.core.rest(arglist__5778);
+    return div__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  div.cljs$core$IFn$_invoke$arity$variadic = div__delegate;
+  return div;
+}();
+om.dom.dl = function() {
+  var dl__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.dl.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var dl = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return dl__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  dl.cljs$lang$maxFixedArity = 1;
+  dl.cljs$lang$applyTo = function(arglist__5779) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5779);
+    var children__5422__auto__ = cljs.core.rest(arglist__5779);
+    return dl__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  dl.cljs$core$IFn$_invoke$arity$variadic = dl__delegate;
+  return dl;
+}();
+om.dom.dt = function() {
+  var dt__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.dt.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var dt = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return dt__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  dt.cljs$lang$maxFixedArity = 1;
+  dt.cljs$lang$applyTo = function(arglist__5780) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5780);
+    var children__5422__auto__ = cljs.core.rest(arglist__5780);
+    return dt__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  dt.cljs$core$IFn$_invoke$arity$variadic = dt__delegate;
+  return dt;
+}();
+om.dom.em = function() {
+  var em__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.em.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var em = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return em__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  em.cljs$lang$maxFixedArity = 1;
+  em.cljs$lang$applyTo = function(arglist__5781) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5781);
+    var children__5422__auto__ = cljs.core.rest(arglist__5781);
+    return em__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  em.cljs$core$IFn$_invoke$arity$variadic = em__delegate;
+  return em;
+}();
+om.dom.embed = function() {
+  var embed__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.embed.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var embed = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return embed__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  embed.cljs$lang$maxFixedArity = 1;
+  embed.cljs$lang$applyTo = function(arglist__5782) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5782);
+    var children__5422__auto__ = cljs.core.rest(arglist__5782);
+    return embed__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  embed.cljs$core$IFn$_invoke$arity$variadic = embed__delegate;
+  return embed;
+}();
+om.dom.fieldset = function() {
+  var fieldset__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.fieldset.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var fieldset = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return fieldset__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  fieldset.cljs$lang$maxFixedArity = 1;
+  fieldset.cljs$lang$applyTo = function(arglist__5783) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5783);
+    var children__5422__auto__ = cljs.core.rest(arglist__5783);
+    return fieldset__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  fieldset.cljs$core$IFn$_invoke$arity$variadic = fieldset__delegate;
+  return fieldset;
+}();
+om.dom.figcaption = function() {
+  var figcaption__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.figcaption.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var figcaption = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return figcaption__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  figcaption.cljs$lang$maxFixedArity = 1;
+  figcaption.cljs$lang$applyTo = function(arglist__5784) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5784);
+    var children__5422__auto__ = cljs.core.rest(arglist__5784);
+    return figcaption__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  figcaption.cljs$core$IFn$_invoke$arity$variadic = figcaption__delegate;
+  return figcaption;
+}();
+om.dom.figure = function() {
+  var figure__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.figure.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var figure = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return figure__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  figure.cljs$lang$maxFixedArity = 1;
+  figure.cljs$lang$applyTo = function(arglist__5785) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5785);
+    var children__5422__auto__ = cljs.core.rest(arglist__5785);
+    return figure__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  figure.cljs$core$IFn$_invoke$arity$variadic = figure__delegate;
+  return figure;
+}();
+om.dom.footer = function() {
+  var footer__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.footer.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var footer = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return footer__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  footer.cljs$lang$maxFixedArity = 1;
+  footer.cljs$lang$applyTo = function(arglist__5786) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5786);
+    var children__5422__auto__ = cljs.core.rest(arglist__5786);
+    return footer__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  footer.cljs$core$IFn$_invoke$arity$variadic = footer__delegate;
+  return footer;
+}();
+om.dom.form = function() {
+  var form__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.form.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var form = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return form__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  form.cljs$lang$maxFixedArity = 1;
+  form.cljs$lang$applyTo = function(arglist__5787) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5787);
+    var children__5422__auto__ = cljs.core.rest(arglist__5787);
+    return form__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  form.cljs$core$IFn$_invoke$arity$variadic = form__delegate;
+  return form;
+}();
+om.dom.h1 = function() {
+  var h1__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.h1.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var h1 = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return h1__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  h1.cljs$lang$maxFixedArity = 1;
+  h1.cljs$lang$applyTo = function(arglist__5788) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5788);
+    var children__5422__auto__ = cljs.core.rest(arglist__5788);
+    return h1__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  h1.cljs$core$IFn$_invoke$arity$variadic = h1__delegate;
+  return h1;
+}();
+om.dom.h2 = function() {
+  var h2__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.h2.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var h2 = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return h2__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  h2.cljs$lang$maxFixedArity = 1;
+  h2.cljs$lang$applyTo = function(arglist__5789) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5789);
+    var children__5422__auto__ = cljs.core.rest(arglist__5789);
+    return h2__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  h2.cljs$core$IFn$_invoke$arity$variadic = h2__delegate;
+  return h2;
+}();
+om.dom.h3 = function() {
+  var h3__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.h3.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var h3 = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return h3__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  h3.cljs$lang$maxFixedArity = 1;
+  h3.cljs$lang$applyTo = function(arglist__5790) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5790);
+    var children__5422__auto__ = cljs.core.rest(arglist__5790);
+    return h3__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  h3.cljs$core$IFn$_invoke$arity$variadic = h3__delegate;
+  return h3;
+}();
+om.dom.h4 = function() {
+  var h4__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.h4.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var h4 = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return h4__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  h4.cljs$lang$maxFixedArity = 1;
+  h4.cljs$lang$applyTo = function(arglist__5791) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5791);
+    var children__5422__auto__ = cljs.core.rest(arglist__5791);
+    return h4__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  h4.cljs$core$IFn$_invoke$arity$variadic = h4__delegate;
+  return h4;
+}();
+om.dom.h5 = function() {
+  var h5__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.h5.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var h5 = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return h5__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  h5.cljs$lang$maxFixedArity = 1;
+  h5.cljs$lang$applyTo = function(arglist__5792) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5792);
+    var children__5422__auto__ = cljs.core.rest(arglist__5792);
+    return h5__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  h5.cljs$core$IFn$_invoke$arity$variadic = h5__delegate;
+  return h5;
+}();
+om.dom.h6 = function() {
+  var h6__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.h6.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var h6 = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return h6__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  h6.cljs$lang$maxFixedArity = 1;
+  h6.cljs$lang$applyTo = function(arglist__5793) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5793);
+    var children__5422__auto__ = cljs.core.rest(arglist__5793);
+    return h6__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  h6.cljs$core$IFn$_invoke$arity$variadic = h6__delegate;
+  return h6;
+}();
+om.dom.head = function() {
+  var head__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.head.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var head = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return head__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  head.cljs$lang$maxFixedArity = 1;
+  head.cljs$lang$applyTo = function(arglist__5794) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5794);
+    var children__5422__auto__ = cljs.core.rest(arglist__5794);
+    return head__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  head.cljs$core$IFn$_invoke$arity$variadic = head__delegate;
+  return head;
+}();
+om.dom.header = function() {
+  var header__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.header.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var header = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return header__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  header.cljs$lang$maxFixedArity = 1;
+  header.cljs$lang$applyTo = function(arglist__5795) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5795);
+    var children__5422__auto__ = cljs.core.rest(arglist__5795);
+    return header__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  header.cljs$core$IFn$_invoke$arity$variadic = header__delegate;
+  return header;
+}();
+om.dom.hr = function() {
+  var hr__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.hr.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var hr = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return hr__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  hr.cljs$lang$maxFixedArity = 1;
+  hr.cljs$lang$applyTo = function(arglist__5796) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5796);
+    var children__5422__auto__ = cljs.core.rest(arglist__5796);
+    return hr__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  hr.cljs$core$IFn$_invoke$arity$variadic = hr__delegate;
+  return hr;
+}();
+om.dom.html = function() {
+  var html__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.html.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var html = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return html__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  html.cljs$lang$maxFixedArity = 1;
+  html.cljs$lang$applyTo = function(arglist__5797) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5797);
+    var children__5422__auto__ = cljs.core.rest(arglist__5797);
+    return html__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  html.cljs$core$IFn$_invoke$arity$variadic = html__delegate;
+  return html;
+}();
+om.dom.i = function() {
+  var i__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.i.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var i = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return i__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  i.cljs$lang$maxFixedArity = 1;
+  i.cljs$lang$applyTo = function(arglist__5798) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5798);
+    var children__5422__auto__ = cljs.core.rest(arglist__5798);
+    return i__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  i.cljs$core$IFn$_invoke$arity$variadic = i__delegate;
+  return i;
+}();
+om.dom.iframe = function() {
+  var iframe__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.iframe.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var iframe = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return iframe__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  iframe.cljs$lang$maxFixedArity = 1;
+  iframe.cljs$lang$applyTo = function(arglist__5799) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5799);
+    var children__5422__auto__ = cljs.core.rest(arglist__5799);
+    return iframe__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  iframe.cljs$core$IFn$_invoke$arity$variadic = iframe__delegate;
+  return iframe;
+}();
+om.dom.img = function() {
+  var img__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.img.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var img = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return img__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  img.cljs$lang$maxFixedArity = 1;
+  img.cljs$lang$applyTo = function(arglist__5800) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5800);
+    var children__5422__auto__ = cljs.core.rest(arglist__5800);
+    return img__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  img.cljs$core$IFn$_invoke$arity$variadic = img__delegate;
+  return img;
+}();
+om.dom.ins = function() {
+  var ins__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.ins.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var ins = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return ins__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  ins.cljs$lang$maxFixedArity = 1;
+  ins.cljs$lang$applyTo = function(arglist__5801) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5801);
+    var children__5422__auto__ = cljs.core.rest(arglist__5801);
+    return ins__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  ins.cljs$core$IFn$_invoke$arity$variadic = ins__delegate;
+  return ins;
+}();
+om.dom.kbd = function() {
+  var kbd__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.kbd.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var kbd = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return kbd__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  kbd.cljs$lang$maxFixedArity = 1;
+  kbd.cljs$lang$applyTo = function(arglist__5802) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5802);
+    var children__5422__auto__ = cljs.core.rest(arglist__5802);
+    return kbd__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  kbd.cljs$core$IFn$_invoke$arity$variadic = kbd__delegate;
+  return kbd;
+}();
+om.dom.keygen = function() {
+  var keygen__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.keygen.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var keygen = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return keygen__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  keygen.cljs$lang$maxFixedArity = 1;
+  keygen.cljs$lang$applyTo = function(arglist__5803) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5803);
+    var children__5422__auto__ = cljs.core.rest(arglist__5803);
+    return keygen__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  keygen.cljs$core$IFn$_invoke$arity$variadic = keygen__delegate;
+  return keygen;
+}();
+om.dom.label = function() {
+  var label__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.label.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var label = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return label__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  label.cljs$lang$maxFixedArity = 1;
+  label.cljs$lang$applyTo = function(arglist__5804) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5804);
+    var children__5422__auto__ = cljs.core.rest(arglist__5804);
+    return label__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  label.cljs$core$IFn$_invoke$arity$variadic = label__delegate;
+  return label;
+}();
+om.dom.legend = function() {
+  var legend__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.legend.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var legend = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return legend__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  legend.cljs$lang$maxFixedArity = 1;
+  legend.cljs$lang$applyTo = function(arglist__5805) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5805);
+    var children__5422__auto__ = cljs.core.rest(arglist__5805);
+    return legend__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  legend.cljs$core$IFn$_invoke$arity$variadic = legend__delegate;
+  return legend;
+}();
+om.dom.li = function() {
+  var li__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.li.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var li = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return li__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  li.cljs$lang$maxFixedArity = 1;
+  li.cljs$lang$applyTo = function(arglist__5806) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5806);
+    var children__5422__auto__ = cljs.core.rest(arglist__5806);
+    return li__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  li.cljs$core$IFn$_invoke$arity$variadic = li__delegate;
+  return li;
+}();
+om.dom.link = function() {
+  var link__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.link.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var link = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return link__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  link.cljs$lang$maxFixedArity = 1;
+  link.cljs$lang$applyTo = function(arglist__5807) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5807);
+    var children__5422__auto__ = cljs.core.rest(arglist__5807);
+    return link__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  link.cljs$core$IFn$_invoke$arity$variadic = link__delegate;
+  return link;
+}();
+om.dom.main = function() {
+  var main__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.main.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var main = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return main__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  main.cljs$lang$maxFixedArity = 1;
+  main.cljs$lang$applyTo = function(arglist__5808) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5808);
+    var children__5422__auto__ = cljs.core.rest(arglist__5808);
+    return main__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  main.cljs$core$IFn$_invoke$arity$variadic = main__delegate;
+  return main;
+}();
+om.dom.map = function() {
+  var map__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.map.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var map = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return map__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  map.cljs$lang$maxFixedArity = 1;
+  map.cljs$lang$applyTo = function(arglist__5809) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5809);
+    var children__5422__auto__ = cljs.core.rest(arglist__5809);
+    return map__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  map.cljs$core$IFn$_invoke$arity$variadic = map__delegate;
+  return map;
+}();
+om.dom.mark = function() {
+  var mark__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.mark.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var mark = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return mark__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  mark.cljs$lang$maxFixedArity = 1;
+  mark.cljs$lang$applyTo = function(arglist__5810) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5810);
+    var children__5422__auto__ = cljs.core.rest(arglist__5810);
+    return mark__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  mark.cljs$core$IFn$_invoke$arity$variadic = mark__delegate;
+  return mark;
+}();
+om.dom.menu = function() {
+  var menu__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.menu.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var menu = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return menu__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  menu.cljs$lang$maxFixedArity = 1;
+  menu.cljs$lang$applyTo = function(arglist__5811) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5811);
+    var children__5422__auto__ = cljs.core.rest(arglist__5811);
+    return menu__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  menu.cljs$core$IFn$_invoke$arity$variadic = menu__delegate;
+  return menu;
+}();
+om.dom.menuitem = function() {
+  var menuitem__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.menuitem.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var menuitem = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return menuitem__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  menuitem.cljs$lang$maxFixedArity = 1;
+  menuitem.cljs$lang$applyTo = function(arglist__5812) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5812);
+    var children__5422__auto__ = cljs.core.rest(arglist__5812);
+    return menuitem__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  menuitem.cljs$core$IFn$_invoke$arity$variadic = menuitem__delegate;
+  return menuitem;
+}();
+om.dom.meta = function() {
+  var meta__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.meta.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var meta = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return meta__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  meta.cljs$lang$maxFixedArity = 1;
+  meta.cljs$lang$applyTo = function(arglist__5813) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5813);
+    var children__5422__auto__ = cljs.core.rest(arglist__5813);
+    return meta__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  meta.cljs$core$IFn$_invoke$arity$variadic = meta__delegate;
+  return meta;
+}();
+om.dom.meter = function() {
+  var meter__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.meter.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var meter = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return meter__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  meter.cljs$lang$maxFixedArity = 1;
+  meter.cljs$lang$applyTo = function(arglist__5814) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5814);
+    var children__5422__auto__ = cljs.core.rest(arglist__5814);
+    return meter__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  meter.cljs$core$IFn$_invoke$arity$variadic = meter__delegate;
+  return meter;
+}();
+om.dom.nav = function() {
+  var nav__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.nav.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var nav = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return nav__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  nav.cljs$lang$maxFixedArity = 1;
+  nav.cljs$lang$applyTo = function(arglist__5815) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5815);
+    var children__5422__auto__ = cljs.core.rest(arglist__5815);
+    return nav__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  nav.cljs$core$IFn$_invoke$arity$variadic = nav__delegate;
+  return nav;
+}();
+om.dom.noscript = function() {
+  var noscript__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.noscript.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var noscript = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return noscript__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  noscript.cljs$lang$maxFixedArity = 1;
+  noscript.cljs$lang$applyTo = function(arglist__5816) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5816);
+    var children__5422__auto__ = cljs.core.rest(arglist__5816);
+    return noscript__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  noscript.cljs$core$IFn$_invoke$arity$variadic = noscript__delegate;
+  return noscript;
+}();
+om.dom.object = function() {
+  var object__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.object.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var object = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return object__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  object.cljs$lang$maxFixedArity = 1;
+  object.cljs$lang$applyTo = function(arglist__5817) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5817);
+    var children__5422__auto__ = cljs.core.rest(arglist__5817);
+    return object__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  object.cljs$core$IFn$_invoke$arity$variadic = object__delegate;
+  return object;
+}();
+om.dom.ol = function() {
+  var ol__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.ol.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var ol = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return ol__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  ol.cljs$lang$maxFixedArity = 1;
+  ol.cljs$lang$applyTo = function(arglist__5818) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5818);
+    var children__5422__auto__ = cljs.core.rest(arglist__5818);
+    return ol__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  ol.cljs$core$IFn$_invoke$arity$variadic = ol__delegate;
+  return ol;
+}();
+om.dom.optgroup = function() {
+  var optgroup__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.optgroup.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var optgroup = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return optgroup__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  optgroup.cljs$lang$maxFixedArity = 1;
+  optgroup.cljs$lang$applyTo = function(arglist__5819) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5819);
+    var children__5422__auto__ = cljs.core.rest(arglist__5819);
+    return optgroup__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  optgroup.cljs$core$IFn$_invoke$arity$variadic = optgroup__delegate;
+  return optgroup;
+}();
+om.dom.output = function() {
+  var output__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.output.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var output = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return output__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  output.cljs$lang$maxFixedArity = 1;
+  output.cljs$lang$applyTo = function(arglist__5820) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5820);
+    var children__5422__auto__ = cljs.core.rest(arglist__5820);
+    return output__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  output.cljs$core$IFn$_invoke$arity$variadic = output__delegate;
+  return output;
+}();
+om.dom.p = function() {
+  var p__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.p.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var p = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return p__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  p.cljs$lang$maxFixedArity = 1;
+  p.cljs$lang$applyTo = function(arglist__5821) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5821);
+    var children__5422__auto__ = cljs.core.rest(arglist__5821);
+    return p__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  p.cljs$core$IFn$_invoke$arity$variadic = p__delegate;
+  return p;
+}();
+om.dom.param = function() {
+  var param__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.param.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var param = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return param__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  param.cljs$lang$maxFixedArity = 1;
+  param.cljs$lang$applyTo = function(arglist__5822) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5822);
+    var children__5422__auto__ = cljs.core.rest(arglist__5822);
+    return param__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  param.cljs$core$IFn$_invoke$arity$variadic = param__delegate;
+  return param;
+}();
+om.dom.pre = function() {
+  var pre__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.pre.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var pre = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return pre__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  pre.cljs$lang$maxFixedArity = 1;
+  pre.cljs$lang$applyTo = function(arglist__5823) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5823);
+    var children__5422__auto__ = cljs.core.rest(arglist__5823);
+    return pre__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  pre.cljs$core$IFn$_invoke$arity$variadic = pre__delegate;
+  return pre;
+}();
+om.dom.progress = function() {
+  var progress__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.progress.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var progress = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return progress__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  progress.cljs$lang$maxFixedArity = 1;
+  progress.cljs$lang$applyTo = function(arglist__5824) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5824);
+    var children__5422__auto__ = cljs.core.rest(arglist__5824);
+    return progress__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  progress.cljs$core$IFn$_invoke$arity$variadic = progress__delegate;
+  return progress;
+}();
+om.dom.q = function() {
+  var q__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.q.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var q = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return q__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  q.cljs$lang$maxFixedArity = 1;
+  q.cljs$lang$applyTo = function(arglist__5825) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5825);
+    var children__5422__auto__ = cljs.core.rest(arglist__5825);
+    return q__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  q.cljs$core$IFn$_invoke$arity$variadic = q__delegate;
+  return q;
+}();
+om.dom.rp = function() {
+  var rp__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.rp.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var rp = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return rp__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  rp.cljs$lang$maxFixedArity = 1;
+  rp.cljs$lang$applyTo = function(arglist__5826) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5826);
+    var children__5422__auto__ = cljs.core.rest(arglist__5826);
+    return rp__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  rp.cljs$core$IFn$_invoke$arity$variadic = rp__delegate;
+  return rp;
+}();
+om.dom.rt = function() {
+  var rt__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.rt.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var rt = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return rt__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  rt.cljs$lang$maxFixedArity = 1;
+  rt.cljs$lang$applyTo = function(arglist__5827) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5827);
+    var children__5422__auto__ = cljs.core.rest(arglist__5827);
+    return rt__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  rt.cljs$core$IFn$_invoke$arity$variadic = rt__delegate;
+  return rt;
+}();
+om.dom.ruby = function() {
+  var ruby__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.ruby.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var ruby = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return ruby__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  ruby.cljs$lang$maxFixedArity = 1;
+  ruby.cljs$lang$applyTo = function(arglist__5828) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5828);
+    var children__5422__auto__ = cljs.core.rest(arglist__5828);
+    return ruby__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  ruby.cljs$core$IFn$_invoke$arity$variadic = ruby__delegate;
+  return ruby;
+}();
+om.dom.s = function() {
+  var s__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.s.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var s = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return s__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  s.cljs$lang$maxFixedArity = 1;
+  s.cljs$lang$applyTo = function(arglist__5829) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5829);
+    var children__5422__auto__ = cljs.core.rest(arglist__5829);
+    return s__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  s.cljs$core$IFn$_invoke$arity$variadic = s__delegate;
+  return s;
+}();
+om.dom.samp = function() {
+  var samp__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.samp.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var samp = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return samp__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  samp.cljs$lang$maxFixedArity = 1;
+  samp.cljs$lang$applyTo = function(arglist__5830) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5830);
+    var children__5422__auto__ = cljs.core.rest(arglist__5830);
+    return samp__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  samp.cljs$core$IFn$_invoke$arity$variadic = samp__delegate;
+  return samp;
+}();
+om.dom.script = function() {
+  var script__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.script.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var script = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return script__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  script.cljs$lang$maxFixedArity = 1;
+  script.cljs$lang$applyTo = function(arglist__5831) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5831);
+    var children__5422__auto__ = cljs.core.rest(arglist__5831);
+    return script__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  script.cljs$core$IFn$_invoke$arity$variadic = script__delegate;
+  return script;
+}();
+om.dom.section = function() {
+  var section__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.section.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var section = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return section__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  section.cljs$lang$maxFixedArity = 1;
+  section.cljs$lang$applyTo = function(arglist__5832) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5832);
+    var children__5422__auto__ = cljs.core.rest(arglist__5832);
+    return section__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  section.cljs$core$IFn$_invoke$arity$variadic = section__delegate;
+  return section;
+}();
+om.dom.select = function() {
+  var select__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.select.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var select = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return select__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  select.cljs$lang$maxFixedArity = 1;
+  select.cljs$lang$applyTo = function(arglist__5833) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5833);
+    var children__5422__auto__ = cljs.core.rest(arglist__5833);
+    return select__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  select.cljs$core$IFn$_invoke$arity$variadic = select__delegate;
+  return select;
+}();
+om.dom.small = function() {
+  var small__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.small.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var small = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return small__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  small.cljs$lang$maxFixedArity = 1;
+  small.cljs$lang$applyTo = function(arglist__5834) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5834);
+    var children__5422__auto__ = cljs.core.rest(arglist__5834);
+    return small__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  small.cljs$core$IFn$_invoke$arity$variadic = small__delegate;
+  return small;
+}();
+om.dom.source = function() {
+  var source__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.source.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var source = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return source__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  source.cljs$lang$maxFixedArity = 1;
+  source.cljs$lang$applyTo = function(arglist__5835) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5835);
+    var children__5422__auto__ = cljs.core.rest(arglist__5835);
+    return source__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  source.cljs$core$IFn$_invoke$arity$variadic = source__delegate;
+  return source;
+}();
+om.dom.span = function() {
+  var span__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.span.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var span = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return span__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  span.cljs$lang$maxFixedArity = 1;
+  span.cljs$lang$applyTo = function(arglist__5836) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5836);
+    var children__5422__auto__ = cljs.core.rest(arglist__5836);
+    return span__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  span.cljs$core$IFn$_invoke$arity$variadic = span__delegate;
+  return span;
+}();
+om.dom.strong = function() {
+  var strong__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.strong.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var strong = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return strong__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  strong.cljs$lang$maxFixedArity = 1;
+  strong.cljs$lang$applyTo = function(arglist__5837) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5837);
+    var children__5422__auto__ = cljs.core.rest(arglist__5837);
+    return strong__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  strong.cljs$core$IFn$_invoke$arity$variadic = strong__delegate;
+  return strong;
+}();
+om.dom.style = function() {
+  var style__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.style.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var style = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return style__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  style.cljs$lang$maxFixedArity = 1;
+  style.cljs$lang$applyTo = function(arglist__5838) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5838);
+    var children__5422__auto__ = cljs.core.rest(arglist__5838);
+    return style__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  style.cljs$core$IFn$_invoke$arity$variadic = style__delegate;
+  return style;
+}();
+om.dom.sub = function() {
+  var sub__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.sub.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var sub = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return sub__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  sub.cljs$lang$maxFixedArity = 1;
+  sub.cljs$lang$applyTo = function(arglist__5839) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5839);
+    var children__5422__auto__ = cljs.core.rest(arglist__5839);
+    return sub__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  sub.cljs$core$IFn$_invoke$arity$variadic = sub__delegate;
+  return sub;
+}();
+om.dom.summary = function() {
+  var summary__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.summary.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var summary = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return summary__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  summary.cljs$lang$maxFixedArity = 1;
+  summary.cljs$lang$applyTo = function(arglist__5840) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5840);
+    var children__5422__auto__ = cljs.core.rest(arglist__5840);
+    return summary__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  summary.cljs$core$IFn$_invoke$arity$variadic = summary__delegate;
+  return summary;
+}();
+om.dom.sup = function() {
+  var sup__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.sup.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var sup = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return sup__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  sup.cljs$lang$maxFixedArity = 1;
+  sup.cljs$lang$applyTo = function(arglist__5841) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5841);
+    var children__5422__auto__ = cljs.core.rest(arglist__5841);
+    return sup__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  sup.cljs$core$IFn$_invoke$arity$variadic = sup__delegate;
+  return sup;
+}();
+om.dom.table = function() {
+  var table__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.table.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var table = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return table__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  table.cljs$lang$maxFixedArity = 1;
+  table.cljs$lang$applyTo = function(arglist__5842) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5842);
+    var children__5422__auto__ = cljs.core.rest(arglist__5842);
+    return table__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  table.cljs$core$IFn$_invoke$arity$variadic = table__delegate;
+  return table;
+}();
+om.dom.tbody = function() {
+  var tbody__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.tbody.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var tbody = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return tbody__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  tbody.cljs$lang$maxFixedArity = 1;
+  tbody.cljs$lang$applyTo = function(arglist__5843) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5843);
+    var children__5422__auto__ = cljs.core.rest(arglist__5843);
+    return tbody__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  tbody.cljs$core$IFn$_invoke$arity$variadic = tbody__delegate;
+  return tbody;
+}();
+om.dom.td = function() {
+  var td__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.td.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var td = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return td__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  td.cljs$lang$maxFixedArity = 1;
+  td.cljs$lang$applyTo = function(arglist__5844) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5844);
+    var children__5422__auto__ = cljs.core.rest(arglist__5844);
+    return td__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  td.cljs$core$IFn$_invoke$arity$variadic = td__delegate;
+  return td;
+}();
+om.dom.tfoot = function() {
+  var tfoot__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.tfoot.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var tfoot = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return tfoot__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  tfoot.cljs$lang$maxFixedArity = 1;
+  tfoot.cljs$lang$applyTo = function(arglist__5845) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5845);
+    var children__5422__auto__ = cljs.core.rest(arglist__5845);
+    return tfoot__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  tfoot.cljs$core$IFn$_invoke$arity$variadic = tfoot__delegate;
+  return tfoot;
+}();
+om.dom.th = function() {
+  var th__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.th.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var th = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return th__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  th.cljs$lang$maxFixedArity = 1;
+  th.cljs$lang$applyTo = function(arglist__5846) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5846);
+    var children__5422__auto__ = cljs.core.rest(arglist__5846);
+    return th__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  th.cljs$core$IFn$_invoke$arity$variadic = th__delegate;
+  return th;
+}();
+om.dom.thead = function() {
+  var thead__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.thead.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var thead = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return thead__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  thead.cljs$lang$maxFixedArity = 1;
+  thead.cljs$lang$applyTo = function(arglist__5847) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5847);
+    var children__5422__auto__ = cljs.core.rest(arglist__5847);
+    return thead__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  thead.cljs$core$IFn$_invoke$arity$variadic = thead__delegate;
+  return thead;
+}();
+om.dom.time = function() {
+  var time__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.time.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var time = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return time__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  time.cljs$lang$maxFixedArity = 1;
+  time.cljs$lang$applyTo = function(arglist__5848) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5848);
+    var children__5422__auto__ = cljs.core.rest(arglist__5848);
+    return time__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  time.cljs$core$IFn$_invoke$arity$variadic = time__delegate;
+  return time;
+}();
+om.dom.title = function() {
+  var title__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.title.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var title = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return title__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  title.cljs$lang$maxFixedArity = 1;
+  title.cljs$lang$applyTo = function(arglist__5849) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5849);
+    var children__5422__auto__ = cljs.core.rest(arglist__5849);
+    return title__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  title.cljs$core$IFn$_invoke$arity$variadic = title__delegate;
+  return title;
+}();
+om.dom.tr = function() {
+  var tr__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.tr.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var tr = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return tr__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  tr.cljs$lang$maxFixedArity = 1;
+  tr.cljs$lang$applyTo = function(arglist__5850) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5850);
+    var children__5422__auto__ = cljs.core.rest(arglist__5850);
+    return tr__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  tr.cljs$core$IFn$_invoke$arity$variadic = tr__delegate;
+  return tr;
+}();
+om.dom.track = function() {
+  var track__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.track.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var track = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return track__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  track.cljs$lang$maxFixedArity = 1;
+  track.cljs$lang$applyTo = function(arglist__5851) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5851);
+    var children__5422__auto__ = cljs.core.rest(arglist__5851);
+    return track__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  track.cljs$core$IFn$_invoke$arity$variadic = track__delegate;
+  return track;
+}();
+om.dom.u = function() {
+  var u__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.u.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var u = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return u__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  u.cljs$lang$maxFixedArity = 1;
+  u.cljs$lang$applyTo = function(arglist__5852) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5852);
+    var children__5422__auto__ = cljs.core.rest(arglist__5852);
+    return u__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  u.cljs$core$IFn$_invoke$arity$variadic = u__delegate;
+  return u;
+}();
+om.dom.ul = function() {
+  var ul__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.ul.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var ul = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return ul__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  ul.cljs$lang$maxFixedArity = 1;
+  ul.cljs$lang$applyTo = function(arglist__5853) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5853);
+    var children__5422__auto__ = cljs.core.rest(arglist__5853);
+    return ul__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  ul.cljs$core$IFn$_invoke$arity$variadic = ul__delegate;
+  return ul;
+}();
+om.dom.var$ = function() {
+  var var$__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.var$.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var var$ = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return var$__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  var$.cljs$lang$maxFixedArity = 1;
+  var$.cljs$lang$applyTo = function(arglist__5854) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5854);
+    var children__5422__auto__ = cljs.core.rest(arglist__5854);
+    return var$__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  var$.cljs$core$IFn$_invoke$arity$variadic = var$__delegate;
+  return var$;
+}();
+om.dom.video = function() {
+  var video__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.video.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var video = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return video__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  video.cljs$lang$maxFixedArity = 1;
+  video.cljs$lang$applyTo = function(arglist__5855) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5855);
+    var children__5422__auto__ = cljs.core.rest(arglist__5855);
+    return video__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  video.cljs$core$IFn$_invoke$arity$variadic = video__delegate;
+  return video;
+}();
+om.dom.wbr = function() {
+  var wbr__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.wbr.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var wbr = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return wbr__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  wbr.cljs$lang$maxFixedArity = 1;
+  wbr.cljs$lang$applyTo = function(arglist__5856) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5856);
+    var children__5422__auto__ = cljs.core.rest(arglist__5856);
+    return wbr__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  wbr.cljs$core$IFn$_invoke$arity$variadic = wbr__delegate;
+  return wbr;
+}();
+om.dom.circle = function() {
+  var circle__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.circle.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var circle = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return circle__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  circle.cljs$lang$maxFixedArity = 1;
+  circle.cljs$lang$applyTo = function(arglist__5857) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5857);
+    var children__5422__auto__ = cljs.core.rest(arglist__5857);
+    return circle__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  circle.cljs$core$IFn$_invoke$arity$variadic = circle__delegate;
+  return circle;
+}();
+om.dom.g = function() {
+  var g__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.g.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var g = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return g__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  g.cljs$lang$maxFixedArity = 1;
+  g.cljs$lang$applyTo = function(arglist__5858) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5858);
+    var children__5422__auto__ = cljs.core.rest(arglist__5858);
+    return g__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  g.cljs$core$IFn$_invoke$arity$variadic = g__delegate;
+  return g;
+}();
+om.dom.line = function() {
+  var line__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.line.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var line = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return line__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  line.cljs$lang$maxFixedArity = 1;
+  line.cljs$lang$applyTo = function(arglist__5859) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5859);
+    var children__5422__auto__ = cljs.core.rest(arglist__5859);
+    return line__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  line.cljs$core$IFn$_invoke$arity$variadic = line__delegate;
+  return line;
+}();
+om.dom.path = function() {
+  var path__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.path.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var path = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return path__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  path.cljs$lang$maxFixedArity = 1;
+  path.cljs$lang$applyTo = function(arglist__5860) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5860);
+    var children__5422__auto__ = cljs.core.rest(arglist__5860);
+    return path__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  path.cljs$core$IFn$_invoke$arity$variadic = path__delegate;
+  return path;
+}();
+om.dom.polyline = function() {
+  var polyline__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.polyline.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var polyline = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return polyline__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  polyline.cljs$lang$maxFixedArity = 1;
+  polyline.cljs$lang$applyTo = function(arglist__5861) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5861);
+    var children__5422__auto__ = cljs.core.rest(arglist__5861);
+    return polyline__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  polyline.cljs$core$IFn$_invoke$arity$variadic = polyline__delegate;
+  return polyline;
+}();
+om.dom.rect = function() {
+  var rect__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.rect.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var rect = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return rect__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  rect.cljs$lang$maxFixedArity = 1;
+  rect.cljs$lang$applyTo = function(arglist__5862) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5862);
+    var children__5422__auto__ = cljs.core.rest(arglist__5862);
+    return rect__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  rect.cljs$core$IFn$_invoke$arity$variadic = rect__delegate;
+  return rect;
+}();
+om.dom.svg = function() {
+  var svg__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.svg.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var svg = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return svg__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  svg.cljs$lang$maxFixedArity = 1;
+  svg.cljs$lang$applyTo = function(arglist__5863) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5863);
+    var children__5422__auto__ = cljs.core.rest(arglist__5863);
+    return svg__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  svg.cljs$core$IFn$_invoke$arity$variadic = svg__delegate;
+  return svg;
+}();
+om.dom.text = function() {
+  var text__delegate = function(opts__5421__auto__, children__5422__auto__) {
+    return React.DOM.text.apply(null, cljs.core.into_array.call(null, cljs.core.cons.call(null, opts__5421__auto__, children__5422__auto__)));
+  };
+  var text = function(opts__5421__auto__, var_args) {
+    var children__5422__auto__ = null;
+    if (arguments.length > 1) {
+      children__5422__auto__ = cljs.core.array_seq(Array.prototype.slice.call(arguments, 1), 0);
+    }
+    return text__delegate.call(this, opts__5421__auto__, children__5422__auto__);
+  };
+  text.cljs$lang$maxFixedArity = 1;
+  text.cljs$lang$applyTo = function(arglist__5864) {
+    var opts__5421__auto__ = cljs.core.first(arglist__5864);
+    var children__5422__auto__ = cljs.core.rest(arglist__5864);
+    return text__delegate(opts__5421__auto__, children__5422__auto__);
+  };
+  text.cljs$core$IFn$_invoke$arity$variadic = text__delegate;
+  return text;
+}();
+om.dom.wrap_form_element = function wrap_form_element(ctor, display_name) {
+  return React.createClass({"render":function() {
+    var this$ = this;
+    return this$.transferPropsTo(ctor.call(null, {"children":this$.props["children"], "onChange":this$["onChange"], "value":this$.state["value"]}));
+  }, "componentWillReceiveProps":function(new_props) {
+    var this$ = this;
+    return this$.setState({"value":new_props["value"]});
+  }, "onChange":function(e) {
+    var this$ = this;
+    var handler = this$.props["onChange"];
+    if (handler == null) {
+      return null;
+    } else {
+      handler.call(null, e);
+      return this$.setState({"value":e.target.value});
+    }
+  }, "getInitialState":function() {
+    var this$ = this;
+    return{"value":this$.props["value"]};
+  }, "getDisplayName":function() {
+    return display_name;
+  }});
+};
+om.dom.input = om.dom.wrap_form_element.call(null, React.DOM.input, "input");
+om.dom.textarea = om.dom.wrap_form_element.call(null, React.DOM.textarea, "textarea");
+om.dom.option = om.dom.wrap_form_element.call(null, React.DOM.option, "option");
+om.dom.render = function render(component, el) {
+  return React.renderComponent(component, el);
+};
+om.dom.render_to_str = function render_to_str(c) {
+  return React.renderComponentToString(c);
+};
+goog.provide("om.core");
+goog.require("cljs.core");
+goog.require("goog.ui.IdGenerator");
+goog.require("om.dom");
+goog.require("om.dom");
+om.core._STAR_read_enabled_STAR_ = false;
+om.core._STAR_parent_STAR_ = null;
+om.core._STAR_instrument_STAR_ = null;
+om.core.IDisplayName = function() {
+  var obj5610 = {};
+  return obj5610;
+}();
+om.core.display_name = function display_name(this$) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IDisplayName$display_name$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IDisplayName$display_name$arity$1(this$);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.display_name[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.display_name["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IDisplayName.display-name", this$);
+        }
+      }
+    }().call(null, this$);
+  }
+};
+om.core.IInitState = function() {
+  var obj5612 = {};
+  return obj5612;
+}();
+om.core.init_state = function init_state(this$) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IInitState$init_state$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IInitState$init_state$arity$1(this$);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.init_state[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.init_state["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IInitState.init-state", this$);
+        }
+      }
+    }().call(null, this$);
+  }
+};
+om.core.IShouldUpdate = function() {
+  var obj5614 = {};
+  return obj5614;
+}();
+om.core.should_update = function should_update(this$, next_props, next_state) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IShouldUpdate$should_update$arity$3;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IShouldUpdate$should_update$arity$3(this$, next_props, next_state);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.should_update[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.should_update["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IShouldUpdate.should-update", this$);
+        }
+      }
+    }().call(null, this$, next_props, next_state);
+  }
+};
+om.core.IWillMount = function() {
+  var obj5616 = {};
+  return obj5616;
+}();
+om.core.will_mount = function will_mount(this$) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IWillMount$will_mount$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IWillMount$will_mount$arity$1(this$);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.will_mount[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.will_mount["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IWillMount.will-mount", this$);
+        }
+      }
+    }().call(null, this$);
+  }
+};
+om.core.IDidMount = function() {
+  var obj5618 = {};
+  return obj5618;
+}();
+om.core.did_mount = function did_mount(this$) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IDidMount$did_mount$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IDidMount$did_mount$arity$1(this$);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.did_mount[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.did_mount["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IDidMount.did-mount", this$);
+        }
+      }
+    }().call(null, this$);
+  }
+};
+om.core.IWillUnmount = function() {
+  var obj5620 = {};
+  return obj5620;
+}();
+om.core.will_unmount = function will_unmount(this$) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IWillUnmount$will_unmount$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IWillUnmount$will_unmount$arity$1(this$);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.will_unmount[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.will_unmount["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IWillUnmount.will-unmount", this$);
+        }
+      }
+    }().call(null, this$);
+  }
+};
+om.core.IWillUpdate = function() {
+  var obj5622 = {};
+  return obj5622;
+}();
+om.core.will_update = function will_update(this$, next_props, next_state) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IWillUpdate$will_update$arity$3;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IWillUpdate$will_update$arity$3(this$, next_props, next_state);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.will_update[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.will_update["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IWillUpdate.will-update", this$);
+        }
+      }
+    }().call(null, this$, next_props, next_state);
+  }
+};
+om.core.IDidUpdate = function() {
+  var obj5624 = {};
+  return obj5624;
+}();
+om.core.did_update = function did_update(this$, prev_props, prev_state) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IDidUpdate$did_update$arity$3;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IDidUpdate$did_update$arity$3(this$, prev_props, prev_state);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.did_update[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.did_update["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IDidUpdate.did-update", this$);
+        }
+      }
+    }().call(null, this$, prev_props, prev_state);
+  }
+};
+om.core.IWillReceiveProps = function() {
+  var obj5626 = {};
+  return obj5626;
+}();
+om.core.will_receive_props = function will_receive_props(this$, next_props) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IWillReceiveProps$will_receive_props$arity$2;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IWillReceiveProps$will_receive_props$arity$2(this$, next_props);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.will_receive_props[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.will_receive_props["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IWillReceiveProps.will-receive-props", this$);
+        }
+      }
+    }().call(null, this$, next_props);
+  }
+};
+om.core.IRender = function() {
+  var obj5628 = {};
+  return obj5628;
+}();
+om.core.render = function render(this$) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IRender$render$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IRender$render$arity$1(this$);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.render[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.render["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IRender.render", this$);
+        }
+      }
+    }().call(null, this$);
+  }
+};
+om.core.IRenderState = function() {
+  var obj5630 = {};
+  return obj5630;
+}();
+om.core.render_state = function render_state(this$, state) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IRenderState$render_state$arity$2;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IRenderState$render_state$arity$2(this$, state);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core.render_state[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core.render_state["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IRenderState.render-state", this$);
+        }
+      }
+    }().call(null, this$, state);
+  }
+};
+om.core.IOmSwap = function() {
+  var obj5632 = {};
+  return obj5632;
+}();
+om.core._om_swap_BANG_ = function _om_swap_BANG_(this$, cursor, korks, f, tag) {
+  if (function() {
+    var and__3450__auto__ = this$;
+    if (and__3450__auto__) {
+      return this$.om$core$IOmSwap$_om_swap_BANG_$arity$5;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return this$.om$core$IOmSwap$_om_swap_BANG_$arity$5(this$, cursor, korks, f, tag);
+  } else {
+    var x__4089__auto__ = this$ == null ? null : this$;
+    return function() {
+      var or__3462__auto__ = om.core._om_swap_BANG_[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core._om_swap_BANG_["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IOmSwap.-om-swap!", this$);
+        }
+      }
+    }().call(null, this$, cursor, korks, f, tag);
+  }
+};
+om.core.IGetState = function() {
+  var obj5634 = {};
+  return obj5634;
+}();
+om.core._get_state = function() {
+  var _get_state = null;
+  var _get_state__1 = function(this$) {
+    if (function() {
+      var and__3450__auto__ = this$;
+      if (and__3450__auto__) {
+        return this$.om$core$IGetState$_get_state$arity$1;
+      } else {
+        return and__3450__auto__;
+      }
+    }()) {
+      return this$.om$core$IGetState$_get_state$arity$1(this$);
+    } else {
+      var x__4089__auto__ = this$ == null ? null : this$;
+      return function() {
+        var or__3462__auto__ = om.core._get_state[goog.typeOf(x__4089__auto__)];
+        if (or__3462__auto__) {
+          return or__3462__auto__;
+        } else {
+          var or__3462__auto____$1 = om.core._get_state["_"];
+          if (or__3462__auto____$1) {
+            return or__3462__auto____$1;
+          } else {
+            throw cljs.core.missing_protocol.call(null, "IGetState.-get-state", this$);
+          }
+        }
+      }().call(null, this$);
+    }
+  };
+  var _get_state__2 = function(this$, ks) {
+    if (function() {
+      var and__3450__auto__ = this$;
+      if (and__3450__auto__) {
+        return this$.om$core$IGetState$_get_state$arity$2;
+      } else {
+        return and__3450__auto__;
+      }
+    }()) {
+      return this$.om$core$IGetState$_get_state$arity$2(this$, ks);
+    } else {
+      var x__4089__auto__ = this$ == null ? null : this$;
+      return function() {
+        var or__3462__auto__ = om.core._get_state[goog.typeOf(x__4089__auto__)];
+        if (or__3462__auto__) {
+          return or__3462__auto__;
+        } else {
+          var or__3462__auto____$1 = om.core._get_state["_"];
+          if (or__3462__auto____$1) {
+            return or__3462__auto____$1;
+          } else {
+            throw cljs.core.missing_protocol.call(null, "IGetState.-get-state", this$);
+          }
+        }
+      }().call(null, this$, ks);
+    }
+  };
+  _get_state = function(this$, ks) {
+    switch(arguments.length) {
+      case 1:
+        return _get_state__1.call(this, this$);
+      case 2:
+        return _get_state__2.call(this, this$, ks);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  _get_state.cljs$core$IFn$_invoke$arity$1 = _get_state__1;
+  _get_state.cljs$core$IFn$_invoke$arity$2 = _get_state__2;
+  return _get_state;
+}();
+om.core.IGetRenderState = function() {
+  var obj5636 = {};
+  return obj5636;
+}();
+om.core._get_render_state = function() {
+  var _get_render_state = null;
+  var _get_render_state__1 = function(this$) {
+    if (function() {
+      var and__3450__auto__ = this$;
+      if (and__3450__auto__) {
+        return this$.om$core$IGetRenderState$_get_render_state$arity$1;
+      } else {
+        return and__3450__auto__;
+      }
+    }()) {
+      return this$.om$core$IGetRenderState$_get_render_state$arity$1(this$);
+    } else {
+      var x__4089__auto__ = this$ == null ? null : this$;
+      return function() {
+        var or__3462__auto__ = om.core._get_render_state[goog.typeOf(x__4089__auto__)];
+        if (or__3462__auto__) {
+          return or__3462__auto__;
+        } else {
+          var or__3462__auto____$1 = om.core._get_render_state["_"];
+          if (or__3462__auto____$1) {
+            return or__3462__auto____$1;
+          } else {
+            throw cljs.core.missing_protocol.call(null, "IGetRenderState.-get-render-state", this$);
+          }
+        }
+      }().call(null, this$);
+    }
+  };
+  var _get_render_state__2 = function(this$, ks) {
+    if (function() {
+      var and__3450__auto__ = this$;
+      if (and__3450__auto__) {
+        return this$.om$core$IGetRenderState$_get_render_state$arity$2;
+      } else {
+        return and__3450__auto__;
+      }
+    }()) {
+      return this$.om$core$IGetRenderState$_get_render_state$arity$2(this$, ks);
+    } else {
+      var x__4089__auto__ = this$ == null ? null : this$;
+      return function() {
+        var or__3462__auto__ = om.core._get_render_state[goog.typeOf(x__4089__auto__)];
+        if (or__3462__auto__) {
+          return or__3462__auto__;
+        } else {
+          var or__3462__auto____$1 = om.core._get_render_state["_"];
+          if (or__3462__auto____$1) {
+            return or__3462__auto____$1;
+          } else {
+            throw cljs.core.missing_protocol.call(null, "IGetRenderState.-get-render-state", this$);
+          }
+        }
+      }().call(null, this$, ks);
+    }
+  };
+  _get_render_state = function(this$, ks) {
+    switch(arguments.length) {
+      case 1:
+        return _get_render_state__1.call(this, this$);
+      case 2:
+        return _get_render_state__2.call(this, this$, ks);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  _get_render_state.cljs$core$IFn$_invoke$arity$1 = _get_render_state__1;
+  _get_render_state.cljs$core$IFn$_invoke$arity$2 = _get_render_state__2;
+  return _get_render_state;
+}();
+om.core.ISetState = function() {
+  var obj5638 = {};
+  return obj5638;
+}();
+om.core._set_state_BANG_ = function() {
+  var _set_state_BANG_ = null;
+  var _set_state_BANG___2 = function(this$, val) {
+    if (function() {
+      var and__3450__auto__ = this$;
+      if (and__3450__auto__) {
+        return this$.om$core$ISetState$_set_state_BANG_$arity$2;
+      } else {
+        return and__3450__auto__;
+      }
+    }()) {
+      return this$.om$core$ISetState$_set_state_BANG_$arity$2(this$, val);
+    } else {
+      var x__4089__auto__ = this$ == null ? null : this$;
+      return function() {
+        var or__3462__auto__ = om.core._set_state_BANG_[goog.typeOf(x__4089__auto__)];
+        if (or__3462__auto__) {
+          return or__3462__auto__;
+        } else {
+          var or__3462__auto____$1 = om.core._set_state_BANG_["_"];
+          if (or__3462__auto____$1) {
+            return or__3462__auto____$1;
+          } else {
+            throw cljs.core.missing_protocol.call(null, "ISetState.-set-state!", this$);
+          }
+        }
+      }().call(null, this$, val);
+    }
+  };
+  var _set_state_BANG___3 = function(this$, ks, val) {
+    if (function() {
+      var and__3450__auto__ = this$;
+      if (and__3450__auto__) {
+        return this$.om$core$ISetState$_set_state_BANG_$arity$3;
+      } else {
+        return and__3450__auto__;
+      }
+    }()) {
+      return this$.om$core$ISetState$_set_state_BANG_$arity$3(this$, ks, val);
+    } else {
+      var x__4089__auto__ = this$ == null ? null : this$;
+      return function() {
+        var or__3462__auto__ = om.core._set_state_BANG_[goog.typeOf(x__4089__auto__)];
+        if (or__3462__auto__) {
+          return or__3462__auto__;
+        } else {
+          var or__3462__auto____$1 = om.core._set_state_BANG_["_"];
+          if (or__3462__auto____$1) {
+            return or__3462__auto____$1;
+          } else {
+            throw cljs.core.missing_protocol.call(null, "ISetState.-set-state!", this$);
+          }
+        }
+      }().call(null, this$, ks, val);
+    }
+  };
+  _set_state_BANG_ = function(this$, ks, val) {
+    switch(arguments.length) {
+      case 2:
+        return _set_state_BANG___2.call(this, this$, ks);
+      case 3:
+        return _set_state_BANG___3.call(this, this$, ks, val);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  _set_state_BANG_.cljs$core$IFn$_invoke$arity$2 = _set_state_BANG___2;
+  _set_state_BANG_.cljs$core$IFn$_invoke$arity$3 = _set_state_BANG___3;
+  return _set_state_BANG_;
+}();
+om.core.IValue = function() {
+  var obj5640 = {};
+  return obj5640;
+}();
+om.core._value = function _value(x) {
+  if (function() {
+    var and__3450__auto__ = x;
+    if (and__3450__auto__) {
+      return x.om$core$IValue$_value$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return x.om$core$IValue$_value$arity$1(x);
+  } else {
+    var x__4089__auto__ = x == null ? null : x;
+    return function() {
+      var or__3462__auto__ = om.core._value[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core._value["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "IValue.-value", x);
+        }
+      }
+    }().call(null, x);
+  }
+};
+om.core.IValue["_"] = true;
+om.core._value["_"] = function(x) {
+  return x;
+};
+om.core.ICursor = function() {
+  var obj5642 = {};
+  return obj5642;
+}();
+om.core._path = function _path(cursor) {
+  if (function() {
+    var and__3450__auto__ = cursor;
+    if (and__3450__auto__) {
+      return cursor.om$core$ICursor$_path$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return cursor.om$core$ICursor$_path$arity$1(cursor);
+  } else {
+    var x__4089__auto__ = cursor == null ? null : cursor;
+    return function() {
+      var or__3462__auto__ = om.core._path[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core._path["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "ICursor.-path", cursor);
+        }
+      }
+    }().call(null, cursor);
+  }
+};
+om.core._state = function _state(cursor) {
+  if (function() {
+    var and__3450__auto__ = cursor;
+    if (and__3450__auto__) {
+      return cursor.om$core$ICursor$_state$arity$1;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return cursor.om$core$ICursor$_state$arity$1(cursor);
+  } else {
+    var x__4089__auto__ = cursor == null ? null : cursor;
+    return function() {
+      var or__3462__auto__ = om.core._state[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core._state["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "ICursor.-state", cursor);
+        }
+      }
+    }().call(null, cursor);
+  }
+};
+om.core.IToCursor = function() {
+  var obj5644 = {};
+  return obj5644;
+}();
+om.core._to_cursor = function() {
+  var _to_cursor = null;
+  var _to_cursor__2 = function(value, state) {
+    if (function() {
+      var and__3450__auto__ = value;
+      if (and__3450__auto__) {
+        return value.om$core$IToCursor$_to_cursor$arity$2;
+      } else {
+        return and__3450__auto__;
+      }
+    }()) {
+      return value.om$core$IToCursor$_to_cursor$arity$2(value, state);
+    } else {
+      var x__4089__auto__ = value == null ? null : value;
+      return function() {
+        var or__3462__auto__ = om.core._to_cursor[goog.typeOf(x__4089__auto__)];
+        if (or__3462__auto__) {
+          return or__3462__auto__;
+        } else {
+          var or__3462__auto____$1 = om.core._to_cursor["_"];
+          if (or__3462__auto____$1) {
+            return or__3462__auto____$1;
+          } else {
+            throw cljs.core.missing_protocol.call(null, "IToCursor.-to-cursor", value);
+          }
+        }
+      }().call(null, value, state);
+    }
+  };
+  var _to_cursor__3 = function(value, state, path) {
+    if (function() {
+      var and__3450__auto__ = value;
+      if (and__3450__auto__) {
+        return value.om$core$IToCursor$_to_cursor$arity$3;
+      } else {
+        return and__3450__auto__;
+      }
+    }()) {
+      return value.om$core$IToCursor$_to_cursor$arity$3(value, state, path);
+    } else {
+      var x__4089__auto__ = value == null ? null : value;
+      return function() {
+        var or__3462__auto__ = om.core._to_cursor[goog.typeOf(x__4089__auto__)];
+        if (or__3462__auto__) {
+          return or__3462__auto__;
+        } else {
+          var or__3462__auto____$1 = om.core._to_cursor["_"];
+          if (or__3462__auto____$1) {
+            return or__3462__auto____$1;
+          } else {
+            throw cljs.core.missing_protocol.call(null, "IToCursor.-to-cursor", value);
+          }
+        }
+      }().call(null, value, state, path);
+    }
+  };
+  _to_cursor = function(value, state, path) {
+    switch(arguments.length) {
+      case 2:
+        return _to_cursor__2.call(this, value, state);
+      case 3:
+        return _to_cursor__3.call(this, value, state, path);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  _to_cursor.cljs$core$IFn$_invoke$arity$2 = _to_cursor__2;
+  _to_cursor.cljs$core$IFn$_invoke$arity$3 = _to_cursor__3;
+  return _to_cursor;
+}();
+om.core.path = function path(cursor) {
+  return om.core._path.call(null, cursor);
+};
+om.core.value = function value(cursor) {
+  return om.core._value.call(null, cursor);
+};
+om.core.state = function state(cursor) {
+  return om.core._state.call(null, cursor);
+};
+om.core.ITransact = function() {
+  var obj5646 = {};
+  return obj5646;
+}();
+om.core._transact_BANG_ = function _transact_BANG_(cursor, korks, f, tag) {
+  if (function() {
+    var and__3450__auto__ = cursor;
+    if (and__3450__auto__) {
+      return cursor.om$core$ITransact$_transact_BANG_$arity$4;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return cursor.om$core$ITransact$_transact_BANG_$arity$4(cursor, korks, f, tag);
+  } else {
+    var x__4089__auto__ = cursor == null ? null : cursor;
+    return function() {
+      var or__3462__auto__ = om.core._transact_BANG_[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core._transact_BANG_["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "ITransact.-transact!", cursor);
+        }
+      }
+    }().call(null, cursor, korks, f, tag);
+  }
+};
+om.core.INotify = function() {
+  var obj5648 = {};
+  return obj5648;
+}();
+om.core._notify = function _notify(x, tx_data, root_cursor) {
+  if (function() {
+    var and__3450__auto__ = x;
+    if (and__3450__auto__) {
+      return x.om$core$INotify$_notify$arity$3;
+    } else {
+      return and__3450__auto__;
+    }
+  }()) {
+    return x.om$core$INotify$_notify$arity$3(x, tx_data, root_cursor);
+  } else {
+    var x__4089__auto__ = x == null ? null : x;
+    return function() {
+      var or__3462__auto__ = om.core._notify[goog.typeOf(x__4089__auto__)];
+      if (or__3462__auto__) {
+        return or__3462__auto__;
+      } else {
+        var or__3462__auto____$1 = om.core._notify["_"];
+        if (or__3462__auto____$1) {
+          return or__3462__auto____$1;
+        } else {
+          throw cljs.core.missing_protocol.call(null, "INotify.-notify", x);
+        }
+      }
+    }().call(null, x, tx_data, root_cursor);
+  }
+};
+om.core.transact_STAR_ = function transact_STAR_(state, cursor, korks, f, tag) {
+  var old_state = cljs.core.deref.call(null, state);
+  var path = cljs.core.into.call(null, om.core.path.call(null, cursor), korks);
+  var ret = function() {
+    var G__5650 = state;
+    if (G__5650) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5650.om$core$IOmSwap$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5650.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IOmSwap, G__5650);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IOmSwap, G__5650);
+    }
+  }() ? om.core._om_swap_BANG_.call(null, state, cursor, korks, f, tag) : cljs.core.empty_QMARK_.call(null, path) ? cljs.core.swap_BANG_.call(null, state, f) : new cljs.core.Keyword(null, "else", "else", 1017020587) ? cljs.core.swap_BANG_.call(null, state, cljs.core.update_in, path, f) : null;
+  if (cljs.core._EQ_.call(null, ret, new cljs.core.Keyword("om.core", "defer", "om.core/defer", 3145885106))) {
+    return null;
+  } else {
+    var tx_data = new cljs.core.PersistentArrayMap(null, 5, [new cljs.core.Keyword(null, "path", "path", 1017337751), path, new cljs.core.Keyword(null, "old-value", "old-value", 1451216317), cljs.core.get_in.call(null, old_state, path), new cljs.core.Keyword(null, "new-value", "new-value", 3626601078), cljs.core.get_in.call(null, cljs.core.deref.call(null, state), path), new cljs.core.Keyword(null, "old-state", "old-state", 1449001181), old_state, new cljs.core.Keyword(null, "new-state", "new-state", 
+    3624385942), cljs.core.deref.call(null, state)], null);
+    if (!(tag == null)) {
+      return om.core.notify_STAR_.call(null, cursor, cljs.core.assoc.call(null, tx_data, new cljs.core.Keyword(null, "tag", "tag", 1014018828), tag));
+    } else {
+      return om.core.notify_STAR_.call(null, cursor, tx_data);
+    }
+  }
+};
+om.core.children = function children(node) {
+  var c = node.props.children;
+  if (cljs.core.fn_QMARK_.call(null, c)) {
+    return node.props.children = function() {
+      var _STAR_read_enabled_STAR_5652 = om.core._STAR_read_enabled_STAR_;
+      try {
+        om.core._STAR_read_enabled_STAR_ = true;
+        return c.call(null, node);
+      } finally {
+        om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5652;
+      }
+    }();
+  } else {
+    return c;
+  }
+};
+om.core.get_props = function get_props(x) {
+  return x.props["__om_cursor"];
+};
+om.core.get_state = function() {
+  var get_state = null;
+  var get_state__1 = function(owner) {
+    return om.core._get_state.call(null, owner);
+  };
+  var get_state__2 = function(owner, korks) {
+    var ks = cljs.core.sequential_QMARK_.call(null, korks) ? korks : new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [korks], null);
+    return om.core._get_state.call(null, owner, ks);
+  };
+  get_state = function(owner, korks) {
+    switch(arguments.length) {
+      case 1:
+        return get_state__1.call(this, owner);
+      case 2:
+        return get_state__2.call(this, owner, korks);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  get_state.cljs$core$IFn$_invoke$arity$1 = get_state__1;
+  get_state.cljs$core$IFn$_invoke$arity$2 = get_state__2;
+  return get_state;
+}();
+om.core.get_shared = function() {
+  var get_shared = null;
+  var get_shared__1 = function(owner) {
+    if (owner == null) {
+      return null;
+    } else {
+      return owner.props["__om_shared"];
+    }
+  };
+  var get_shared__2 = function(owner, korks) {
+    if (!cljs.core.sequential_QMARK_.call(null, korks)) {
+      return cljs.core.get.call(null, get_shared.call(null, owner), korks);
+    } else {
+      if (cljs.core.empty_QMARK_.call(null, korks)) {
+        return get_shared.call(null, owner);
+      } else {
+        if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+          return cljs.core.get_in.call(null, get_shared.call(null, owner), korks);
+        } else {
+          return null;
+        }
+      }
+    }
+  };
+  get_shared = function(owner, korks) {
+    switch(arguments.length) {
+      case 1:
+        return get_shared__1.call(this, owner);
+      case 2:
+        return get_shared__2.call(this, owner, korks);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  get_shared.cljs$core$IFn$_invoke$arity$1 = get_shared__1;
+  get_shared.cljs$core$IFn$_invoke$arity$2 = get_shared__2;
+  return get_shared;
+}();
+om.core.merge_pending_state = function merge_pending_state(owner) {
+  var state = owner.state;
+  var temp__4092__auto__ = state["__om_pending_state"];
+  if (cljs.core.truth_(temp__4092__auto__)) {
+    var pending_state = temp__4092__auto__;
+    var G__5654 = state;
+    G__5654["__om_prev_state"] = state["__om_state"];
+    G__5654["__om_state"] = pending_state;
+    G__5654["__om_pending_state"] = null;
+    return G__5654;
+  } else {
+    return null;
+  }
+};
+om.core.merge_props_state = function() {
+  var merge_props_state = null;
+  var merge_props_state__1 = function(owner) {
+    return merge_props_state.call(null, owner, null);
+  };
+  var merge_props_state__2 = function(owner, props) {
+    var props__$1 = function() {
+      var or__3462__auto__ = props;
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return owner.props;
+      }
+    }();
+    var temp__4092__auto__ = props__$1["__om_state"];
+    if (cljs.core.truth_(temp__4092__auto__)) {
+      var props_state = temp__4092__auto__;
+      var state = owner.state;
+      state["__om_pending_state"] = cljs.core.merge.call(null, function() {
+        var or__3462__auto__ = state["__om_pending_state"];
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return state["__om_state"];
+        }
+      }(), props_state);
+      return props__$1["__om_state"] = null;
+    } else {
+      return null;
+    }
+  };
+  merge_props_state = function(owner, props) {
+    switch(arguments.length) {
+      case 1:
+        return merge_props_state__1.call(this, owner);
+      case 2:
+        return merge_props_state__2.call(this, owner, props);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  merge_props_state.cljs$core$IFn$_invoke$arity$1 = merge_props_state__1;
+  merge_props_state.cljs$core$IFn$_invoke$arity$2 = merge_props_state__2;
+  return merge_props_state;
+}();
+om.core.pure_methods = cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null, "componentWillUpdate", "componentWillUpdate", 2086388618), new cljs.core.Keyword(null, "componentDidUpdate", "componentDidUpdate", 4103164189), new cljs.core.Keyword(null, "render", "render", 4374279432), new cljs.core.Keyword(null, "componentWillReceiveProps", "componentWillReceiveProps", 2122862542), new cljs.core.Keyword(null, "getDisplayName", "getDisplayName", 2087784617), new cljs.core.Keyword(null, "componentWillUnmount", 
+"componentWillUnmount", 4147620643), new cljs.core.Keyword(null, "componentWillMount", "componentWillMount", 3257856604), new cljs.core.Keyword(null, "componentDidMount", "componentDidMount", 3877103209), new cljs.core.Keyword(null, "getInitialState", "getInitialState", 2219830677), new cljs.core.Keyword(null, "shouldComponentUpdate", "shouldComponentUpdate", 3193956709)], [function(next_props, next_state) {
+  var this$ = this;
+  var c_5680 = om.core.children.call(null, this$);
+  if (function() {
+    var G__5655 = c_5680;
+    if (G__5655) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5655.om$core$IWillUpdate$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5655.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IWillUpdate, G__5655);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IWillUpdate, G__5655);
+    }
+  }()) {
+    var state_5681 = this$.state;
+    var _STAR_read_enabled_STAR_5656_5682 = om.core._STAR_read_enabled_STAR_;
+    try {
+      om.core._STAR_read_enabled_STAR_ = true;
+      om.core.will_update.call(null, c_5680, om.core.get_props.call(null, {"props":next_props}), om.core._get_state.call(null, this$));
+    } finally {
+      om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5656_5682;
+    }
+  } else {
+  }
+  return om.core.merge_pending_state.call(null, this$);
+}, function(prev_props, prev_state) {
+  var this$ = this;
+  var c = om.core.children.call(null, this$);
+  if (function() {
+    var G__5657 = c;
+    if (G__5657) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5657.om$core$IDidUpdate$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5657.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IDidUpdate, G__5657);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IDidUpdate, G__5657);
+    }
+  }()) {
+    var state_5683 = this$.state;
+    var _STAR_read_enabled_STAR_5658_5684 = om.core._STAR_read_enabled_STAR_;
+    try {
+      om.core._STAR_read_enabled_STAR_ = true;
+      om.core.did_update.call(null, c, om.core.get_props.call(null, {"props":prev_props}), function() {
+        var or__3462__auto__ = state_5683["__om_prev_state"];
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return state_5683["__om_state"];
+        }
+      }());
+    } finally {
+      om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5658_5684;
+    }
+  } else {
+  }
+  return this$.state["__om_prev_state"] = null;
+}, function() {
+  var this$ = this;
+  var c = om.core.children.call(null, this$);
+  var props = this$.props;
+  var _STAR_read_enabled_STAR_5659 = om.core._STAR_read_enabled_STAR_;
+  try {
+    om.core._STAR_read_enabled_STAR_ = true;
+    if (function() {
+      var G__5660 = c;
+      if (G__5660) {
+        var bit__4112__auto__ = null;
+        if (cljs.core.truth_(function() {
+          var or__3462__auto__ = bit__4112__auto__;
+          if (cljs.core.truth_(or__3462__auto__)) {
+            return or__3462__auto__;
+          } else {
+            return G__5660.om$core$IRender$;
+          }
+        }())) {
+          return true;
+        } else {
+          if (!G__5660.cljs$lang$protocol_mask$partition$) {
+            return cljs.core.native_satisfies_QMARK_.call(null, om.core.IRender, G__5660);
+          } else {
+            return false;
+          }
+        }
+      } else {
+        return cljs.core.native_satisfies_QMARK_.call(null, om.core.IRender, G__5660);
+      }
+    }()) {
+      var _STAR_parent_STAR_5661 = om.core._STAR_parent_STAR_;
+      var _STAR_instrument_STAR_5662 = om.core._STAR_instrument_STAR_;
+      try {
+        om.core._STAR_parent_STAR_ = this$;
+        om.core._STAR_instrument_STAR_ = props["__om_instrument"];
+        return om.core.render.call(null, c);
+      } finally {
+        om.core._STAR_instrument_STAR_ = _STAR_instrument_STAR_5662;
+        om.core._STAR_parent_STAR_ = _STAR_parent_STAR_5661;
+      }
+    } else {
+      if (function() {
+        var G__5663 = c;
+        if (G__5663) {
+          var bit__4112__auto__ = null;
+          if (cljs.core.truth_(function() {
+            var or__3462__auto__ = bit__4112__auto__;
+            if (cljs.core.truth_(or__3462__auto__)) {
+              return or__3462__auto__;
+            } else {
+              return G__5663.om$core$IRenderState$;
+            }
+          }())) {
+            return true;
+          } else {
+            if (!G__5663.cljs$lang$protocol_mask$partition$) {
+              return cljs.core.native_satisfies_QMARK_.call(null, om.core.IRenderState, G__5663);
+            } else {
+              return false;
+            }
+          }
+        } else {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IRenderState, G__5663);
+        }
+      }()) {
+        var _STAR_parent_STAR_5664 = om.core._STAR_parent_STAR_;
+        var _STAR_instrument_STAR_5665 = om.core._STAR_instrument_STAR_;
+        try {
+          om.core._STAR_parent_STAR_ = this$;
+          om.core._STAR_instrument_STAR_ = props["__om_instrument"];
+          return om.core.render_state.call(null, c, om.core.get_state.call(null, this$));
+        } finally {
+          om.core._STAR_instrument_STAR_ = _STAR_instrument_STAR_5665;
+          om.core._STAR_parent_STAR_ = _STAR_parent_STAR_5664;
+        }
+      } else {
+        if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+          return c;
+        } else {
+          return null;
+        }
+      }
+    }
+  } finally {
+    om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5659;
+  }
+}, function(next_props) {
+  var this$ = this;
+  var c = om.core.children.call(null, this$);
+  if (function() {
+    var G__5666 = c;
+    if (G__5666) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5666.om$core$IWillReceiveProps$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5666.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IWillReceiveProps, G__5666);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IWillReceiveProps, G__5666);
+    }
+  }()) {
+    var _STAR_read_enabled_STAR_5667 = om.core._STAR_read_enabled_STAR_;
+    try {
+      om.core._STAR_read_enabled_STAR_ = true;
+      return om.core.will_receive_props.call(null, c, om.core.get_props.call(null, {"props":next_props}));
+    } finally {
+      om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5667;
+    }
+  } else {
+    return null;
+  }
+}, function() {
+  var this$ = this;
+  var c = om.core.children.call(null, this$);
+  if (function() {
+    var G__5668 = c;
+    if (G__5668) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5668.om$core$IDisplayName$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5668.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IDisplayName, G__5668);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IDisplayName, G__5668);
+    }
+  }()) {
+    var _STAR_read_enabled_STAR_5669 = om.core._STAR_read_enabled_STAR_;
+    try {
+      om.core._STAR_read_enabled_STAR_ = true;
+      return om.core.display_name.call(null, c);
+    } finally {
+      om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5669;
+    }
+  } else {
+    return null;
+  }
+}, function() {
+  var this$ = this;
+  var c = om.core.children.call(null, this$);
+  if (function() {
+    var G__5670 = c;
+    if (G__5670) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5670.om$core$IWillUnmount$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5670.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IWillUnmount, G__5670);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IWillUnmount, G__5670);
+    }
+  }()) {
+    var _STAR_read_enabled_STAR_5671 = om.core._STAR_read_enabled_STAR_;
+    try {
+      om.core._STAR_read_enabled_STAR_ = true;
+      return om.core.will_unmount.call(null, c);
+    } finally {
+      om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5671;
+    }
+  } else {
+    return null;
+  }
+}, function() {
+  var this$ = this;
+  om.core.merge_props_state.call(null, this$);
+  var c_5685 = om.core.children.call(null, this$);
+  if (function() {
+    var G__5672 = c_5685;
+    if (G__5672) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5672.om$core$IWillMount$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5672.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IWillMount, G__5672);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IWillMount, G__5672);
+    }
+  }()) {
+    var _STAR_read_enabled_STAR_5673_5686 = om.core._STAR_read_enabled_STAR_;
+    try {
+      om.core._STAR_read_enabled_STAR_ = true;
+      om.core.will_mount.call(null, c_5685);
+    } finally {
+      om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5673_5686;
+    }
+  } else {
+  }
+  return om.core.merge_pending_state.call(null, this$);
+}, function() {
+  var this$ = this;
+  var c = om.core.children.call(null, this$);
+  if (function() {
+    var G__5674 = c;
+    if (G__5674) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5674.om$core$IDidMount$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5674.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IDidMount, G__5674);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IDidMount, G__5674);
+    }
+  }()) {
+    var _STAR_read_enabled_STAR_5675 = om.core._STAR_read_enabled_STAR_;
+    try {
+      om.core._STAR_read_enabled_STAR_ = true;
+      return om.core.did_mount.call(null, c);
+    } finally {
+      om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5675;
+    }
+  } else {
+    return null;
+  }
+}, function() {
+  var this$ = this;
+  var c = om.core.children.call(null, this$);
+  var props = this$.props;
+  var istate = function() {
+    var or__3462__auto__ = props["__om_init_state"];
+    if (cljs.core.truth_(or__3462__auto__)) {
+      return or__3462__auto__;
+    } else {
+      return cljs.core.PersistentArrayMap.EMPTY;
+    }
+  }();
+  var id = (new cljs.core.Keyword("om.core", "id", "om.core/id", 2663181321)).cljs$core$IFn$_invoke$arity$1(istate);
+  var ret = {"__om_state":cljs.core.merge.call(null, cljs.core.dissoc.call(null, istate, new cljs.core.Keyword("om.core", "id", "om.core/id", 2663181321)), function() {
+    var G__5676 = c;
+    if (G__5676) {
+      var bit__4112__auto__ = null;
+      if (cljs.core.truth_(function() {
+        var or__3462__auto__ = bit__4112__auto__;
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return G__5676.om$core$IInitState$;
+        }
+      }())) {
+        return true;
+      } else {
+        if (!G__5676.cljs$lang$protocol_mask$partition$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IInitState, G__5676);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, om.core.IInitState, G__5676);
+    }
+  }() ? function() {
+    var _STAR_read_enabled_STAR_5677 = om.core._STAR_read_enabled_STAR_;
+    try {
+      om.core._STAR_read_enabled_STAR_ = true;
+      return om.core.init_state.call(null, c);
+    } finally {
+      om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5677;
+    }
+  }() : null), "__om_id":function() {
+    var or__3462__auto__ = id;
+    if (cljs.core.truth_(or__3462__auto__)) {
+      return or__3462__auto__;
+    } else {
+      return goog.ui.IdGenerator.getInstance().getNextUniqueId();
+    }
+  }()};
+  props["__om_init_state"] = null;
+  return ret;
+}, function(next_props, next_state) {
+  var this$ = this;
+  var _STAR_read_enabled_STAR_5678 = om.core._STAR_read_enabled_STAR_;
+  try {
+    om.core._STAR_read_enabled_STAR_ = true;
+    var props = this$.props;
+    var state = this$.state;
+    var c = om.core.children.call(null, this$);
+    om.core.merge_props_state.call(null, this$, next_props);
+    if (function() {
+      var G__5679 = c;
+      if (G__5679) {
+        var bit__4112__auto__ = null;
+        if (cljs.core.truth_(function() {
+          var or__3462__auto__ = bit__4112__auto__;
+          if (cljs.core.truth_(or__3462__auto__)) {
+            return or__3462__auto__;
+          } else {
+            return G__5679.om$core$IShouldUpdate$;
+          }
+        }())) {
+          return true;
+        } else {
+          if (!G__5679.cljs$lang$protocol_mask$partition$) {
+            return cljs.core.native_satisfies_QMARK_.call(null, om.core.IShouldUpdate, G__5679);
+          } else {
+            return false;
+          }
+        }
+      } else {
+        return cljs.core.native_satisfies_QMARK_.call(null, om.core.IShouldUpdate, G__5679);
+      }
+    }()) {
+      return om.core.should_update.call(null, c, om.core.get_props.call(null, {"props":next_props}), om.core._get_state.call(null, this$));
+    } else {
+      if (!(om.core._value.call(null, props["__om_cursor"]) === om.core._value.call(null, next_props["__om_cursor"]))) {
+        return true;
+      } else {
+        if (!(state["__om_pending_state"] == null)) {
+          return true;
+        } else {
+          if (!(props["__om_index"] === next_props["__om_index"])) {
+            return true;
+          } else {
+            if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+              return false;
+            } else {
+              return null;
+            }
+          }
+        }
+      }
+    }
+  } finally {
+    om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5678;
+  }
+}]);
+om.core.specify_state_methods_BANG_ = function specify_state_methods_BANG_(obj) {
+  var x5690 = obj;
+  x5690.om$core$IGetState$ = true;
+  x5690.om$core$IGetState$_get_state$arity$1 = function(x5690) {
+    return function(this$) {
+      var this$__$1 = this;
+      var state = this$__$1.state;
+      var or__3462__auto__ = state["__om_pending_state"];
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return state["__om_state"];
+      }
+    };
+  }(x5690);
+  x5690.om$core$IGetState$_get_state$arity$2 = function(x5690) {
+    return function(this$, ks) {
+      var this$__$1 = this;
+      return cljs.core.get_in.call(null, om.core._get_state.call(null, this$__$1), ks);
+    };
+  }(x5690);
+  x5690.om$core$IGetRenderState$ = true;
+  x5690.om$core$IGetRenderState$_get_render_state$arity$1 = function(x5690) {
+    return function(this$) {
+      var this$__$1 = this;
+      return this$__$1.state["__om_state"];
+    };
+  }(x5690);
+  x5690.om$core$IGetRenderState$_get_render_state$arity$2 = function(x5690) {
+    return function(this$, ks) {
+      var this$__$1 = this;
+      return cljs.core.get_in.call(null, om.core._get_render_state.call(null, this$__$1), ks);
+    };
+  }(x5690);
+  x5690.om$core$ISetState$ = true;
+  x5690.om$core$ISetState$_set_state_BANG_$arity$2 = function(x5690) {
+    return function(this$, val) {
+      var this$__$1 = this;
+      var _STAR_read_enabled_STAR_5691 = om.core._STAR_read_enabled_STAR_;
+      try {
+        om.core._STAR_read_enabled_STAR_ = true;
+        var cursor = this$__$1.props["__om_cursor"];
+        var path = om.core._path.call(null, cursor);
+        this$__$1.state["__om_pending_state"] = val;
+        if (cljs.core.empty_QMARK_.call(null, path)) {
+          return cljs.core.swap_BANG_.call(null, om.core._state.call(null, cursor), cljs.core.clone);
+        } else {
+          return cljs.core.swap_BANG_.call(null, om.core._state.call(null, cursor), cljs.core.update_in, path, cljs.core.clone);
+        }
+      } finally {
+        om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5691;
+      }
+    };
+  }(x5690);
+  x5690.om$core$ISetState$_set_state_BANG_$arity$3 = function(x5690) {
+    return function(this$, ks, val) {
+      var this$__$1 = this;
+      var _STAR_read_enabled_STAR_5692 = om.core._STAR_read_enabled_STAR_;
+      try {
+        om.core._STAR_read_enabled_STAR_ = true;
+        var props = this$__$1.props;
+        var state = this$__$1.state;
+        var cursor = props["__om_cursor"];
+        var path = om.core._path.call(null, cursor);
+        var pstate = om.core._get_state.call(null, this$__$1);
+        state["__om_pending_state"] = cljs.core.assoc_in.call(null, pstate, ks, val);
+        if (cljs.core.empty_QMARK_.call(null, path)) {
+          return cljs.core.swap_BANG_.call(null, om.core._state.call(null, cursor), cljs.core.clone);
+        } else {
+          return cljs.core.swap_BANG_.call(null, om.core._state.call(null, cursor), cljs.core.update_in, path, cljs.core.clone);
+        }
+      } finally {
+        om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5692;
+      }
+    };
+  }(x5690);
+  return x5690;
+};
+om.core.Pure = React.createClass(om.core.specify_state_methods_BANG_.call(null, cljs.core.clj__GT_js.call(null, om.core.pure_methods)));
+om.core.pure = function pure(obj) {
+  return new om.core.Pure(obj);
+};
+om.core.cursor_QMARK_ = function cursor_QMARK_(x) {
+  var G__5694 = x;
+  if (G__5694) {
+    var bit__4112__auto__ = null;
+    if (cljs.core.truth_(function() {
+      var or__3462__auto__ = bit__4112__auto__;
+      if (cljs.core.truth_(or__3462__auto__)) {
+        return or__3462__auto__;
+      } else {
+        return G__5694.om$core$ICursor$;
+      }
+    }())) {
+      return true;
+    } else {
+      if (!G__5694.cljs$lang$protocol_mask$partition$) {
+        return cljs.core.native_satisfies_QMARK_.call(null, om.core.ICursor, G__5694);
+      } else {
+        return false;
+      }
+    }
+  } else {
+    return cljs.core.native_satisfies_QMARK_.call(null, om.core.ICursor, G__5694);
+  }
+};
+om.core.MapCursor = function(value, state, path) {
+  this.value = value;
+  this.state = state;
+  this.path = path;
+  this.cljs$lang$protocol_mask$partition0$ = 2158397195;
+  this.cljs$lang$protocol_mask$partition1$ = 8192;
+};
+om.core.MapCursor.cljs$lang$type = true;
+om.core.MapCursor.cljs$lang$ctorStr = "om.core/MapCursor";
+om.core.MapCursor.cljs$lang$ctorPrWriter = function(this__4029__auto__, writer__4030__auto__, opt__4031__auto__) {
+  return cljs.core._write.call(null, writer__4030__auto__, "om.core/MapCursor");
+};
+om.core.MapCursor.prototype.cljs$core$ILookup$_lookup$arity$2 = function(this$, k) {
+  var self__ = this;
+  var this$__$1 = this;
+  return cljs.core._lookup.call(null, this$__$1, k, null);
+};
+om.core.MapCursor.prototype.cljs$core$ILookup$_lookup$arity$3 = function(_, k, not_found) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    var v = cljs.core._lookup.call(null, self__.value, k, not_found);
+    if (!cljs.core._EQ_.call(null, v, not_found)) {
+      return om.core.to_cursor.call(null, v, self__.state, cljs.core.conj.call(null, self__.path, k));
+    } else {
+      return not_found;
+    }
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$IAssociative$_contains_key_QMARK_$arity$2 = function(_, k) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core._contains_key_QMARK_.call(null, self__.value, k);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$IAssociative$_assoc$arity$3 = function(_, k, v) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return new om.core.MapCursor(cljs.core._assoc.call(null, self__.value, k, v), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.call = function() {
+  var G__5698 = null;
+  var G__5698__2 = function(self__, k) {
+    var self__ = this;
+    var self____$1 = this;
+    var this$ = self____$1;
+    return this$.cljs$core$ILookup$_lookup$arity$2(null, k);
+  };
+  var G__5698__3 = function(self__, k, not_found) {
+    var self__ = this;
+    var self____$1 = this;
+    var this$ = self____$1;
+    return this$.cljs$core$ILookup$_lookup$arity$3(null, k, not_found);
+  };
+  G__5698 = function(self__, k, not_found) {
+    switch(arguments.length) {
+      case 2:
+        return G__5698__2.call(this, self__, k);
+      case 3:
+        return G__5698__3.call(this, self__, k, not_found);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  return G__5698;
+}();
+om.core.MapCursor.prototype.apply = function(self__, args5695) {
+  var self__ = this;
+  var self____$1 = this;
+  return self____$1.call.apply(self____$1, [self____$1].concat(cljs.core.aclone.call(null, args5695)));
+};
+om.core.MapCursor.prototype.cljs$core$IFn$_invoke$arity$1 = function(k) {
+  var self__ = this;
+  var this$ = this;
+  return this$.cljs$core$ILookup$_lookup$arity$2(null, k);
+};
+om.core.MapCursor.prototype.cljs$core$IFn$_invoke$arity$2 = function(k, not_found) {
+  var self__ = this;
+  var this$ = this;
+  return this$.cljs$core$ILookup$_lookup$arity$3(null, k, not_found);
+};
+om.core.MapCursor.prototype.om$core$ICursor$ = true;
+om.core.MapCursor.prototype.om$core$ICursor$_path$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  return self__.path;
+};
+om.core.MapCursor.prototype.om$core$ICursor$_state$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  return self__.state;
+};
+om.core.MapCursor.prototype.cljs$core$IDeref$_deref$arity$1 = function(this$) {
+  var self__ = this;
+  var this$__$1 = this;
+  if (!om.core._STAR_read_enabled_STAR_) {
+    return cljs.core.get_in.call(null, cljs.core.deref.call(null, self__.state), self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot deref cursor during render phase: "), cljs.core.str(this$__$1)].join(""));
+  }
+};
+om.core.MapCursor.prototype.om$core$IValue$ = true;
+om.core.MapCursor.prototype.om$core$IValue$_value$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  return self__.value;
+};
+om.core.MapCursor.prototype.cljs$core$IPrintWithWriter$_pr_writer$arity$3 = function(_, writer, opts) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core._pr_writer.call(null, self__.value, writer, opts);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$ICollection$_conj$arity$2 = function(_, o) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return new om.core.MapCursor(cljs.core._conj.call(null, self__.value, o), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$ISeqable$_seq$arity$1 = function(this$) {
+  var self__ = this;
+  var this$__$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    if (cljs.core.count.call(null, self__.value) > 0) {
+      return cljs.core.map.call(null, function(this$__$1) {
+        return function(p__5696) {
+          var vec__5697 = p__5696;
+          var k = cljs.core.nth.call(null, vec__5697, 0, null);
+          var v = cljs.core.nth.call(null, vec__5697, 1, null);
+          return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [k, om.core.to_cursor.call(null, v, self__.state, cljs.core.conj.call(null, self__.path, k))], null);
+        };
+      }(this$__$1), self__.value);
+    } else {
+      return null;
+    }
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$ICounted$_count$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core._count.call(null, self__.value);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$IEquiv$_equiv$arity$2 = function(_, other) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    if (om.core.cursor_QMARK_.call(null, other)) {
+      return cljs.core._EQ_.call(null, self__.value, om.core._value.call(null, other));
+    } else {
+      return cljs.core._EQ_.call(null, self__.value, other);
+    }
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = function(_, new_meta) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return new om.core.MapCursor(cljs.core.with_meta.call(null, self__.value, new_meta), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$ICloneable$_clone$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  return new om.core.MapCursor(self__.value, self__.state, self__.path);
+};
+om.core.MapCursor.prototype.cljs$core$IMeta$_meta$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core.meta.call(null, self__.value);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.cljs$core$IMap$_dissoc$arity$2 = function(_, k) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return new om.core.MapCursor(cljs.core._dissoc.call(null, self__.value, k), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.MapCursor.prototype.om$core$ITransact$ = true;
+om.core.MapCursor.prototype.om$core$ITransact$_transact_BANG_$arity$4 = function(this$, korks, f, tag) {
+  var self__ = this;
+  var this$__$1 = this;
+  return om.core.transact_STAR_.call(null, self__.state, this$__$1, korks, f, tag);
+};
+om.core.__GT_MapCursor = function __GT_MapCursor(value, state, path) {
+  return new om.core.MapCursor(value, state, path);
+};
+om.core.IndexedCursor = function(value, state, path) {
+  this.value = value;
+  this.state = state;
+  this.path = path;
+  this.cljs$lang$protocol_mask$partition0$ = 2175181595;
+  this.cljs$lang$protocol_mask$partition1$ = 8192;
+};
+om.core.IndexedCursor.cljs$lang$type = true;
+om.core.IndexedCursor.cljs$lang$ctorStr = "om.core/IndexedCursor";
+om.core.IndexedCursor.cljs$lang$ctorPrWriter = function(this__4029__auto__, writer__4030__auto__, opt__4031__auto__) {
+  return cljs.core._write.call(null, writer__4030__auto__, "om.core/IndexedCursor");
+};
+om.core.IndexedCursor.prototype.cljs$core$ILookup$_lookup$arity$2 = function(this$, n) {
+  var self__ = this;
+  var this$__$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core._nth.call(null, this$__$1, n, null);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$ILookup$_lookup$arity$3 = function(this$, n, not_found) {
+  var self__ = this;
+  var this$__$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core._nth.call(null, this$__$1, n, not_found);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$IAssociative$_contains_key_QMARK_$arity$2 = function(_, k) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core._contains_key_QMARK_.call(null, self__.value, k);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$IAssociative$_assoc$arity$3 = function(_, n, v) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return om.core.to_cursor.call(null, cljs.core._assoc_n.call(null, self__.value, n, v), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.call = function() {
+  var G__5700 = null;
+  var G__5700__2 = function(self__, k) {
+    var self__ = this;
+    var self____$1 = this;
+    var this$ = self____$1;
+    return this$.cljs$core$ILookup$_lookup$arity$2(null, k);
+  };
+  var G__5700__3 = function(self__, k, not_found) {
+    var self__ = this;
+    var self____$1 = this;
+    var this$ = self____$1;
+    return this$.cljs$core$ILookup$_lookup$arity$3(null, k, not_found);
+  };
+  G__5700 = function(self__, k, not_found) {
+    switch(arguments.length) {
+      case 2:
+        return G__5700__2.call(this, self__, k);
+      case 3:
+        return G__5700__3.call(this, self__, k, not_found);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  return G__5700;
+}();
+om.core.IndexedCursor.prototype.apply = function(self__, args5699) {
+  var self__ = this;
+  var self____$1 = this;
+  return self____$1.call.apply(self____$1, [self____$1].concat(cljs.core.aclone.call(null, args5699)));
+};
+om.core.IndexedCursor.prototype.cljs$core$IFn$_invoke$arity$1 = function(k) {
+  var self__ = this;
+  var this$ = this;
+  return this$.cljs$core$ILookup$_lookup$arity$2(null, k);
+};
+om.core.IndexedCursor.prototype.cljs$core$IFn$_invoke$arity$2 = function(k, not_found) {
+  var self__ = this;
+  var this$ = this;
+  return this$.cljs$core$ILookup$_lookup$arity$3(null, k, not_found);
+};
+om.core.IndexedCursor.prototype.om$core$ICursor$ = true;
+om.core.IndexedCursor.prototype.om$core$ICursor$_path$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  return self__.path;
+};
+om.core.IndexedCursor.prototype.om$core$ICursor$_state$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  return self__.state;
+};
+om.core.IndexedCursor.prototype.cljs$core$IDeref$_deref$arity$1 = function(this$) {
+  var self__ = this;
+  var this$__$1 = this;
+  if (!om.core._STAR_read_enabled_STAR_) {
+    return cljs.core.get_in.call(null, cljs.core.deref.call(null, self__.state), self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot deref cursor during render phase: "), cljs.core.str(this$__$1)].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.om$core$IValue$ = true;
+om.core.IndexedCursor.prototype.om$core$IValue$_value$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  return self__.value;
+};
+om.core.IndexedCursor.prototype.cljs$core$IPrintWithWriter$_pr_writer$arity$3 = function(_, writer, opts) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core._pr_writer.call(null, self__.value, writer, opts);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$ICollection$_conj$arity$2 = function(_, o) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return new om.core.IndexedCursor(cljs.core._conj.call(null, self__.value, o), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$ISeqable$_seq$arity$1 = function(this$) {
+  var self__ = this;
+  var this$__$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    if (cljs.core.count.call(null, self__.value) > 0) {
+      return cljs.core.map.call(null, function(this$__$1) {
+        return function(v, i) {
+          return om.core.to_cursor.call(null, v, self__.state, cljs.core.conj.call(null, self__.path, i));
+        };
+      }(this$__$1), self__.value, cljs.core.range.call(null));
+    } else {
+      return null;
+    }
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$ICounted$_count$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core._count.call(null, self__.value);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$IStack$_peek$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return om.core.to_cursor.call(null, cljs.core._peek.call(null, self__.value), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$IStack$_pop$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return om.core.to_cursor.call(null, cljs.core._pop.call(null, self__.value), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$IEquiv$_equiv$arity$2 = function(_, other) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    if (om.core.cursor_QMARK_.call(null, other)) {
+      return cljs.core._EQ_.call(null, self__.value, om.core._value.call(null, other));
+    } else {
+      return cljs.core._EQ_.call(null, self__.value, other);
+    }
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = function(_, new_meta) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return new om.core.IndexedCursor(cljs.core.with_meta.call(null, self__.value, new_meta), self__.state, self__.path);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$ICloneable$_clone$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  return new om.core.IndexedCursor(self__.value, self__.state, self__.path);
+};
+om.core.IndexedCursor.prototype.cljs$core$IMeta$_meta$arity$1 = function(_) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return cljs.core.meta.call(null, self__.value);
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$IIndexed$_nth$arity$2 = function(_, n) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    return om.core.to_cursor.call(null, cljs.core._nth.call(null, self__.value, n), self__.state, cljs.core.conj.call(null, self__.path, n));
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.cljs$core$IIndexed$_nth$arity$3 = function(_, n, not_found) {
+  var self__ = this;
+  var ___$1 = this;
+  if (om.core._STAR_read_enabled_STAR_) {
+    if (n < cljs.core._count.call(null, self__.value)) {
+      return om.core.to_cursor.call(null, cljs.core._nth.call(null, self__.value, n), self__.state, cljs.core.conj.call(null, self__.path, n));
+    } else {
+      return not_found;
+    }
+  } else {
+    throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+  }
+};
+om.core.IndexedCursor.prototype.om$core$ITransact$ = true;
+om.core.IndexedCursor.prototype.om$core$ITransact$_transact_BANG_$arity$4 = function(this$, korks, f, tag) {
+  var self__ = this;
+  var this$__$1 = this;
+  return om.core.transact_STAR_.call(null, self__.state, this$__$1, korks, f, tag);
+};
+om.core.__GT_IndexedCursor = function __GT_IndexedCursor(value, state, path) {
+  return new om.core.IndexedCursor(value, state, path);
+};
+om.core.to_cursor_STAR_ = function to_cursor_STAR_(val, state, path) {
+  var x5702 = cljs.core.clone.call(null, val);
+  x5702.cljs$core$IEquiv$ = true;
+  x5702.cljs$core$IEquiv$_equiv$arity$2 = function(x5702) {
+    return function(_, other) {
+      var ___$1 = this;
+      if (om.core._STAR_read_enabled_STAR_) {
+        if (om.core.cursor_QMARK_.call(null, other)) {
+          return cljs.core._EQ_.call(null, val, om.core._value.call(null, other));
+        } else {
+          return cljs.core._EQ_.call(null, val, other);
+        }
+      } else {
+        throw new Error([cljs.core.str("Cannot manipulate cursor outside of render phase, only "), cljs.core.str("om.core/transact!, om.core/update!, and cljs.core/deref operations allowed")].join(""));
+      }
+    };
+  }(x5702);
+  x5702.om$core$ITransact$ = true;
+  x5702.om$core$ITransact$_transact_BANG_$arity$4 = function(x5702) {
+    return function(this$, korks, f, tag) {
+      var this$__$1 = this;
+      return om.core.transact_STAR_.call(null, state, this$__$1, korks, f, tag);
+    };
+  }(x5702);
+  x5702.om$core$ICursor$ = true;
+  x5702.om$core$ICursor$_path$arity$1 = function(x5702) {
+    return function(_) {
+      var ___$1 = this;
+      return path;
+    };
+  }(x5702);
+  x5702.om$core$ICursor$_state$arity$1 = function(x5702) {
+    return function(_) {
+      var ___$1 = this;
+      return state;
+    };
+  }(x5702);
+  x5702.cljs$core$IDeref$ = true;
+  x5702.cljs$core$IDeref$_deref$arity$1 = function(x5702) {
+    return function(this$) {
+      var this$__$1 = this;
+      if (!om.core._STAR_read_enabled_STAR_) {
+        return cljs.core.get_in.call(null, cljs.core.deref.call(null, state), path);
+      } else {
+        throw new Error([cljs.core.str("Cannot deref cursor during render phase: "), cljs.core.str(this$__$1)].join(""));
+      }
+    };
+  }(x5702);
+  return x5702;
+};
+om.core.to_cursor = function() {
+  var to_cursor = null;
+  var to_cursor__1 = function(val) {
+    return to_cursor.call(null, val, null, cljs.core.PersistentVector.EMPTY);
+  };
+  var to_cursor__2 = function(val, state) {
+    return to_cursor.call(null, val, state, cljs.core.PersistentVector.EMPTY);
+  };
+  var to_cursor__3 = function(val, state, path) {
+    if (om.core.cursor_QMARK_.call(null, val)) {
+      return val;
+    } else {
+      if (function() {
+        var G__5705 = val;
+        if (G__5705) {
+          var bit__4112__auto__ = null;
+          if (cljs.core.truth_(function() {
+            var or__3462__auto__ = bit__4112__auto__;
+            if (cljs.core.truth_(or__3462__auto__)) {
+              return or__3462__auto__;
+            } else {
+              return G__5705.om$core$IToCursor$;
+            }
+          }())) {
+            return true;
+          } else {
+            if (!G__5705.cljs$lang$protocol_mask$partition$) {
+              return cljs.core.native_satisfies_QMARK_.call(null, om.core.IToCursor, G__5705);
+            } else {
+              return false;
+            }
+          }
+        } else {
+          return cljs.core.native_satisfies_QMARK_.call(null, om.core.IToCursor, G__5705);
+        }
+      }()) {
+        return om.core._to_cursor.call(null, val, state, path);
+      } else {
+        if (cljs.core.indexed_QMARK_.call(null, val)) {
+          return new om.core.IndexedCursor(val, state, path);
+        } else {
+          if (cljs.core.map_QMARK_.call(null, val)) {
+            return new om.core.MapCursor(val, state, path);
+          } else {
+            if (function() {
+              var G__5706 = val;
+              if (G__5706) {
+                var bit__4112__auto__ = G__5706.cljs$lang$protocol_mask$partition1$ & 8192;
+                if (bit__4112__auto__ || G__5706.cljs$core$ICloneable$) {
+                  return true;
+                } else {
+                  if (!G__5706.cljs$lang$protocol_mask$partition1$) {
+                    return cljs.core.native_satisfies_QMARK_.call(null, cljs.core.ICloneable, G__5706);
+                  } else {
+                    return false;
+                  }
+                }
+              } else {
+                return cljs.core.native_satisfies_QMARK_.call(null, cljs.core.ICloneable, G__5706);
+              }
+            }()) {
+              return om.core.to_cursor_STAR_.call(null, val, state, path);
+            } else {
+              if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+                return val;
+              } else {
+                return null;
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+  to_cursor = function(val, state, path) {
+    switch(arguments.length) {
+      case 1:
+        return to_cursor__1.call(this, val);
+      case 2:
+        return to_cursor__2.call(this, val, state);
+      case 3:
+        return to_cursor__3.call(this, val, state, path);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  to_cursor.cljs$core$IFn$_invoke$arity$1 = to_cursor__1;
+  to_cursor.cljs$core$IFn$_invoke$arity$2 = to_cursor__2;
+  to_cursor.cljs$core$IFn$_invoke$arity$3 = to_cursor__3;
+  return to_cursor;
+}();
+om.core.notify_STAR_ = function notify_STAR_(cursor, tx_data) {
+  var state = om.core._state.call(null, cursor);
+  return om.core._notify.call(null, state, tx_data, om.core.to_cursor.call(null, cljs.core.deref.call(null, state), state));
+};
+om.core.refresh_queued = false;
+om.core.refresh_set = cljs.core.atom.call(null, cljs.core.PersistentHashSet.EMPTY);
+om.core.render_all = function render_all() {
+  om.core.refresh_queued = false;
+  var seq__5711 = cljs.core.seq.call(null, cljs.core.deref.call(null, om.core.refresh_set));
+  var chunk__5712 = null;
+  var count__5713 = 0;
+  var i__5714 = 0;
+  while (true) {
+    if (i__5714 < count__5713) {
+      var f = cljs.core._nth.call(null, chunk__5712, i__5714);
+      f.call(null);
+      var G__5715 = seq__5711;
+      var G__5716 = chunk__5712;
+      var G__5717 = count__5713;
+      var G__5718 = i__5714 + 1;
+      seq__5711 = G__5715;
+      chunk__5712 = G__5716;
+      count__5713 = G__5717;
+      i__5714 = G__5718;
+      continue;
+    } else {
+      var temp__4092__auto__ = cljs.core.seq.call(null, seq__5711);
+      if (temp__4092__auto__) {
+        var seq__5711__$1 = temp__4092__auto__;
+        if (cljs.core.chunked_seq_QMARK_.call(null, seq__5711__$1)) {
+          var c__4210__auto__ = cljs.core.chunk_first.call(null, seq__5711__$1);
+          var G__5719 = cljs.core.chunk_rest.call(null, seq__5711__$1);
+          var G__5720 = c__4210__auto__;
+          var G__5721 = cljs.core.count.call(null, c__4210__auto__);
+          var G__5722 = 0;
+          seq__5711 = G__5719;
+          chunk__5712 = G__5720;
+          count__5713 = G__5721;
+          i__5714 = G__5722;
+          continue;
+        } else {
+          var f = cljs.core.first.call(null, seq__5711__$1);
+          f.call(null);
+          var G__5723 = cljs.core.next.call(null, seq__5711__$1);
+          var G__5724 = null;
+          var G__5725 = 0;
+          var G__5726 = 0;
+          seq__5711 = G__5723;
+          chunk__5712 = G__5724;
+          count__5713 = G__5725;
+          i__5714 = G__5726;
+          continue;
+        }
+      } else {
+        return null;
+      }
+    }
+    break;
+  }
+};
+om.core.roots = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
+om.core.valid_QMARK_ = function valid_QMARK_(m) {
+  return cljs.core.every_QMARK_.call(null, new cljs.core.PersistentHashSet(null, new cljs.core.PersistentArrayMap(null, 10, [new cljs.core.Keyword(null, "init-state", "init-state", 4479067398), null, new cljs.core.Keyword(null, "ctor", "ctor", 1016968582), null, new cljs.core.Keyword(null, "state", "state", 1123661827), null, new cljs.core.Keyword(null, "react-key", "react-key", 4184082563), null, new cljs.core.Keyword("om.core", "index", "om.core/index", 3166146514), null, new cljs.core.Keyword(null, 
+  "key", "key", 1014010321), null, new cljs.core.Keyword(null, "instrument", "instrument", 2409387865), null, new cljs.core.Keyword(null, "shared", "shared", 4405305303), null, new cljs.core.Keyword(null, "opts", "opts", 1017322386), null, new cljs.core.Keyword(null, "fn", "fn", 1013907514), null], null), null), cljs.core.keys.call(null, m));
+};
+om.core.id = function id(owner) {
+  return owner.state["__om_id"];
+};
+om.core.build_STAR_ = function() {
+  var build_STAR_ = null;
+  var build_STAR___2 = function(f, cursor) {
+    return build_STAR_.call(null, f, cursor, null);
+  };
+  var build_STAR___3 = function(f, cursor, m) {
+    if (om.core.valid_QMARK_.call(null, m)) {
+    } else {
+      throw new Error([cljs.core.str("Assert failed: "), cljs.core.str(cljs.core.apply.call(null, cljs.core.str, "build options contains invalid keys, only :key, :react-key, ", ":fn, :init-state, :state, and :opts allowed, given ", cljs.core.interpose.call(null, ", ", cljs.core.keys.call(null, m)))), cljs.core.str("\n"), cljs.core.str(cljs.core.pr_str.call(null, cljs.core.list(new cljs.core.Symbol(null, "valid?", "valid?", 1830611324, null), new cljs.core.Symbol(null, "m", "m", -1640531418, null))))].join(""));
+    }
+    if (m == null) {
+      var shared = function() {
+        var or__3462__auto__ = (new cljs.core.Keyword(null, "shared", "shared", 4405305303)).cljs$core$IFn$_invoke$arity$1(m);
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return om.core.get_shared.call(null, om.core._STAR_parent_STAR_);
+        }
+      }();
+      var ctor = function() {
+        var or__3462__auto__ = (new cljs.core.Keyword(null, "ctor", "ctor", 1016968582)).cljs$core$IFn$_invoke$arity$1(m);
+        if (cljs.core.truth_(or__3462__auto__)) {
+          return or__3462__auto__;
+        } else {
+          return om.core.pure;
+        }
+      }();
+      var pure__5455__auto__ = ctor.call(null, {"children":function(shared, ctor) {
+        return function(this$) {
+          var _STAR_read_enabled_STAR_5731 = om.core._STAR_read_enabled_STAR_;
+          try {
+            om.core._STAR_read_enabled_STAR_ = true;
+            return f.call(null, cursor, this$);
+          } finally {
+            om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5731;
+          }
+        };
+      }(shared, ctor), "__om_instrument":om.core._STAR_instrument_STAR_, "__om_shared":shared, "__om_cursor":cursor});
+      pure__5455__auto__.constructor = goog.getUid(f);
+      return pure__5455__auto__;
+    } else {
+      if (new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+        var map__5732 = m;
+        var map__5732__$1 = cljs.core.seq_QMARK_.call(null, map__5732) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5732) : map__5732;
+        var opts = cljs.core.get.call(null, map__5732__$1, new cljs.core.Keyword(null, "opts", "opts", 1017322386));
+        var init_state = cljs.core.get.call(null, map__5732__$1, new cljs.core.Keyword(null, "init-state", "init-state", 4479067398));
+        var state = cljs.core.get.call(null, map__5732__$1, new cljs.core.Keyword(null, "state", "state", 1123661827));
+        var key = cljs.core.get.call(null, map__5732__$1, new cljs.core.Keyword(null, "key", "key", 1014010321));
+        var dataf = cljs.core.get.call(null, m, new cljs.core.Keyword(null, "fn", "fn", 1013907514));
+        var cursor_SINGLEQUOTE_ = !(dataf == null) ? dataf.call(null, cursor) : cursor;
+        var rkey = !(key == null) ? cljs.core.get.call(null, cursor_SINGLEQUOTE_, key) : cljs.core.get.call(null, m, new cljs.core.Keyword(null, "react-key", "react-key", 4184082563));
+        var shared = function() {
+          var or__3462__auto__ = (new cljs.core.Keyword(null, "shared", "shared", 4405305303)).cljs$core$IFn$_invoke$arity$1(m);
+          if (cljs.core.truth_(or__3462__auto__)) {
+            return or__3462__auto__;
+          } else {
+            return om.core.get_shared.call(null, om.core._STAR_parent_STAR_);
+          }
+        }();
+        var ctor = function() {
+          var or__3462__auto__ = (new cljs.core.Keyword(null, "ctor", "ctor", 1016968582)).cljs$core$IFn$_invoke$arity$1(m);
+          if (cljs.core.truth_(or__3462__auto__)) {
+            return or__3462__auto__;
+          } else {
+            return om.core.pure;
+          }
+        }();
+        var pure__5455__auto__ = ctor.call(null, {"children":opts == null ? function(map__5732, map__5732__$1, opts, init_state, state, key, dataf, cursor_SINGLEQUOTE_, rkey, shared, ctor) {
+          return function(this$) {
+            var _STAR_read_enabled_STAR_5733 = om.core._STAR_read_enabled_STAR_;
+            try {
+              om.core._STAR_read_enabled_STAR_ = true;
+              return f.call(null, cursor_SINGLEQUOTE_, this$);
+            } finally {
+              om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5733;
+            }
+          };
+        }(map__5732, map__5732__$1, opts, init_state, state, key, dataf, cursor_SINGLEQUOTE_, rkey, shared, ctor) : function(map__5732, map__5732__$1, opts, init_state, state, key, dataf, cursor_SINGLEQUOTE_, rkey, shared, ctor) {
+          return function(this$) {
+            var _STAR_read_enabled_STAR_5734 = om.core._STAR_read_enabled_STAR_;
+            try {
+              om.core._STAR_read_enabled_STAR_ = true;
+              return f.call(null, cursor_SINGLEQUOTE_, this$, opts);
+            } finally {
+              om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5734;
+            }
+          };
+        }(map__5732, map__5732__$1, opts, init_state, state, key, dataf, cursor_SINGLEQUOTE_, rkey, shared, ctor), "key":rkey, "__om_instrument":om.core._STAR_instrument_STAR_, "__om_shared":shared, "__om_state":state, "__om_init_state":init_state, "__om_index":(new cljs.core.Keyword("om.core", "index", "om.core/index", 3166146514)).cljs$core$IFn$_invoke$arity$1(m), "__om_cursor":cursor_SINGLEQUOTE_});
+        pure__5455__auto__.constructor = goog.getUid(f);
+        return pure__5455__auto__;
+      } else {
+        return null;
+      }
+    }
+  };
+  build_STAR_ = function(f, cursor, m) {
+    switch(arguments.length) {
+      case 2:
+        return build_STAR___2.call(this, f, cursor);
+      case 3:
+        return build_STAR___3.call(this, f, cursor, m);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  build_STAR_.cljs$core$IFn$_invoke$arity$2 = build_STAR___2;
+  build_STAR_.cljs$core$IFn$_invoke$arity$3 = build_STAR___3;
+  return build_STAR_;
+}();
+om.core.build = function() {
+  var build = null;
+  var build__2 = function(f, cursor) {
+    return build.call(null, f, cursor, null);
+  };
+  var build__3 = function(f, cursor, m) {
+    if (!(om.core._STAR_instrument_STAR_ == null)) {
+      var ret = function() {
+        var _STAR_read_enabled_STAR_5736 = om.core._STAR_read_enabled_STAR_;
+        try {
+          om.core._STAR_read_enabled_STAR_ = true;
+          return om.core._STAR_instrument_STAR_.call(null, f, cursor, m);
+        } finally {
+          om.core._STAR_read_enabled_STAR_ = _STAR_read_enabled_STAR_5736;
+        }
+      }();
+      if (cljs.core._EQ_.call(null, ret, new cljs.core.Keyword("om.core", "pass", "om.core/pass", 2667619603))) {
+        return om.core.build_STAR_.call(null, f, cursor, m);
+      } else {
+        return ret;
+      }
+    } else {
+      return om.core.build_STAR_.call(null, f, cursor, m);
+    }
+  };
+  build = function(f, cursor, m) {
+    switch(arguments.length) {
+      case 2:
+        return build__2.call(this, f, cursor);
+      case 3:
+        return build__3.call(this, f, cursor, m);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  build.cljs$core$IFn$_invoke$arity$2 = build__2;
+  build.cljs$core$IFn$_invoke$arity$3 = build__3;
+  return build;
+}();
+om.core.build_all = function() {
+  var build_all = null;
+  var build_all__2 = function(f, xs) {
+    return build_all.call(null, f, xs, null);
+  };
+  var build_all__3 = function(f, xs, m) {
+    return cljs.core.map.call(null, function(x, i) {
+      return om.core.build.call(null, f, x, cljs.core.assoc.call(null, m, new cljs.core.Keyword("om.core", "index", "om.core/index", 3166146514), i));
+    }, xs, cljs.core.range.call(null));
+  };
+  build_all = function(f, xs, m) {
+    switch(arguments.length) {
+      case 2:
+        return build_all__2.call(this, f, xs);
+      case 3:
+        return build_all__3.call(this, f, xs, m);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  build_all.cljs$core$IFn$_invoke$arity$2 = build_all__2;
+  build_all.cljs$core$IFn$_invoke$arity$3 = build_all__3;
+  return build_all;
+}();
+om.core.root = function root(f, value, p__5737) {
+  var map__5743 = p__5737;
+  var map__5743__$1 = cljs.core.seq_QMARK_.call(null, map__5743) ? cljs.core.apply.call(null, cljs.core.hash_map, map__5743) : map__5743;
+  var options = map__5743__$1;
+  var instrument = cljs.core.get.call(null, map__5743__$1, new cljs.core.Keyword(null, "instrument", "instrument", 2409387865));
+  var path = cljs.core.get.call(null, map__5743__$1, new cljs.core.Keyword(null, "path", "path", 1017337751));
+  var tx_listen = cljs.core.get.call(null, map__5743__$1, new cljs.core.Keyword(null, "tx-listen", "tx-listen", 666878114));
+  var shared = cljs.core.get.call(null, map__5743__$1, new cljs.core.Keyword(null, "shared", "shared", 4405305303));
+  var target = cljs.core.get.call(null, map__5743__$1, new cljs.core.Keyword(null, "target", "target", 4427965699));
+  if (!(target == null)) {
+  } else {
+    throw new Error([cljs.core.str("Assert failed: "), cljs.core.str("No target specified to om.core/root"), cljs.core.str("\n"), cljs.core.str(cljs.core.pr_str.call(null, cljs.core.list(new cljs.core.Symbol(null, "not", "not", -1640422260, null), cljs.core.list(new cljs.core.Symbol(null, "nil?", "nil?", -1637150201, null), new cljs.core.Symbol(null, "target", "target", 1773529930, null)))))].join(""));
+  }
+  var roots_SINGLEQUOTE__5748 = cljs.core.deref.call(null, om.core.roots);
+  if (cljs.core.contains_QMARK_.call(null, roots_SINGLEQUOTE__5748, target)) {
+    cljs.core.get.call(null, roots_SINGLEQUOTE__5748, target).call(null);
+  } else {
+  }
+  var state = function() {
+    var G__5744 = value;
+    if (G__5744) {
+      var bit__4112__auto__ = G__5744.cljs$lang$protocol_mask$partition1$ & 16384;
+      if (bit__4112__auto__ || G__5744.cljs$core$IAtom$) {
+        return true;
+      } else {
+        if (!G__5744.cljs$lang$protocol_mask$partition1$) {
+          return cljs.core.native_satisfies_QMARK_.call(null, cljs.core.IAtom, G__5744);
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return cljs.core.native_satisfies_QMARK_.call(null, cljs.core.IAtom, G__5744);
+    }
+  }() ? value : cljs.core.atom.call(null, value);
+  var state__$1 = function() {
+    var x5745 = state;
+    x5745.om$core$INotify$ = true;
+    x5745.om$core$INotify$_notify$arity$3 = function(x5745, state, map__5743, map__5743__$1, options, instrument, path, tx_listen, shared, target) {
+      return function(_, tx_data, root_cursor) {
+        var ___$1 = this;
+        if (tx_listen == null) {
+          return null;
+        } else {
+          return tx_listen.call(null, tx_data, root_cursor);
+        }
+      };
+    }(x5745, state, map__5743, map__5743__$1, options, instrument, path, tx_listen, shared, target);
+    return x5745;
+  }();
+  var m = cljs.core.dissoc.call(null, options, new cljs.core.Keyword(null, "target", "target", 4427965699), new cljs.core.Keyword(null, "tx-listen", "tx-listen", 666878114), new cljs.core.Keyword(null, "path", "path", 1017337751));
+  var rootf = function(state, state__$1, m, map__5743, map__5743__$1, options, instrument, path, tx_listen, shared, target) {
+    return function rootf() {
+      cljs.core.swap_BANG_.call(null, om.core.refresh_set, cljs.core.disj, rootf);
+      var value__$1 = cljs.core.deref.call(null, state__$1);
+      var cursor = path == null ? om.core.to_cursor.call(null, value__$1, state__$1, cljs.core.PersistentVector.EMPTY) : om.core.to_cursor.call(null, cljs.core.get_in.call(null, value__$1, path), state__$1, path);
+      return om.dom.render.call(null, function() {
+        var _STAR_instrument_STAR_5747 = om.core._STAR_instrument_STAR_;
+        try {
+          om.core._STAR_instrument_STAR_ = instrument;
+          return om.core.build.call(null, f, cursor, m);
+        } finally {
+          om.core._STAR_instrument_STAR_ = _STAR_instrument_STAR_5747;
+        }
+      }(), target);
+    };
+  }(state, state__$1, m, map__5743, map__5743__$1, options, instrument, path, tx_listen, shared, target);
+  var watch_key = cljs.core.gensym.call(null);
+  cljs.core.add_watch.call(null, state__$1, watch_key, function(state, state__$1, m, rootf, watch_key, map__5743, map__5743__$1, options, instrument, path, tx_listen, shared, target) {
+    return function(_, ___$1, ___$2, ___$3) {
+      if (cljs.core.contains_QMARK_.call(null, cljs.core.deref.call(null, om.core.refresh_set), rootf)) {
+      } else {
+        cljs.core.swap_BANG_.call(null, om.core.refresh_set, cljs.core.conj, rootf);
+      }
+      if (cljs.core.truth_(om.core.refresh_queued)) {
+        return null;
+      } else {
+        om.core.refresh_queued = true;
+        if (typeof requestAnimationFrame !== "undefined") {
+          return requestAnimationFrame(om.core.render_all);
+        } else {
+          return setTimeout(om.core.render_all, 16);
+        }
+      }
+    };
+  }(state, state__$1, m, rootf, watch_key, map__5743, map__5743__$1, options, instrument, path, tx_listen, shared, target));
+  cljs.core.swap_BANG_.call(null, om.core.roots, cljs.core.assoc, target, function(state, state__$1, m, rootf, watch_key, map__5743, map__5743__$1, options, instrument, path, tx_listen, shared, target) {
+    return function() {
+      cljs.core.remove_watch.call(null, state__$1, watch_key);
+      cljs.core.swap_BANG_.call(null, om.core.roots, cljs.core.dissoc, target);
+      return React.unmountComponentAtNode(target);
+    };
+  }(state, state__$1, m, rootf, watch_key, map__5743, map__5743__$1, options, instrument, path, tx_listen, shared, target));
+  return rootf.call(null);
+};
+om.core.transact_BANG_ = function() {
+  var transact_BANG_ = null;
+  var transact_BANG___2 = function(cursor, f) {
+    return transact_BANG_.call(null, cursor, cljs.core.PersistentVector.EMPTY, f, null);
+  };
+  var transact_BANG___3 = function(cursor, korks, f) {
+    return transact_BANG_.call(null, cursor, korks, f, null);
+  };
+  var transact_BANG___4 = function(cursor, korks, f, tag) {
+    var korks__$1 = korks == null ? cljs.core.PersistentVector.EMPTY : cljs.core.sequential_QMARK_.call(null, korks) ? korks : new cljs.core.Keyword(null, "else", "else", 1017020587) ? new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [korks], null) : null;
+    return om.core._transact_BANG_.call(null, cursor, korks__$1, f, tag);
+  };
+  transact_BANG_ = function(cursor, korks, f, tag) {
+    switch(arguments.length) {
+      case 2:
+        return transact_BANG___2.call(this, cursor, korks);
+      case 3:
+        return transact_BANG___3.call(this, cursor, korks, f);
+      case 4:
+        return transact_BANG___4.call(this, cursor, korks, f, tag);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  transact_BANG_.cljs$core$IFn$_invoke$arity$2 = transact_BANG___2;
+  transact_BANG_.cljs$core$IFn$_invoke$arity$3 = transact_BANG___3;
+  transact_BANG_.cljs$core$IFn$_invoke$arity$4 = transact_BANG___4;
+  return transact_BANG_;
+}();
+om.core.update_BANG_ = function() {
+  var update_BANG_ = null;
+  var update_BANG___2 = function(cursor, v) {
+    return om.core.transact_BANG_.call(null, cursor, cljs.core.PersistentVector.EMPTY, function(_) {
+      return v;
+    }, null);
+  };
+  var update_BANG___3 = function(cursor, korks, v) {
+    return om.core.transact_BANG_.call(null, cursor, korks, function(_) {
+      return v;
+    }, null);
+  };
+  var update_BANG___4 = function(cursor, korks, v, tag) {
+    return om.core.transact_BANG_.call(null, cursor, korks, function(_) {
+      return v;
+    }, tag);
+  };
+  update_BANG_ = function(cursor, korks, v, tag) {
+    switch(arguments.length) {
+      case 2:
+        return update_BANG___2.call(this, cursor, korks);
+      case 3:
+        return update_BANG___3.call(this, cursor, korks, v);
+      case 4:
+        return update_BANG___4.call(this, cursor, korks, v, tag);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  update_BANG_.cljs$core$IFn$_invoke$arity$2 = update_BANG___2;
+  update_BANG_.cljs$core$IFn$_invoke$arity$3 = update_BANG___3;
+  update_BANG_.cljs$core$IFn$_invoke$arity$4 = update_BANG___4;
+  return update_BANG_;
+}();
+om.core.get_node = function() {
+  var get_node = null;
+  var get_node__1 = function(owner) {
+    return owner.getDOMNode();
+  };
+  var get_node__2 = function(owner, name) {
+    var temp__4092__auto__ = owner.refs;
+    if (cljs.core.truth_(temp__4092__auto__)) {
+      var refs = temp__4092__auto__;
+      return refs[name].getDOMNode();
+    } else {
+      return null;
+    }
+  };
+  get_node = function(owner, name) {
+    switch(arguments.length) {
+      case 1:
+        return get_node__1.call(this, owner);
+      case 2:
+        return get_node__2.call(this, owner, name);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  get_node.cljs$core$IFn$_invoke$arity$1 = get_node__1;
+  get_node.cljs$core$IFn$_invoke$arity$2 = get_node__2;
+  return get_node;
+}();
+om.core.set_state_BANG_ = function() {
+  var set_state_BANG_ = null;
+  var set_state_BANG___2 = function(owner, v) {
+    return om.core._set_state_BANG_.call(null, owner, v);
+  };
+  var set_state_BANG___3 = function(owner, korks, v) {
+    var ks = cljs.core.sequential_QMARK_.call(null, korks) ? korks : new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [korks], null);
+    return om.core._set_state_BANG_.call(null, owner, ks, v);
+  };
+  set_state_BANG_ = function(owner, korks, v) {
+    switch(arguments.length) {
+      case 2:
+        return set_state_BANG___2.call(this, owner, korks);
+      case 3:
+        return set_state_BANG___3.call(this, owner, korks, v);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  set_state_BANG_.cljs$core$IFn$_invoke$arity$2 = set_state_BANG___2;
+  set_state_BANG_.cljs$core$IFn$_invoke$arity$3 = set_state_BANG___3;
+  return set_state_BANG_;
+}();
+om.core.update_state_BANG_ = function() {
+  var update_state_BANG_ = null;
+  var update_state_BANG___2 = function(owner, f) {
+    return om.core.set_state_BANG_.call(null, owner, f.call(null, om.core.get_state.call(null, owner)));
+  };
+  var update_state_BANG___3 = function(owner, korks, f) {
+    return om.core.set_state_BANG_.call(null, owner, korks, f.call(null, om.core.get_state.call(null, owner, korks)));
+  };
+  update_state_BANG_ = function(owner, korks, f) {
+    switch(arguments.length) {
+      case 2:
+        return update_state_BANG___2.call(this, owner, korks);
+      case 3:
+        return update_state_BANG___3.call(this, owner, korks, f);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  update_state_BANG_.cljs$core$IFn$_invoke$arity$2 = update_state_BANG___2;
+  update_state_BANG_.cljs$core$IFn$_invoke$arity$3 = update_state_BANG___3;
+  return update_state_BANG_;
+}();
+om.core.refresh_BANG_ = function refresh_BANG_(owner) {
+  return om.core.update_state_BANG_.call(null, owner, cljs.core.identity);
+};
+om.core.get_render_state = function() {
+  var get_render_state = null;
+  var get_render_state__1 = function(owner) {
+    return om.core._get_render_state.call(null, owner);
+  };
+  var get_render_state__2 = function(owner, korks) {
+    var ks = cljs.core.sequential_QMARK_.call(null, korks) ? korks : new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [korks], null);
+    return om.core._get_render_state.call(null, owner, ks);
+  };
+  get_render_state = function(owner, korks) {
+    switch(arguments.length) {
+      case 1:
+        return get_render_state__1.call(this, owner);
+      case 2:
+        return get_render_state__2.call(this, owner, korks);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  get_render_state.cljs$core$IFn$_invoke$arity$1 = get_render_state__1;
+  get_render_state.cljs$core$IFn$_invoke$arity$2 = get_render_state__2;
+  return get_render_state;
+}();
+om.core.graft = function graft(value, cursor) {
+  var state = om.core._state.call(null, cursor);
+  var path = om.core._path.call(null, cursor);
+  if (om.core.cursor_QMARK_.call(null, value)) {
+    throw new Error([cljs.core.str(value), cljs.core.str(" is already a cursor.")].join(""));
+  } else {
+    var x5750 = cljs.core.clone.call(null, value);
+    x5750.om$core$ICursor$ = true;
+    x5750.om$core$ICursor$_state$arity$1 = function(x5750, state, path) {
+      return function(_) {
+        var ___$1 = this;
+        return state;
+      };
+    }(x5750, state, path);
+    x5750.om$core$ICursor$_path$arity$1 = function(x5750, state, path) {
+      return function(_) {
+        var ___$1 = this;
+        return path;
+      };
+    }(x5750, state, path);
+    x5750.om$core$ITransact$ = true;
+    x5750.om$core$ITransact$_transact_BANG_$arity$4 = function(x5750, state, path) {
+      return function(_, ___$1, ___$2, ___$3) {
+        var ___$4 = this;
+        throw new Error("Cannot transact on graft");
+      };
+    }(x5750, state, path);
+    return x5750;
+  }
+};
+goog.provide("seeduml.image");
+goog.require("cljs.core");
+goog.require("om.dom");
+goog.require("om.dom");
+goog.require("om.core");
+goog.require("om.core");
+goog.require("seeduml.model");
+goog.require("seeduml.model");
+seeduml.image.gen_src = function gen_src(pad) {
+  var millis = (new Date).getTime();
+  var src = [cljs.core.str("/img/"), cljs.core.str(pad), cljs.core.str(".png#"), cljs.core.str(millis)].join("");
+  return src;
+};
+seeduml.image.render_image = function render_image(app_state, owner_state) {
+  var src = seeduml.image.gen_src.call(null, seeduml.model.get_pad_id.call(null));
+  console.log("src is ", src);
+  return React.DOM.img({"src":src}, seeduml.model.fetch.call(null, new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null, "editor", "editor", 4001043679), new cljs.core.Keyword(null, "code", "code", 1016963423)], null)));
+};
+seeduml.image.find_image = function find_image() {
+  return document.getElementById("graph-container");
+};
+om.core.root.call(null, seeduml.image.render_image, seeduml.model.app, new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null, "target", "target", 4427965699), seeduml.image.find_image.call(null)], null));
