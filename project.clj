@@ -26,4 +26,4 @@
                  [clojurewerkz/neocons "2.0.0"]
                  [org.clojure/core.async "0.1.278.0-76b25b-alpha"]
                  [environ "0.4.0"]
-                 [net.sourceforge.plantuml/plantuml "7972"]])
+                 [net.sourceforge.plantuml/plantuml "7995"]])
