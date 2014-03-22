@@ -13,7 +13,7 @@
 (defn set-timer
   "Resets the repainting timer"
   [editor]
-  (aset editor "timer" (js/setTimeout #(version-code editor) 300)))
+  (aset editor "timer" (js/setTimeout #(version-code editor) 100)))
 
 (defn clear-timer
   "Cancels the repainting timer"
