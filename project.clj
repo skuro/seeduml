@@ -16,7 +16,7 @@
                          :optimizations :whitespace
                          :pretty-print true}}]}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/clojurescript "0.0-2194"
+                 [org.clojure/clojurescript "0.0-2173"
                                    :exclusions [org.apache.ant/ant]]
                  [om "0.5.3"]
                  [cljs-ajax "0.2.3"]
