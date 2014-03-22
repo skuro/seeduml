@@ -47517,57 +47517,43 @@ seeduml.menu.find_menu = function find_menu() {
   return document.getElementById("help-container");
 };
 seeduml.menu.menu_entry = function menu_entry(entry, owner) {
-  if (typeof seeduml.menu.t14630 !== "undefined") {
+  if (typeof seeduml.menu.t18996 !== "undefined") {
   } else {
-    seeduml.menu.t14630 = function(owner, entry, menu_entry, meta14631) {
+    seeduml.menu.t18996 = function(owner, entry, menu_entry, meta18997) {
       this.owner = owner;
       this.entry = entry;
       this.menu_entry = menu_entry;
-      this.meta14631 = meta14631;
+      this.meta18997 = meta18997;
       this.cljs$lang$protocol_mask$partition1$ = 0;
       this.cljs$lang$protocol_mask$partition0$ = 393216;
     };
-    seeduml.menu.t14630.cljs$lang$type = true;
-    seeduml.menu.t14630.cljs$lang$ctorStr = "seeduml.menu/t14630";
-    seeduml.menu.t14630.cljs$lang$ctorPrWriter = function(this__4029__auto__, writer__4030__auto__, opt__4031__auto__) {
-      return cljs.core._write.call(null, writer__4030__auto__, "seeduml.menu/t14630");
+    seeduml.menu.t18996.cljs$lang$type = true;
+    seeduml.menu.t18996.cljs$lang$ctorStr = "seeduml.menu/t18996";
+    seeduml.menu.t18996.cljs$lang$ctorPrWriter = function(this__4029__auto__, writer__4030__auto__, opt__4031__auto__) {
+      return cljs.core._write.call(null, writer__4030__auto__, "seeduml.menu/t18996");
     };
-    seeduml.menu.t14630.prototype.om$core$IRender$ = true;
-    seeduml.menu.t14630.prototype.om$core$IRender$render$arity$1 = function(_) {
+    seeduml.menu.t18996.prototype.om$core$IRender$ = true;
+    seeduml.menu.t18996.prototype.om$core$IRender$render$arity$1 = function(_) {
       var self__ = this;
       var ___$1 = this;
       var link = (new cljs.core.Keyword(null, "link", "link", 1017226092)).cljs$core$IFn$_invoke$arity$1(self__.entry);
       return React.DOM.li(null, React.DOM.a(link, (new cljs.core.Keyword(null, "label", "label", 1116631654)).cljs$core$IFn$_invoke$arity$1(self__.entry)));
     };
-    seeduml.menu.t14630.prototype.cljs$core$IMeta$_meta$arity$1 = function(_14632) {
+    seeduml.menu.t18996.prototype.cljs$core$IMeta$_meta$arity$1 = function(_18998) {
       var self__ = this;
-      var _14632__$1 = this;
-      return self__.meta14631;
+      var _18998__$1 = this;
+      return self__.meta18997;
     };
-    seeduml.menu.t14630.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = function(_14632, meta14631__$1) {
+    seeduml.menu.t18996.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = function(_18998, meta18997__$1) {
       var self__ = this;
-      var _14632__$1 = this;
-      return new seeduml.menu.t14630(self__.owner, self__.entry, self__.menu_entry, meta14631__$1);
+      var _18998__$1 = this;
+      return new seeduml.menu.t18996(self__.owner, self__.entry, self__.menu_entry, meta18997__$1);
     };
-    seeduml.menu.__GT_t14630 = function __GT_t14630(owner__$1, entry__$1, menu_entry__$1, meta14631) {
-      return new seeduml.menu.t14630(owner__$1, entry__$1, menu_entry__$1, meta14631);
+    seeduml.menu.__GT_t18996 = function __GT_t18996(owner__$1, entry__$1, menu_entry__$1, meta18997) {
+      return new seeduml.menu.t18996(owner__$1, entry__$1, menu_entry__$1, meta18997);
     };
   }
-  return new seeduml.menu.t14630(owner, entry, menu_entry, null);
-};
-seeduml.menu.switch_visible = function switch_visible(active_QMARK_) {
-  if (cljs.core.truth_(active_QMARK_)) {
-    return{"style":{"visibility":"visible"}, "id":"settings-menu"};
-  } else {
-    return{"id":"settings-menu"};
-  }
-};
-seeduml.menu.switch_active = function switch_active(active_QMARK_) {
-  if (cljs.core.truth_(active_QMARK_)) {
-    return{"className":"help active", "id":"help"};
-  } else {
-    return{"className":"help", "id":"help"};
-  }
+  return new seeduml.menu.t18996(owner, entry, menu_entry, null);
 };
 seeduml.menu.toggle = function toggle(cursor) {
   return function(e) {
@@ -47580,10 +47566,24 @@ seeduml.menu.toggle = function toggle(cursor) {
     });
   };
 };
+seeduml.menu.switch_visible = function switch_visible(active_QMARK_) {
+  if (cljs.core.truth_(active_QMARK_)) {
+    return{"style":{"visibility":"visible"}, "id":"settings-menu"};
+  } else {
+    return{"id":"settings-menu"};
+  }
+};
+seeduml.menu.switch_active = function switch_active(active_QMARK_, app) {
+  if (cljs.core.truth_(active_QMARK_)) {
+    return{"onClick":seeduml.menu.toggle.call(null, app), "className":"help active", "id":"help"};
+  } else {
+    return{"onClick":seeduml.menu.toggle.call(null, app), "className":"help", "id":"help"};
+  }
+};
 seeduml.menu.menu = function menu(app, owner) {
   var active_QMARK_ = (new cljs.core.Keyword(null, "active", "active", 3885920888)).cljs$core$IFn$_invoke$arity$1(app);
   var attrs = seeduml.menu.switch_visible.call(null, active_QMARK_);
-  return React.DOM.span(seeduml.menu.switch_active.call(null, active_QMARK_), React.DOM.a({"onClick":seeduml.menu.toggle.call(null, app), "href":"#"}, "\u2630"), React.DOM.div(attrs, React.DOM.div(null, cljs.core.apply.call(null, om.dom.ul, null, om.core.build_all.call(null, seeduml.menu.menu_entry, (new cljs.core.Keyword(null, "entries", "entries", 3717298178)).cljs$core$IFn$_invoke$arity$1(app), cljs.core.PersistentArrayMap.EMPTY)))));
+  return React.DOM.span(seeduml.menu.switch_active.call(null, active_QMARK_, app), React.DOM.a({"href":"#"}, "\u2630"), React.DOM.div(attrs, React.DOM.div(null, cljs.core.apply.call(null, om.dom.ul, null, om.core.build_all.call(null, seeduml.menu.menu_entry, (new cljs.core.Keyword(null, "entries", "entries", 3717298178)).cljs$core$IFn$_invoke$arity$1(app), cljs.core.PersistentArrayMap.EMPTY)))));
 };
 om.core.root.call(null, seeduml.menu.menu, seeduml.menu.app_state, new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null, "target", "target", 4427965699), seeduml.menu.find_menu.call(null)], null));
 goog.provide("seeduml.image");
