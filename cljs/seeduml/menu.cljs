@@ -1,11 +1,14 @@
 (ns seeduml.menu
   (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]))
+            [om.dom :as dom :include-macros true]
+            [seeduml.about :as about]))
 
 (def app-state (atom {:active false
                       :entries [{:label "About"
                                  :link #js{:id "about-menu-link"
-                                           :href "#"}}]}))
+                                           :href "#"
+                                           :onClick (fn [e]
+                                                      (about/show))}}]}))
 
 (defn find-menu
   "Locates the menu in the DOM"
