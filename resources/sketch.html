@@ -38,7 +38,7 @@
             <script id='flattrbtn'>(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//api.flattr.com/button/view/?uid=skuro&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('flattrbtn');</script>
           </div>
           <div class="span-1 spacer"></div>
-          <div class="span-1 last">
+          <div class="span-1 last" id="help-container">
             <span class="help" id="help">
               <a href="#">&#9776;</a>
               <div id="settings-menu">
@@ -80,7 +80,10 @@
       <script type="text/javascript" src="/script/seeduml.js">
       </script>
 
-      <script type="text/javascript">goog.require("seeduml.image");</script>
+      <script type="text/javascript">
+        goog.require("seeduml.image");
+        goog.require("seeduml.menu");
+      </script>
 
       <script type="text/javascript"><!--
                   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

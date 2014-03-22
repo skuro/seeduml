@@ -42028,15 +42028,6 @@ goog.require("clojure.browser.repl");
 clojure.browser.repl.connect.call(null, "http://localhost:9000/repl");
 var textArea_5940 = document.getElementById("plantuml");
 seeduml.editor.init.call(null, textArea_5940);
-goog.provide("goog.ui.IdGenerator");
-goog.ui.IdGenerator = function() {
-};
-goog.addSingletonGetter(goog.ui.IdGenerator);
-goog.ui.IdGenerator.prototype.nextId_ = 0;
-goog.ui.IdGenerator.prototype.getNextUniqueId = function() {
-  return ":" + (this.nextId_++).toString(36);
-};
-goog.ui.IdGenerator.instance = goog.ui.IdGenerator.getInstance();
 goog.provide("om.dom");
 goog.require("cljs.core");
 om.dom.a = function() {
@@ -44351,6 +44342,15 @@ om.dom.render = function render(component, el) {
 om.dom.render_to_str = function render_to_str(c) {
   return React.renderComponentToString(c);
 };
+goog.provide("goog.ui.IdGenerator");
+goog.ui.IdGenerator = function() {
+};
+goog.addSingletonGetter(goog.ui.IdGenerator);
+goog.ui.IdGenerator.prototype.nextId_ = 0;
+goog.ui.IdGenerator.prototype.getNextUniqueId = function() {
+  return ":" + (this.nextId_++).toString(36);
+};
+goog.ui.IdGenerator.instance = goog.ui.IdGenerator.getInstance();
 goog.provide("om.core");
 goog.require("cljs.core");
 goog.require("goog.ui.IdGenerator");
@@ -47053,6 +47053,87 @@ om.core.graft = function graft(value, cursor) {
     return x5750;
   }
 };
+goog.provide("seeduml.menu");
+goog.require("cljs.core");
+goog.require("om.dom");
+goog.require("om.dom");
+goog.require("om.core");
+goog.require("om.core");
+seeduml.menu.app_state = cljs.core.atom.call(null, new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "active", "active", 3885920888), false, new cljs.core.Keyword(null, "entries", "entries", 3717298178), new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "label", "label", 1116631654), "About", new cljs.core.Keyword(null, "link", "link", 1017226092), {"href":"#", "id":"about-menu-link"}], 
+null)], null)], null));
+seeduml.menu.find_menu = function find_menu() {
+  return document.getElementById("help-container");
+};
+seeduml.menu.menu_entry = function menu_entry(entry, owner) {
+  if (typeof seeduml.menu.t13230 !== "undefined") {
+  } else {
+    seeduml.menu.t13230 = function(owner, entry, menu_entry, meta13231) {
+      this.owner = owner;
+      this.entry = entry;
+      this.menu_entry = menu_entry;
+      this.meta13231 = meta13231;
+      this.cljs$lang$protocol_mask$partition1$ = 0;
+      this.cljs$lang$protocol_mask$partition0$ = 393216;
+    };
+    seeduml.menu.t13230.cljs$lang$type = true;
+    seeduml.menu.t13230.cljs$lang$ctorStr = "seeduml.menu/t13230";
+    seeduml.menu.t13230.cljs$lang$ctorPrWriter = function(this__4029__auto__, writer__4030__auto__, opt__4031__auto__) {
+      return cljs.core._write.call(null, writer__4030__auto__, "seeduml.menu/t13230");
+    };
+    seeduml.menu.t13230.prototype.om$core$IRender$ = true;
+    seeduml.menu.t13230.prototype.om$core$IRender$render$arity$1 = function(_) {
+      var self__ = this;
+      var ___$1 = this;
+      var link = (new cljs.core.Keyword(null, "link", "link", 1017226092)).cljs$core$IFn$_invoke$arity$1(self__.entry);
+      return React.DOM.li(null, React.DOM.a(link, (new cljs.core.Keyword(null, "label", "label", 1116631654)).cljs$core$IFn$_invoke$arity$1(self__.entry)));
+    };
+    seeduml.menu.t13230.prototype.cljs$core$IMeta$_meta$arity$1 = function(_13232) {
+      var self__ = this;
+      var _13232__$1 = this;
+      return self__.meta13231;
+    };
+    seeduml.menu.t13230.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = function(_13232, meta13231__$1) {
+      var self__ = this;
+      var _13232__$1 = this;
+      return new seeduml.menu.t13230(self__.owner, self__.entry, self__.menu_entry, meta13231__$1);
+    };
+    seeduml.menu.__GT_t13230 = function __GT_t13230(owner__$1, entry__$1, menu_entry__$1, meta13231) {
+      return new seeduml.menu.t13230(owner__$1, entry__$1, menu_entry__$1, meta13231);
+    };
+  }
+  return new seeduml.menu.t13230(owner, entry, menu_entry, null);
+};
+seeduml.menu.switch_visible = function switch_visible(active_QMARK_) {
+  if (cljs.core.truth_(active_QMARK_)) {
+    return{"style":{"visibility":"visible"}, "id":"settings-menu"};
+  } else {
+    return{"id":"settings-menu"};
+  }
+};
+seeduml.menu.switch_active = function switch_active(active_QMARK_) {
+  if (cljs.core.truth_(active_QMARK_)) {
+    return{"className":"help active", "id":"help"};
+  } else {
+    return{"className":"help", "id":"help"};
+  }
+};
+seeduml.menu.toggle = function toggle(cursor) {
+  return function(e) {
+    return om.core.transact_BANG_.call(null, cursor, new cljs.core.Keyword(null, "active", "active", 3885920888), function(active_QMARK_) {
+      if (cljs.core.truth_(active_QMARK_)) {
+        return false;
+      } else {
+        return true;
+      }
+    });
+  };
+};
+seeduml.menu.menu = function menu(app, owner) {
+  var active_QMARK_ = (new cljs.core.Keyword(null, "active", "active", 3885920888)).cljs$core$IFn$_invoke$arity$1(app);
+  var attrs = seeduml.menu.switch_visible.call(null, active_QMARK_);
+  return React.DOM.span(seeduml.menu.switch_active.call(null, active_QMARK_), React.DOM.a({"onClick":seeduml.menu.toggle.call(null, app), "href":"#"}, "\u2630"), React.DOM.div(attrs, React.DOM.div(null, cljs.core.apply.call(null, om.dom.ul, null, om.core.build_all.call(null, seeduml.menu.menu_entry, (new cljs.core.Keyword(null, "entries", "entries", 3717298178)).cljs$core$IFn$_invoke$arity$1(app), cljs.core.PersistentArrayMap.EMPTY)))));
+};
+om.core.root.call(null, seeduml.menu.menu, seeduml.menu.app_state, new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null, "target", "target", 4427965699), seeduml.menu.find_menu.call(null)], null));
 goog.provide("seeduml.image");
 goog.require("cljs.core");
 goog.require("cljs.core.async");
