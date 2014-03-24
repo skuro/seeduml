@@ -36,7 +36,8 @@
     om/IRender
     (render [_]
       (let [src (gen-src (model/get-pad-id) (:updated app-state))]
-        (dom/img #js {:src src} (model/fetch [:editor :code]))))))
+        (dom/img #js {:src src
+                      :id "graph"} (model/fetch [:editor :code]))))))
 
 (defn find-image
   "Locates where to render the image in the DOM"
