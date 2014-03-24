@@ -13,8 +13,10 @@
   :cljsbuild {
     :builds [{:source-paths ["cljs"]
               :compiler {:output-to "js/seeduml.js"
-                         :optimizations :whitespace
-                         :pretty-print true}}]}
+                         :optimizations :advanced
+                         :pretty-print false
+                         :externs ["js/externs.js"
+                                   "react/externs/react.js"]}}]}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/clojurescript "0.0-2173"
                                    :exclusions [org.apache.ant/ant]]
