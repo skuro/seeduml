@@ -7,18 +7,18 @@
                    :env {:neo4j-url "http://localhost:7474/db/data"}}}
   :uberjar-name "seeduml.jar"
   :min-lein-version "2.0.0"
-  :plugins [[lein-cljsbuild "1.0.2"]]
+  :plugins [[lein-cljsbuild "1.0.3"]]
   ; automatically compiles clojurescript sources during clean, compile, test, and jar
   :hooks [leiningen.cljsbuild]
   :cljsbuild {
     :builds [{:source-paths ["cljs"]
               :compiler {:output-to "js/seeduml.js"
-                         :optimizations :advanced
+                         ;:optimizations :advanced
                          :pretty-print false
                          :externs ["js/externs.js"
                                    "react/externs/react.js"]}}]}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/clojurescript "0.0-2173"
+                 [org.clojure/clojurescript "0.0-2202"
                                    :exclusions [org.apache.ant/ant]]
                  [om "0.5.3"]
                  [cljs-ajax "0.2.3"]
