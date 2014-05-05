@@ -13,7 +13,7 @@
   :cljsbuild {
     :builds [{:source-paths ["cljs"]
               :compiler {:output-to "js/seeduml.js"
-                         ;:optimizations :advanced
+                         :optimizations :advanced
                          :pretty-print false
                          :externs ["js/externs.js"
                                    "react/externs/react.js"]}}]}

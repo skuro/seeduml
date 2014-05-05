@@ -35,7 +35,17 @@
 (defn page-response [pad]
   (render/render-page pad (puml/get-puml pad)))
 
+(defn health-check []
+  ; so far, only check if the store is alive
+  (if-let [store (store/select-store)]
+    (response (str {:store "ok"}))))
+
 (defroutes seeduml-routes
+
+  ; health check
+  (POST "/ping" [] (health-check))
+
+  ; the homepage redirects to a random pad
   (GET "/" [] (redirect (str "/" (random-string id-length))))
 
   ; static resources
