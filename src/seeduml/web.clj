@@ -37,8 +37,14 @@
 
 (defn health-check []
   ; so far, only check if the store is alive
-  (if-let [store (store/select-store)]
-    (response (str {:store "ok"}))))
+  (let [alive-store (fn [] (store/with-store (store/get-category puml/category)))]
+    (try
+      (alive-store)
+      (response (str {:store "ok"}))
+      (catch Exception e
+        {:status 503
+         :headers {}
+         :body (str {:store "failed"})}))))
 
 (defroutes seeduml-routes
 
