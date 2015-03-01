@@ -12,7 +12,7 @@
 (defn gen-src
   "Generates a new image src URL to trigger browser reload"
   [pad stamp]
-  (str "/img/" pad ".png#" stamp))
+  (str "/img/" pad ".png?" stamp))
 
 (defn render-image
   "Om component constructor function. Takes care of re-rendering the image."
